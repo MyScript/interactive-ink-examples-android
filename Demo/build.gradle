@@ -1,0 +1,66 @@
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.filefilter.FileFilterUtils
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+
+        applicationId 'com.myscript.iink.demo'
+        versionCode 1
+        versionName '1.0.0'
+    }
+}
+
+dependencies {
+    compile "com.android.support:appcompat-v7:${project.ext.supportLibraryVersion}"
+    debugCompile project(path: ':UIReferenceImplementation', configuration: 'debug')
+    releaseCompile project(path: ':UIReferenceImplementation', configuration: 'release')
+}
+
+task DownloadAndExtractAssets(type: Copy) {
+    def sourceUrls = ['https://s3-us-west-2.amazonaws.com/iink/assets/1.0.0/myscript-iink-recognition-diagram.zip',
+                      'https://s3-us-west-2.amazonaws.com/iink/assets/1.0.0/myscript-iink-recognition-math.zip',
+                      'https://s3-us-west-2.amazonaws.com/iink/assets/1.0.0/myscript-iink-recognition-text-en_US.zip']
+    def temporaryDir = new File(projectDir, "build/assets")
+    def zipDir = new File(temporaryDir, "zips")
+    def mathConf = new File(projectDir, "src/main/assets/conf/math.conf")
+
+    if (!mathConf.exists()) {
+        temporaryDir.deleteOnExit()
+        if (!temporaryDir.isDirectory())
+            temporaryDir.mkdirs()
+
+        if (!zipDir.isDirectory())
+            zipDir.mkdirs()
+
+        sourceUrls.each { sourceUrl ->
+            ant.get(src: sourceUrl, dest: zipDir.getPath())
+        }
+
+        File[] zipFiles = FileUtils.listFiles(zipDir, FileFilterUtils.suffixFileFilter("zip"), FileFilterUtils.trueFileFilter())
+        zipFiles.each { File zipFile ->
+            from zipTree(zipFile)
+            into temporaryDir
+        }
+    }
+}
+
+task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
+    def recognitionAssetDir = new File(projectDir, "build/assets/recognition-assets/")
+    def targetDir = new File(projectDir, "src/main/assets/")
+    def mathConf = new File(targetDir, "conf/math.conf")
+
+    if (!mathConf.exists()) {
+        println "Copying downloaded assets from $recognitionAssetDir to $targetDir"
+        from recognitionAssetDir
+        into targetDir
+    }
+}
+
+preBuild.dependsOn(CopyAssets)

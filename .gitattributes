@@ -1,0 +1,11 @@
+* text=auto
+
+# git
+.gitignore text
+
+*.java text diff=java filter=expand-tabs
+*.xml text
+*.gradle text
+
+LICENSE text
+gradlew text eol=lf

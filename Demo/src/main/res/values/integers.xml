@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The duration (in milliseconds) of a tiny animation. -->
+    <integer name="config_tinyAnimTime">100</integer>
+</resources>

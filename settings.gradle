@@ -1,0 +1,6 @@
+rootProject.name = 'com.myscript.interactive-ink'
+
+include ':Demo', ':GetStarted', ':UIReferenceImplementation'
+project(':Demo').dir = new File(settingsDir, 'Demo')
+project(':GetStarted').dir = new File(settingsDir, 'GetStarted')
+project(':UIReferenceImplementation').dir = new File(settingsDir, 'UIReferenceImplementation')

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright MyScript. All rights reserved. -->
+
+<resources>
+  <declare-styleable name="LayerView">
+
+    <attr name="layerType" format="enum">
+      <enum name="BACKGROUND" value="0"/>
+      <enum name="MODEL" value="1"/>
+      <enum name="TEMPORARY" value="2"/>
+      <enum name="CAPTURE" value="3"/>
+    </attr>
+
+  </declare-styleable>
+</resources>

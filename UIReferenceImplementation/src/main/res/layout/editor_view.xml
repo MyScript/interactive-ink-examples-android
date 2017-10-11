@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto">
+
+    <com.myscript.iink.uireferenceimplementation.EditorView
+        android:id="@+id/editor_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:background="@android:color/white">
+
+        <com.myscript.iink.uireferenceimplementation.LayerView
+            android:id="@+id/layer_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginRight="0dp"
+            custom:layerType="BACKGROUND"/>
+
+        <com.myscript.iink.uireferenceimplementation.LayerView
+            android:id="@+id/layer_model"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginRight="0dp"
+            custom:layerType="MODEL"/>
+
+        <com.myscript.iink.uireferenceimplementation.LayerView
+            android:id="@+id/layer_temporary"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginRight="0dp"
+            custom:layerType="TEMPORARY"/>
+
+        <com.myscript.iink.uireferenceimplementation.LayerView
+            android:id="@+id/layer_capture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginRight="0dp"
+            custom:layerType="CAPTURE"/>
+
+    </com.myscript.iink.uireferenceimplementation.EditorView>
+
+</merge>

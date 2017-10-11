@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_newPart"
+        android:icon="@drawable/ic_add"
+        app:showAsAction="always"
+        android:title="@string/menu_newPart"/>
+    <item
+        android:id="@+id/menu_previousPart"
+        android:icon="@drawable/ic_previous"
+        app:showAsAction="always"
+        android:title="@string/menu_previousPart"/>
+    <item
+        android:id="@+id/menu_nextPart"
+        android:icon="@drawable/ic_next"
+        app:showAsAction="always"
+        android:title="@string/menu_nextPart"/>
+    <item
+        android:id="@+id/menu_zoomIn"
+        android:icon="@drawable/ic_zoom_in"
+        app:showAsAction="always"
+        android:title="@string/menu_zoomIn"/>
+    <item
+        android:id="@+id/menu_zoomOut"
+        android:icon="@drawable/ic_zoom_out"
+        app:showAsAction="always"
+        android:title="@string/menu_zoomOut"/>
+    <item
+        android:id="@+id/menu_resetView"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_resetView"/>
+    <item
+        android:id="@+id/menu_convert"
+        app:showAsAction="never"
+        android:title="@string/menu_convert"/>
+    <item
+        android:id="@+id/menu_export"
+        app:showAsAction="never"
+        android:title="@string/menu_export"/>
+    <item
+        android:id="@+id/menu_newPackage"
+        app:showAsAction="never"
+        android:title="@string/menu_newPackage"/>
+    <item
+        android:id="@+id/menu_openPackage"
+        app:showAsAction="never"
+        android:title="@string/menu_openPackage"/>
+    <item
+        android:id="@+id/menu_savePackage"
+        app:showAsAction="never"
+        android:title="@string/menu_savePackage"/>
+
+</menu>

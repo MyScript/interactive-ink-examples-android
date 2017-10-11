@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- App name -->
+    <string name="app_name" translatable="false">iink GetStarted</string>
+
+    <string name="menu_inputMode">Input mode</string>
+    <string name="menu_undo">Undo</string>
+    <string name="menu_redo">Redo</string>
+    <string name="menu_clear">Clear</string>
+    <string name="menu_convert">Convert</string>
+    <string name="menu_export">Export</string>
+    <string name="exportType_title">Export - select type</string>
+    <string name="exportPackage_title">Export - select file</string>
+    <string name="addImage_title">Add image - select file</string>
+    <string name="inputMode_title">Input mode - select behavior</string>
+    <string name="inputMode_forcePen">Pen</string>
+    <string name="inputMode_forceTouch">Touch</string>
+    <string name="inputMode_auto">Auto</string>
+
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+
+</resources>
