@@ -1,6 +1,8 @@
 ## What is it about?
 
-Interactive Ink is the best handwriting technology available for Android developers. This repository contains a "get started" and a complete example.
+Interactive Ink SDK is the best way to integrate handwriting recognition capabilities into your Android application. Interactive Ink extends digital ink to allow users to more intuitively create, interact with, and share content in digital form. Handwritten text, mathematical equations or even diagrams are interpreted in real-time to be editable via simple gestures, responsive and easy to convert to a neat output.
+
+This repository contains a "get started" example, a complete example and a reference implementation of the Android integration part that developers using Interactive Ink SDK can reuse inside their projects.
 
 ## Getting started
 
@@ -12,9 +14,13 @@ This getting started section has been tested with Android Studio 2.3.3 and suppo
 
 1. Clone the examples repository  `git clone https://github.com/MyScript/interactive-ink-examples-android.git`
 
-2. Copy this certificate in `GetStarted/src/main/java/com/myscript/iink/getstarted/` and `Demo/src/main/java/com/myscript/iink/demo/`
+2. Claim a certificate to receive the free license to start develop your application by following the first steps of [Getting Started](https://developer.myscript/com/getting-started)
+
+3. Copy this certificate to `GetStarted/src/main/java/com/myscript/certificate/MyCertificate.java` and `Demo/src/main/java/com/myscript/certificate/MyCertificate.java`
 
 ## Building your own integration
+
+This repository provides you with a ready-to-use reference implementation of the Android integration part, covering aspects like ink capture and rendering. It is located in `UIReferenceImplementation` directory and can be simply added to your project by referencing it in your `settings.gradle`.
 
 ## Documentation
 
@@ -33,6 +39,6 @@ We’re planning to showcase apps using it so let us know by sending a quick mai
 
 ## Contributing
 
-We welcome your contributions: 
+We welcome your contributions:
 If you would like to extend those examples for your needs, feel free to fork it!
 Please sign our [Contributor License Agreement](CONTRIBUTING.md) before submitting your pull request.
