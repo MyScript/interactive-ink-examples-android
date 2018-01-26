@@ -8,7 +8,7 @@ This repository contains a "get started" example, a complete example and a refer
 
 ### Prerequisites
 
-This getting started section has been tested with Android Studio 2.3.3 and supports Android SDK version 16+.
+This getting started section has been tested with Android Studio 3.0.1 and supports Android SDK version 16+.
 
 ### Installation
 
@@ -17,6 +17,8 @@ This getting started section has been tested with Android Studio 2.3.3 and suppo
 2. Claim a certificate to receive the free license to start develop your application by following the first steps of [Getting Started](https://developer.myscript.com/getting-started)
 
 3. Copy this certificate to `GetStarted/src/main/java/com/myscript/certificate/MyCertificate.java` and `Demo/src/main/java/com/myscript/certificate/MyCertificate.java`
+
+The first time you open the project in Android Studio a "Android Gradle Plugin Update Recommended" popup will show asking you to upgrade to Android Gradle Plugin 3.0.1 and Gradle 4.1. Choose "Don't remind me again for this project" otherwise the gradle build will fail.
 
 ## Building your own integration
 
