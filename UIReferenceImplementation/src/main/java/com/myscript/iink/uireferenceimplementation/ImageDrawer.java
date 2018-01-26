@@ -2,14 +2,14 @@
 
 package com.myscript.iink.uireferenceimplementation;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.EnumSet;
-
 import android.graphics.Bitmap;
 
 import com.myscript.iink.IImageDrawer;
 import com.myscript.iink.Renderer;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.EnumSet;
 
 public class ImageDrawer implements IImageDrawer
 {
@@ -73,7 +73,7 @@ public class ImageDrawer implements IImageDrawer
     try
     {
       int quality = 100; // max quality
-      Bitmap.CompressFormat format = Bitmap.CompressFormat.PNG;
+      Bitmap.CompressFormat format;
 
       if (path.endsWith(".png"))
         format = Bitmap.CompressFormat.PNG;
@@ -91,11 +91,8 @@ public class ImageDrawer implements IImageDrawer
       throw new IOException("Can't save image");
     }
 
-    if (bitmap != null)
-    {
-      bitmap.recycle();
-      bitmap = null;
-    }
+    bitmap.recycle();
+    bitmap = null;
     canvas = null;
   }
 }

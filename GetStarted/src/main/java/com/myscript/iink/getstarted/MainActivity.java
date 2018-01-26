@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     setTitle("Type: " + contentPart.getType());
 
+    // wait for view size initialization before setting part
     editorView.post(new Runnable() {
       @Override
       public void run() {
@@ -130,6 +131,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   {
     editorView.setOnTouchListener(null);
     editorView.close();
+
+    if (contentPart != null)
+    {
+      contentPart.close();
+      contentPart = null;
+    }
+    if (contentPackage != null)
+    {
+      contentPackage.close();
+      contentPackage = null;
+    }
+
 
     // IInkApplication has the ownership, do not close here
     engine = null;

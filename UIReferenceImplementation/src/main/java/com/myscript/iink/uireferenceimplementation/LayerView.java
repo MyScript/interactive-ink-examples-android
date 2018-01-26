@@ -8,9 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -34,10 +32,8 @@ public class LayerView extends View
   @Nullable
   private Renderer lastRenderer = null;
 
-  boolean updateLayer;
-  @NonNull
-  private RectF updateArea;
-  private RectF updateArea_;
+  @Nullable
+  private Rect updateArea;
   @Nullable
   private Bitmap bitmap;
   @Nullable
@@ -59,9 +55,7 @@ public class LayerView extends View
   {
     super(context, attrs, defStyleAttr);
 
-    updateLayer = false;
-    updateArea = new RectF();
-    updateArea_ = new RectF();
+    updateArea = null;
 
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.LayerView, defStyleAttr, 0);
     try
@@ -98,50 +92,37 @@ public class LayerView extends View
   @Override
   protected final void onDraw(android.graphics.Canvas canvas)
   {
-    boolean updateLayer_;
+    Rect updateArea;
     Renderer renderer;
 
     synchronized (this)
     {
-      updateLayer_ = updateLayer;
-      if (updateLayer_)
-        updateArea_.union(updateArea);
+      updateArea = this.updateArea;
+      this.updateArea = null;
       renderer = lastRenderer;
-      updateArea.setEmpty();
-      updateLayer = false;
       lastRenderer = null;
     }
 
-    if (updateLayer_)
+    if (updateArea != null)
     {
-      Rect rect_ = new Rect((int)updateArea_.left, (int)updateArea_.top, (int)updateArea_.right, (int)updateArea_.bottom);
-      updateArea_.setEmpty();
 
-      prepare(sysCanvas, rect_);
+      prepare(sysCanvas, updateArea);
       try
       {
         switch (type)
         {
           case BACKGROUND:
-          {
-            renderer.drawBackground(rect_.left, rect_.top, rect_.width(), rect_.height(), iinkCanvas);
+            renderer.drawBackground(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
             break;
-          }
           case MODEL:
-          {
-            renderer.drawModel(rect_.left, rect_.top, rect_.width(), rect_.height(), iinkCanvas);
+            renderer.drawModel(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
             break;
-          }
           case TEMPORARY:
-          {
-            renderer.drawTemporaryItems(rect_.left, rect_.top, rect_.width(), rect_.height(), iinkCanvas);
+            renderer.drawTemporaryItems(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
             break;
-          }
           case CAPTURE:
-          {
-            renderer.drawCaptureStrokes(rect_.left, rect_.top, rect_.width(), rect_.height(), iinkCanvas);
+            renderer.drawCaptureStrokes(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
             break;
-          }
           default:
             // unknown layer type
             break;
@@ -186,9 +167,10 @@ public class LayerView extends View
   {
     synchronized (this)
     {
-      updateLayer = true;
-      updateArea.union(x, y);
-      updateArea.union(x + width, y + height);
+      if (updateArea != null)
+        updateArea.union(x, y, x + width, y + height);
+      else
+        updateArea = new Rect(x, y, x + width, y + height);
 
       lastRenderer = renderer;
     }

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-  <dimen name="vertical_margin">20dp</dimen>
-  <dimen name="horizontal_margin">15dp</dimen>
+  <dimen name="vertical_margin">70dp</dimen>
+  <dimen name="horizontal_margin">25dp</dimen>
+  <dimen name="smart_guide_text_size">20dp</dimen>
+  <dimen name="smart_guide_horizontal_padding">10dp</dimen>
+  <dimen name="smart_guide_vertical_padding">6dp</dimen>
 
 </resources>

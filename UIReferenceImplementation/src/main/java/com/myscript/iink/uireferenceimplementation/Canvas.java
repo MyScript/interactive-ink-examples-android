@@ -26,7 +26,6 @@ import com.myscript.iink.graphics.LineJoin;
 import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Style;
 import com.myscript.iink.graphics.Transform;
-import com.myscript.util.Numbers;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -39,39 +38,45 @@ public class Canvas implements ICanvas
   private static final Style DEFAULT_SVG_STYLE = new Style();
 
   @NonNull
-  private android.graphics.Canvas canvas;
+  private final android.graphics.Canvas canvas;
 
   @NonNull
-  private Paint strokePaint;
+  private final Paint strokePaint;
 
   @NonNull
-  private TextPaint textPaint;
+  private final TextPaint textPaint;
 
   @NonNull
-  private Paint fillPaint;
+  private final Paint fillPaint;
   @Nullable
   private FillRule fillRule;
 
-  @NonNull Transform transform;
   @NonNull
-  private Matrix transformMatrix;
+  private Transform transform;
   @NonNull
-  private float[] transformValues;
-  @NonNull Matrix identityMatrix;
-
+  private final Matrix transformMatrix;
+  @NonNull
+  private final float[] transformValues;
 
   @Nullable
   private ImageLoader imageLoader;
-  private IRenderTarget target;
+  @NonNull
+  private final IRenderTarget target;
 
-  private Set<String> clips;
+  private final Set<String> clips;
 
-  private Map<String, Typeface> typefaceMap;
+  private final Map<String, Typeface> typefaceMap;
 
   private float[] dashArray;
-  private int dashOffset = 0;
+  private final int dashOffset = 0;
 
-  DisplayMetrics displayMetrics;
+  @NonNull
+  private final DisplayMetrics displayMetrics;
+
+  @NonNull
+  private Matrix textScaleMatrix;
+  @NonNull
+  private Matrix pointScaleMatrix;
 
   public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target)
   {
@@ -96,11 +101,14 @@ public class Canvas implements ICanvas
     transformValues[Matrix.MPERSP_0] = 0;
     transformValues[Matrix.MPERSP_1] = 0;
     transformValues[Matrix.MPERSP_2] = 1;
-    identityMatrix = new Matrix();
 
     dashArray = null;
 
     displayMetrics = Resources.getSystem().getDisplayMetrics();
+    textScaleMatrix = new Matrix();
+    textScaleMatrix.setScale(25.4f / displayMetrics.xdpi, 25.4f / displayMetrics.ydpi);
+    pointScaleMatrix = new Matrix();
+    textScaleMatrix.invert(pointScaleMatrix);
 
     // it is mandatory to configure the Paint with SVG defaults represented by default Style object
     applyStyle(DEFAULT_SVG_STYLE);
@@ -140,10 +148,6 @@ public class Canvas implements ICanvas
     transformMatrix.setValues(transformValues);
     canvas.setMatrix(transformMatrix);
 
-    // transform has changed: update font size accordingly
-    float textSize = textPaint.getTextSize() * (float)(transform.yy / this.transform.yy);
-    textPaint.setTextSize(textSize);
-
     this.transform = transform;
   }
 
@@ -181,7 +185,7 @@ public class Canvas implements ICanvas
         strokePaint.setStrokeCap(Paint.Cap.SQUARE);
         break;
       default:
-        assert false : "Unsupported LineCap";
+        throw new IllegalArgumentException("Unsupported LineCap");
     }
   }
 
@@ -200,7 +204,7 @@ public class Canvas implements ICanvas
         strokePaint.setStrokeJoin(Paint.Join.BEVEL);
         break;
       default:
-        assert false : "Unsupported LineJoin";
+        throw new IllegalArgumentException("Unsupported LineJoin");
     }
   }
 
@@ -263,7 +267,7 @@ public class Canvas implements ICanvas
     // scale font size to the canvas transform scale, to ensure best font rendering
     // (text size is expressed in pixels, while fontSize is in mm)
     textPaint.setTypeface(typeface);
-    textPaint.setTextSize(fontSize * (float)transform.yy);
+    textPaint.setTextSize(Math.round((fontSize / 25.4f) * displayMetrics.ydpi));
   }
 
   @Override
@@ -379,17 +383,17 @@ public class Canvas implements ICanvas
     else
     {
       // adjust rectangle so that the image gets fit into original rectangle
-      float fx = (float)(width / image.getWidth());
-      float fy = (float)(height / image.getHeight());
+      float fx = width / image.getWidth();
+      float fy = height / image.getHeight();
       if (fx > fy)
       {
-        float w = (float)(image.getWidth() * fy);
+        float w = image.getWidth() * fy;
         x += (width - w) / 2;
         width = w;
       }
       else
       {
-        float h = (float)(image.getHeight() * fx);
+        float h = image.getHeight() * fx;
         y += (height - h) / 2;
         height = h;
       }
@@ -404,32 +408,15 @@ public class Canvas implements ICanvas
   @Override
   public void drawText(@NonNull String label, float x, float y, float xmin, float ymin, float xmax, float ymax)
   {
-    double scaleRatio = transform.xx / transform.yy;
-    double dpiRatio = displayMetrics.xdpi / displayMetrics.ydpi;
-    boolean stretched = !Numbers.isNear(scaleRatio, dpiRatio, 10e-3, 10e-5);
+    // transform the insertion point so that it is not impacted by text scale
+    float[] p = {x, y};
+    pointScaleMatrix.mapPoints(p);
 
-    // font size is scaled to the canvas transform scale, to ensure better font rendering
-    // so here we only stretch the drawn text, if required
-    if (stretched)
-    {
-      // stretch text to match the expected scale
-      Matrix stretchMatrix = new Matrix();
-      stretchMatrix.setScale((float)scaleRatio, 1.0f);
-      canvas.setMatrix(stretchMatrix);
-    }
-    else
-    {
-      canvas.setMatrix(identityMatrix);
-    }
-
-    // transform only the insertion point
-    Point p = transform.apply(x, y);
-
-    if (stretched)
-      p.x = p.x / (float)scaleRatio;
+    // transform the text to account for font size in pixel (not mm)
+    canvas.concat(textScaleMatrix);
 
     // draw text
-    canvas.drawText(label, p.x, p.y, textPaint);
+    canvas.drawText(label, p[0], p[1], textPaint);
 
     // restore transform
     canvas.setMatrix(transformMatrix);

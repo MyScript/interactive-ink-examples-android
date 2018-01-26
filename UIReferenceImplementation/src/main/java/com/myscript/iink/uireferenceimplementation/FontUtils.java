@@ -11,8 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-public class FontUtils
+public final class FontUtils
 {
+  private FontUtils()
+  {
+    // Utility class
+  }
+
   public static final int getTypefaceStyle(String fontStyle, String fontVariant, int fontWeight)
   {
     // Looking at Typeface documentation we see that NORMAL = 0, BOLD = 1, ITALIC = 2, and

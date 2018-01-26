@@ -32,7 +32,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
   private int viewWidth;
   private int viewHeight;
 
-  @NonNull
+  @Nullable
   private Engine engine;
 
   @NonNull
@@ -47,6 +47,9 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   private Map<String, Typeface> typefaceMap = new HashMap<>();
 
+  @Nullable
+  private SmartGuideView smartGuideView;
+
   public EditorView(Context context)
   {
     this(context, null, 0);
@@ -60,6 +63,8 @@ public class EditorView extends FrameLayout implements IRenderTarget
   public EditorView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
+
+    smartGuideView = null;
   }
 
   public void close()
@@ -89,6 +94,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
   {
     DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
 
+    this.engine = engine;
     Configuration conf = engine.getConfiguration();
     float verticalMarginPX = getResources().getDimension(R.dimen.vertical_margin);
     float horizontalMarginPX = getResources().getDimension(R.dimen.horizontal_margin);
@@ -116,6 +122,9 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
     editor = engine.createEditor(renderer);
     editor.setFontMetricsProvider(new FontMetricsProvider(displayMetrics, typefaceMap));
+
+    smartGuideView = findViewById(R.id.smart_guide_view);
+    smartGuideView.setEditor(editor);
   }
 
   public Editor getEditor()
@@ -131,6 +140,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
   public void setInputController(InputController inputController)
   {
     this.inputController = inputController;
+    smartGuideView.setSmartGuideMoreHandler(inputController.getListener());
   }
 
   public void setImageLoader(ImageLoader imageLoader)
@@ -162,6 +172,11 @@ public class EditorView extends FrameLayout implements IRenderTarget
     return inputController.getInputMode();
   }
 
+  public void setSmartGuideMoreHandler(IInputControllerListener smartGuideMoreHandler)
+  {
+    smartGuideView.setSmartGuideMoreHandler(smartGuideMoreHandler);
+  }
+  
   @Override
   protected void onAttachedToWindow()
   {
@@ -199,7 +214,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
   @Override
   public final void invalidate(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
-    if (viewWidth == 0 || viewHeight < 0)
+    if (width <= 0 || height <= 0)
       return;
 
     for (LayerType type: layers)

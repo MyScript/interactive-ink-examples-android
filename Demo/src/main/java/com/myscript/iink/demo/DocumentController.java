@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -26,13 +27,21 @@ import com.myscript.iink.uireferenceimplementation.EditorView;
 import com.myscript.iink.uireferenceimplementation.ImageDrawer;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Properties;
 
 public class DocumentController
 {
   private static final String TAG = "DocumentController";
+  private static final String DOCUMENT_CONTROLLER_STATE_FILE_NAME = "documentControllerState.properties";
+  public static final String DOCUMENT_CONTROLLER_STATE_SAVED_FILE_NAME = "content_package_file_name";
+  private static final String DOCUMENT_CONTROLLER_STATE_SAVED_PART_INDEX = "content_package_part_index";
 
   private Activity activity;
   private Editor editor;
@@ -41,6 +50,9 @@ public class DocumentController
   private File currentFile;
   private ContentPackage currentPackage;
   private ContentPart currentPart;
+
+  private File stateFile;
+  private Properties stateProperties;
 
   public DocumentController(Activity activity, EditorView editorView)
   {
@@ -51,6 +63,9 @@ public class DocumentController
     currentFile = null;
     currentPackage = null;
     currentPart = null;
+
+    stateFile = new File(activity.getFilesDir().getPath() + File.separator + DOCUMENT_CONTROLLER_STATE_FILE_NAME);
+    loadState();
   }
 
   public final void close()
@@ -80,6 +95,11 @@ public class DocumentController
     return currentPackage == null ? 0 : currentPackage.getPartCount();
   }
 
+  public String getFileName()
+  {
+    return currentFile.getName();
+  }
+
   private String makeUntitledFilename()
   {
     int num = 0;
@@ -99,7 +119,6 @@ public class DocumentController
     editor.getRenderer().setViewScale(1);
     editor.setPart(newPart);
     editorView.setVisibility(View.VISIBLE);
-
 
     if (currentPart != null && currentPart != newPart)
       currentPart.close();
@@ -191,10 +210,28 @@ public class DocumentController
     try
     {
       currentPart.getPackage().save();
+      storeState();
     }
     catch (IOException e)
     {
       Toast.makeText(this.activity, "Failed to save package", Toast.LENGTH_LONG).show();
+    }
+    return true;
+  }
+
+  public final boolean saveToTemp()
+  {
+    if (currentPart == null)
+      return false;
+
+    try
+    {
+      currentPart.getPackage().saveToTemp();
+      storeState();
+    }
+    catch (IOException e)
+    {
+      Toast.makeText(this.activity, "Failed to save package to temporary directory", Toast.LENGTH_LONG).show();
     }
     return true;
   }
@@ -263,6 +300,23 @@ public class DocumentController
     }
     AlertDialog dialog = dialogBuilder.create();
     dialog.show();
+    return true;
+  }
+
+  public final boolean openPart(@NonNull String fileName, int indexOfPart)
+  {
+    try
+    {
+      File file = new File(activity.getFilesDir(), fileName);
+      ContentPackage newPackage = editor.getEngine().openPackage(file);
+      ContentPart newPart = newPackage.getPart(indexOfPart);
+
+      setPart(file, newPackage, newPart);
+    }
+    catch (IOException e)
+    {
+      Toast.makeText(this.activity, "Failed to open part for file \"" + fileName + "\" with index " + indexOfPart, Toast.LENGTH_LONG).show();
+    }
     return true;
   }
 
@@ -415,8 +469,10 @@ public class DocumentController
       }
     });
 
-    String defaultName = makeUntitledFilename();
-    input.setText(defaultName);
+    String filename = currentFile.getName();
+    int dotPos = filename.lastIndexOf('.');
+    String basename = dotPos > 0 ? filename.substring(0, dotPos) : filename;
+    input.setText(basename + fileExtension);
 
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
     dialogBuilder.setTitle(R.string.exportPackage_title);
@@ -451,5 +507,77 @@ public class DocumentController
     dialog.show();
 
     return true;
+  }
+
+  public final void loadState()
+  {
+    InputStream stream = null;
+    try
+    {
+      try
+      {
+        stream = new FileInputStream(stateFile);
+        try
+        {
+          stateProperties = new Properties();
+          stateProperties.load(stream);
+        }
+        catch (IOException e)
+        {
+          Log.e(TAG, "Failed to load state from streamed file: \"" + stateFile.getAbsolutePath() + "\"");
+        }
+      }
+      catch (FileNotFoundException e)
+      {
+        // file has never been created
+        stateProperties = null;
+      }
+    }
+    finally
+    {
+      try
+      {
+        if (stream != null)
+          stream.close();
+      }
+      catch (IOException e)
+      {
+        Log.e(TAG, "Failed to close stream loaded from file: \"" + stateFile.getAbsolutePath() + "\"");
+      }
+    }
+  }
+
+  private final void storeState()
+  {
+    stateProperties = new Properties();
+    stateProperties.setProperty(DOCUMENT_CONTROLLER_STATE_SAVED_FILE_NAME, getFileName());
+    stateProperties.setProperty(DOCUMENT_CONTROLLER_STATE_SAVED_PART_INDEX, Integer.toString(getPartIndex()));
+    FileOutputStream stream = null;
+    try
+    {
+      stream = new FileOutputStream(stateFile);
+    }
+    catch (FileNotFoundException e)
+    {
+      Log.e(TAG, "Failed to open stream for file: \"" + stateFile.getAbsolutePath() + "\"");
+    }
+    try
+    {
+      stateProperties.store(stream, "");
+    }
+    catch (IOException e)
+    {
+      Log.e(TAG, "Failed to store stream for file: \"" + stateFile.getAbsolutePath() + "\"");
+    }
+  }
+
+  public String getSavedFileName()
+  {
+    return (stateProperties != null) ? stateProperties.getProperty(DOCUMENT_CONTROLLER_STATE_SAVED_FILE_NAME) : null;
+  }
+
+  public int getSavedPartIndex()
+  {
+    return (stateProperties != null) ? Integer.valueOf(stateProperties.getProperty(DOCUMENT_CONTROLLER_STATE_SAVED_PART_INDEX)) : 0;
   }
 }

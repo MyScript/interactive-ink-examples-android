@@ -92,7 +92,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
       int start = text.getGlyphBeginAt(spans[i].getBeginPosition());
       int end = text.getGlyphEndAt(spans[i].getEndPosition() - 1);
 
-      MetricAffectingSpan span = null;
+      MetricAffectingSpan span;
       Typeface typeface = FontUtils.getTypeface(typefaceMap, fontFamily, style.getFontStyle(), style.getFontVariant(), style.getFontWeight());
       if (typeface == null)
         span = new TextAppearanceSpan(fontFamily, typefaceStyle, fontSize, fontColor, fontLinkColor);
@@ -111,7 +111,6 @@ public class FontMetricsProvider implements IFontMetricsProvider
       throw new RuntimeException();
 
     // Get bounding boxes
-    float baseline = y_px2mm(layout.getLineBaseline(0));
     int glyphCount = text.getGlyphCount();
 
     // initialize style

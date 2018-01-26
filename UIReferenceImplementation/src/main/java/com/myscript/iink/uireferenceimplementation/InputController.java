@@ -50,6 +50,12 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public final void setListener(IInputControllerListener listener)
   {
     this.listener = listener;
+    editorView.setSmartGuideMoreHandler(listener);
+  }
+
+  public final IInputControllerListener getListener()
+  {
+    return listener;
   }
 
   public final boolean handleOnTouchForPointer(MotionEvent event, int actionMask, int pointerIndex)
@@ -175,6 +181,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   @Override
   public void onShowPress(MotionEvent e)
   {
+    // no-op
   }
 
   @Override

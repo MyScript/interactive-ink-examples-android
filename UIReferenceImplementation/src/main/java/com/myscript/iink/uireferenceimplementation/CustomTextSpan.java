@@ -44,12 +44,6 @@ public class CustomTextSpan extends TextAppearanceSpan
   };
 
   @Override
-  public void writeToParcel(Parcel dest, int flags)
-  {
-    super.writeToParcel(dest, flags);
-  }
-
-  @Override
   public void updateDrawState(TextPaint ds)
   {
     applyCustomTypeFace(ds);
@@ -57,7 +51,6 @@ public class CustomTextSpan extends TextAppearanceSpan
     ColorStateList textColor = getTextColor();
     if (textColor != null)
     {
-      int color = textColor.getColorForState(ds.drawableState, 0);
       ds.setColor(textColor.getColorForState(ds.drawableState, 0));
     }
 

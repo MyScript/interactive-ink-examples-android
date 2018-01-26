@@ -34,12 +34,11 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
   private static final String TAG = "MainActivity";
+  protected Engine engine;
 
-  private Engine engine;
+  protected EditorView editorView;
 
-  private EditorView editorView;
-
-  private DocumentController documentController;
+  protected DocumentController documentController;
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState)
@@ -108,7 +107,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     });
 
     documentController = new DocumentController(this, editorView);
-    documentController.newPart();
+    final String fileName = documentController.getSavedFileName();
+    final int partIndex = documentController.getSavedPartIndex();
+
+    // wait for view size initialization before setting part
+    editorView.post(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        if (fileName != null)
+          documentController.openPart(fileName, partIndex);
+        else
+          documentController.newPart();
+      }
+    });
 
     findViewById(R.id.button_input_mode_forcePen).setOnClickListener(this);
     findViewById(R.id.button_input_mode_forceTouch).setOnClickListener(this);
@@ -132,6 +145,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     engine = null;
 
     super.onDestroy();
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState)
+  {
+    documentController.saveToTemp();
+    super.onSaveInstanceState(outState);
   }
 
   @Override

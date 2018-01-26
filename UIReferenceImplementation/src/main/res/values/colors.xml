@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="control_gray">#959da6</color>
+  <color name="word_gray">#bfbfbf</color>
+  <color name="control_white_transparent">#f2ffffff</color>
+</resources>

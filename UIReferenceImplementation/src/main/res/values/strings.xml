@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="style_view_string_h1">H1</string>
+  <string name="style_view_string_h2">H2</string>
+  <string name="style_view_string_h3">H3</string>
+  <string name="style_view_string_normal">¶</string>
+  <string name="more_view_string">•••</string>
+</resources>
