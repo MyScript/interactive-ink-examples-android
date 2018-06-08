@@ -82,7 +82,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
   @Override
   public float getFontSizePx(Style style)
   {
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, style.getFontSize(), displayMetrics);
+    return style.getFontSize() * displayMetrics.scaledDensity;
   }
 
   @Override
