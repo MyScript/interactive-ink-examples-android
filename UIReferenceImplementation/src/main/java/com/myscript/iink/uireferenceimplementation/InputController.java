@@ -3,6 +3,7 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -28,6 +29,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   private int inputMode;
   private GestureDetectorCompat gestureDetector;
   private IInputControllerListener listener;
+  private long eventTimeOffset;
 
   public InputController(Context context, EditorView editorView)
   {
@@ -36,6 +38,10 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     this.listener = null;
     inputMode = INPUT_MODE_AUTO;
     gestureDetector = new GestureDetectorCompat(context, this);
+
+    long rel_t = SystemClock.uptimeMillis();
+    long abs_t = System.currentTimeMillis();
+    eventTimeOffset = abs_t - rel_t;
 
     editorView.setOnTouchListener(this);
   }
@@ -100,7 +106,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     {
       case MotionEvent.ACTION_POINTER_DOWN:
       case MotionEvent.ACTION_DOWN:
-        editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+        editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         return true;
 
       case MotionEvent.ACTION_MOVE:
@@ -108,13 +114,13 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
           for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
-          pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
+          pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
           editor.pointerEvents(pointerEvents, true);
         }
         else
         {
-          editor.pointerMove(event.getX(pointerIndex), event.getY(pointerIndex), event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          editor.pointerMove(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         }
         return true;
 
@@ -124,13 +130,13 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
           for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
-          pointerEvents[historySize] = new PointerEvent(PointerEventType.UP, event.getX(pointerIndex), event.getY(pointerIndex), event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
+          pointerEvents[historySize] = new PointerEvent(PointerEventType.UP, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
           editor.pointerEvents(pointerEvents, true);
         }
         else
         {
-          editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         }
         return true;
 
