@@ -31,6 +31,7 @@ import com.myscript.iink.Editor;
 import com.myscript.iink.IEditorListener2;
 import com.myscript.iink.IRendererListener;
 import com.myscript.iink.MimeType;
+import com.myscript.iink.ParameterSet;
 import com.myscript.iink.Renderer;
 import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Rectangle;
@@ -174,7 +175,9 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       String jiixString = null;
       try
       {
-        jiixString = editor.export_(block, MimeType.JIIX);
+        ParameterSet conf = editor.getEngine().createParameterSet();
+        conf.setBoolean("export.jiix.strokes", false);
+        jiixString = editor.export_(block, MimeType.JIIX, conf);
       }
       catch (Exception e)
       {
@@ -476,7 +479,9 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         String jiixString;
         try
         {
-          jiixString = editor.export_(block, MimeType.JIIX);
+          ParameterSet conf = editor.getEngine().createParameterSet();
+          conf.setBoolean("export.jiix.strokes", false);
+          jiixString = editor.export_(block, MimeType.JIIX, conf);
         }
         catch (Exception e)
         {
