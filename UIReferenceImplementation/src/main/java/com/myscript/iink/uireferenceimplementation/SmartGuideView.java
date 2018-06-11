@@ -20,6 +20,10 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
@@ -32,12 +36,7 @@ import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Rectangle;
 import com.myscript.iink.graphics.Transform;
 
-import java.io.IOException;
 import java.util.Arrays;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class SmartGuideView extends LinearLayout implements IEditorListener2, IRendererListener, View.OnClickListener
 {
@@ -110,23 +109,10 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     private String[] candidates;
     private boolean modified;
 
-    public SmartGuideWord(JSONObject object)
+    public SmartGuideWord(JiixDefinitions.Word word)
     {
-      try
-      {
-        label = object.getString("label");
-        if (object.has("candidates"))
-        {
-          JSONArray candidatesJson = object.getJSONArray("candidates");
-          int count = candidatesJson.length();
-          candidates = new String[count];
-          for (int i = 0; i < count; ++i)
-            candidates[i] = candidatesJson.getString(i);
-        }
-      }
-      catch (JSONException e)
-      {
-      }
+      label = word.label;
+      candidates = word.candidates;
       modified = false;
     }
   }
@@ -194,18 +180,24 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       {
         // no-op
       }
+      Gson gson = new Gson();
       try
       {
-        JSONObject jiix = new JSONObject(jiixString);
-        JSONArray jiixWords = jiix.getJSONArray("words");
-        JSONObject jiixWord = jiixWords.getJSONObject(index);
-        jiixWord.put("label", label);
-        jiixWords.put(index, jiixWord);
-        jiix.put("words", jiixWords);
-        jiixString = jiix.toString();
+        JsonObject result = gson.fromJson(jiixString, JsonObject.class);
+        if (result != null)
+        {
+          JsonArray words = result.getAsJsonArray(JiixDefinitions.Result.WORDS_FIELDNAME);
+          JsonObject word = words.get(index).getAsJsonObject();
+          word.addProperty(JiixDefinitions.Word.LABEL_FIELDNAME, label);
+        }
+        jiixString = gson.toJson(result);
         editor.import_(MimeType.JIIX, jiixString, block);
       }
-      catch (JSONException e)
+      catch (JsonSyntaxException e)
+      {
+        Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
+      }
+      catch (IndexOutOfBoundsException e)
       {
         Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
       }
@@ -417,19 +409,24 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
   {
     if (block != null && block.getType().equals("Text"))
     {
+      Gson gson = new Gson();
       // Update size and position
       Rectangle rectangle = block.getBox();
       float paddingLeft = 0.0f;
       float paddingRight = 0.0f;
-      if (block.getAttributes().length() > 0) {
-        try {
-          JSONObject attributes = new JSONObject(block.getAttributes());
-          JSONObject padding = attributes.getJSONObject("padding");
-          if (padding != null) {
-            paddingLeft = (float) padding.getDouble("left");
-            paddingRight = (float) padding.getDouble("right");
+      if (block.getAttributes().length() > 0)
+      {
+        try
+        {
+          JiixDefinitions.Padding padding = gson.fromJson(block.getAttributes(), JiixDefinitions.Padding.class);
+          if (padding != null)
+          {
+            paddingLeft = padding.left;
+            paddingRight = padding.right;
           }
-        } catch (JSONException e) {
+        }
+        catch (JsonSyntaxException e)
+        {
           Log.e(TAG, "Failed to parse attributes as json: " + e.toString());
         }
       }
@@ -474,14 +471,16 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         SmartGuideWord[] smartGuideWords = null;
         try
         {
-          JSONObject jiix = new JSONObject(jiixString);
-          JSONArray jiixWords = jiix.getJSONArray("words");
-          int count = jiixWords.length();
-          smartGuideWords = new SmartGuideWord[count];
-          for (int i = 0, n = jiixWords.length(); i < n; ++i)
-            smartGuideWords[i] = new SmartGuideWord(jiixWords.getJSONObject(i));
+          JiixDefinitions.Result result = gson.fromJson(jiixString, JiixDefinitions.Result.class);
+          if (result != null && result.words != null)
+          {
+            int count = result.words.length;
+            smartGuideWords = new SmartGuideWord[count];
+            for (int i = 0; i < count; ++i)
+              smartGuideWords[i] = new SmartGuideWord(result.words[i]);
+          }
         }
-        catch (JSONException e)
+        catch (JsonSyntaxException e)
         {
           Log.e(TAG, "Failed to parse jiix string as json words: " + e.toString());
         }
