@@ -215,35 +215,50 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     public void onClick(View v)
     {
       fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
+
+      if (word.label.equals(" ") || word.label.equals("\n"))
+        return;
+
+      String[] candidates;
+      int selectedCandidate = 0;
+
       if (word.candidates != null)
       {
-        int selectedCandidate = 0;
         for (int i = 0; i < word.candidates.length; ++i)
         {
           String candidate = word.candidates[i];
           if (candidate.equals(word.label))
             selectedCandidate = i;
         }
-        final int selected = selectedCandidate;
+        candidates = word.candidates;
+      }
+      else
+      {
+        candidates = new String[1];
+        candidates[0] = word.label;
+      }
 
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(v.getContext());
-        dialogBuilder.setSingleChoiceItems(word.candidates, selected, new DialogInterface.OnClickListener()
+      final int selected = selectedCandidate;
+      AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(v.getContext());
+        dialogBuilder.setSingleChoiceItems(candidates, selected, new DialogInterface.OnClickListener()
         {
           @Override
           public void onClick(DialogInterface dialog, int checked)
           {
-            String newLabel = word.candidates[checked];
-            if (checked != selected)
+            if (word.candidates != null)
             {
-              updateWord(index, newLabel);
-              setText(newLabel);
-              word.label = newLabel;
+              String newLabel = word.candidates[checked];
+              if (checked != selected)
+              {
+                updateWord(index, newLabel);
+                setText(newLabel);
+                word.label = newLabel;
+              }
             }
             dialog.dismiss();
           }
         });
-        dialogBuilder.show();
-      }
+      dialogBuilder.show();
     }
   }
 
