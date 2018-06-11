@@ -35,6 +35,9 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
   private static final String TAG = "MainActivity";
+
+  private static final String INPUT_MODE_KEY = "inputMode";
+
   protected Engine engine;
 
   protected EditorView editorView;
@@ -101,7 +104,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         displayContextMenu(x, y, contentBlock, supportedAddBlockTypes);
       }
     });
-    setInputMode(InputController.INPUT_MODE_FORCE_PEN); // If using an active pen, put INPUT_MODE_AUTO here
+
+    int inputMode = InputController.INPUT_MODE_FORCE_PEN; // If using an active pen, put INPUT_MODE_AUTO here
+    if (savedInstanceState != null)
+      inputMode = savedInstanceState.getInt(INPUT_MODE_KEY, inputMode);
+    setInputMode(inputMode);
 
     documentController = new DocumentController(this, editorView);
     final String fileName = documentController.getSavedFileName();
@@ -148,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   protected void onSaveInstanceState(Bundle outState)
   {
     documentController.saveToTemp();
+    outState.putInt(INPUT_MODE_KEY, editorView.getInputMode());
     super.onSaveInstanceState(outState);
   }
 
