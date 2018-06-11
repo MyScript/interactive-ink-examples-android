@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
+import com.myscript.iink.ConversionState;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
@@ -198,8 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       case R.id.menu_resetView:
         return documentController.resetView();
       case R.id.menu_convert:
-        editor.convert(null, editor.getSupportedTargetConversionStates(null)[0]);
-        return true;
+        return documentController.convert(null);
       case R.id.menu_export:
         return documentController.export(null);
       case R.id.menu_newPackage:
@@ -342,7 +342,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     final boolean isContainer = contentBlock.getType().equals("Container");
     final boolean isRoot = contentBlock.getId().equals(editor.getRootBlock().getId());
 
-    final boolean displayConvert  = !isContainer;
+    final ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(contentBlock);
+
+    final boolean displayConvert  = supportedStates.length > 0 && !isContainer;
     final boolean displayAddBlock = supportedAddBlockTypes.length > 0 && isContainer;
     final boolean displayAddImage = false; // supportedAddBlockTypes.length > 0 && isContainer;
     final boolean displayRemove   = !isRoot && !isContainer;
@@ -398,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
           if (item.equals("Convert"))
           {
-            editor.convert(contentBlock, editor.getSupportedTargetConversionStates(contentBlock)[0]);
+            editor.convert(contentBlock, supportedStates[0]);
           }
           else if (item.equals("Remove"))
           {

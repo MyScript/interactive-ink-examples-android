@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentPackage;
 import com.myscript.iink.ContentPart;
+import com.myscript.iink.ConversionState;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
@@ -169,7 +170,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       case R.id.menu_convert:
       {
         Editor editor = editorView.getEditor();
-        editor.convert(null, editor.getSupportedTargetConversionStates(null)[0]);
+        ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(null);
+        if (supportedStates.length > 0)
+          editor.convert(null, supportedStates[0]);
         return true;
       }
       default:

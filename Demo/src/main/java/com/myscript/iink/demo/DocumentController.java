@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPackage;
 import com.myscript.iink.ContentPart;
+import com.myscript.iink.ConversionState;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IRenderTarget;
@@ -366,6 +367,18 @@ public class DocumentController
     Renderer renderer = editor.getRenderer();
     renderer.zoom(100.0f / 110.0f);
     editorView.invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+    return true;
+  }
+
+  public final boolean convert(final ContentBlock block)
+  {
+    ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(block);
+
+    if (supportedStates.length == 0)
+      return false;
+
+    editor.convert(block, supportedStates[0]);
+
     return true;
   }
 
