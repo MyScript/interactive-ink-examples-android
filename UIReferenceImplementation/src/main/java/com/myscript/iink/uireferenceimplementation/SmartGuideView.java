@@ -309,6 +309,8 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
 
     TextView moreView = findViewById(R.id.more_view);
     moreView.setOnClickListener(this);
+    if (smartGuideMoreHandler==null)
+      moreView.setVisibility(View.GONE);
 
     fadeOutTimerHandler = new Handler();
     fadeOutTimerRunnable = new Runnable()
