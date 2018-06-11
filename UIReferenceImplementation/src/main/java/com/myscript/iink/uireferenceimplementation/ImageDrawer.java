@@ -3,6 +3,8 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.support.annotation.ColorInt;
 
 import com.myscript.iink.IImageDrawer;
 import com.myscript.iink.Renderer;
@@ -16,10 +18,17 @@ public class ImageDrawer implements IImageDrawer
   private ImageLoader imageLoader = null;
   private Bitmap bitmap = null;
   private android.graphics.Canvas canvas = null;
+  @ColorInt
+  private int backgroundColor = Color.WHITE;
 
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
+  }
+
+  public void setBackgroundColor(@ColorInt int backgroundColor)
+  {
+    this.backgroundColor = backgroundColor;
   }
 
   @Override
@@ -39,7 +48,7 @@ public class ImageDrawer implements IImageDrawer
     if (canvas == null)
       return;
 
-    canvas.drawARGB(255, 255, 255, 255);
+    canvas.drawARGB(Color.alpha(backgroundColor), Color.red(backgroundColor), Color.green(backgroundColor), Color.blue(backgroundColor));
     Canvas androidCanvas = new Canvas(canvas, null, imageLoader, this);
 
     if (layers.contains(LayerType.MODEL))
