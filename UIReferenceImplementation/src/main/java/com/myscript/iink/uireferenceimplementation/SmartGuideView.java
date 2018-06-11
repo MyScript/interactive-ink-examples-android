@@ -169,7 +169,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         setTextColor(res.getColor(R.color.word_gray));
     }
 
-    private void updateWord(int index, String label)
+    private boolean updateWord(int index, String label)
     {
       String jiixString = null;
       try
@@ -181,6 +181,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         // no-op
       }
       Gson gson = new Gson();
+      boolean ok = false;
       try
       {
         JsonObject result = gson.fromJson(jiixString, JsonObject.class);
@@ -192,15 +193,22 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         }
         jiixString = gson.toJson(result);
         editor.import_(MimeType.JIIX, jiixString, block);
+        ok = true;
       }
       catch (JsonSyntaxException e)
       {
         Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
+
       }
       catch (IndexOutOfBoundsException e)
       {
         Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
       }
+      catch (IllegalStateException e)
+      {
+        Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
+      }
+      return ok;
     }
 
     @Override
@@ -242,9 +250,15 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
             String newLabel = word.candidates[checked];
             if (checked != selected)
             {
-              updateWord(index, newLabel);
-              setText(newLabel);
-              word.label = newLabel;
+              if (updateWord(index, newLabel))
+              {
+                setText(newLabel);
+                word.label = newLabel;
+              }
+              else
+              {
+                update(null, UpdateCause.EDIT);
+              }
             }
           }
           dialog.dismiss();
