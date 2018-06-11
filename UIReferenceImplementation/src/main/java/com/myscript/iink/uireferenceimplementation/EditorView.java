@@ -126,6 +126,9 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
     smartGuideView = findViewById(R.id.smart_guide_view);
     smartGuideView.setEditor(editor);
+
+    inputController = new InputController(getContext(), this, getEditor());
+    setOnTouchListener(inputController);
   }
 
   @Nullable
@@ -140,10 +143,10 @@ public class EditorView extends FrameLayout implements IRenderTarget
     return renderer;
   }
 
-  public void setInputController(InputController inputController)
+  public void setInputControllerListener(IInputControllerListener listener)
   {
-    this.inputController = inputController;
-    smartGuideView.setSmartGuideMoreHandler(inputController.getListener());
+    inputController.setListener(listener);
+    smartGuideView.setSmartGuideMoreHandler(listener);
   }
 
   public void setImageLoader(ImageLoader imageLoader)
@@ -175,11 +178,6 @@ public class EditorView extends FrameLayout implements IRenderTarget
     return inputController.getInputMode();
   }
 
-  public void setSmartGuideMoreHandler(IInputControllerListener smartGuideMoreHandler)
-  {
-    smartGuideView.setSmartGuideMoreHandler(smartGuideMoreHandler);
-  }
-  
   @Override
   protected void onAttachedToWindow()
   {

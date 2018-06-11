@@ -92,12 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     });
 
     editorView.setImageLoader(new ImageLoader(editor, this.getCacheDir()));
-
-    InputController inputController = new InputController(this, editorView);
-    editorView.setInputController(inputController);
-    setInputMode(InputController.INPUT_MODE_FORCE_PEN); // If using an active pen, put INPUT_MODE_AUTO here
-
-    inputController.setListener(new IInputControllerListener()
+    editorView.setInputControllerListener(new IInputControllerListener()
     {
       @Override
       public void onDisplayContextMenu(final float x, final float y, final ContentBlock contentBlock, final String[] supportedAddBlockTypes)
@@ -105,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         displayContextMenu(x, y, contentBlock, supportedAddBlockTypes);
       }
     });
+    setInputMode(InputController.INPUT_MODE_FORCE_PEN); // If using an active pen, put INPUT_MODE_AUTO here
 
     documentController = new DocumentController(this, editorView);
     final String fileName = documentController.getSavedFileName();

@@ -24,17 +24,17 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public static final int INPUT_MODE_FORCE_TOUCH = 1;
   public static final int INPUT_MODE_AUTO = 2;
 
-  private EditorView editorView;
+  private IRenderTarget renderTarget;
   private Editor editor;
   private int inputMode;
   private GestureDetectorCompat gestureDetector;
   private IInputControllerListener listener;
   private long eventTimeOffset;
 
-  public InputController(Context context, EditorView editorView)
+  public InputController(Context context, IRenderTarget renderTarget, Editor editor)
   {
-    this.editorView = editorView;
-    this.editor = editorView.getEditor();
+    this.renderTarget = renderTarget;
+    this.editor = editor;
     this.listener = null;
     inputMode = INPUT_MODE_AUTO;
     gestureDetector = new GestureDetectorCompat(context, this);
@@ -42,8 +42,6 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     long rel_t = SystemClock.uptimeMillis();
     long abs_t = System.currentTimeMillis();
     eventTimeOffset = abs_t - rel_t;
-
-    editorView.setOnTouchListener(this);
   }
 
   public final void setInputMode(int inputMode)
@@ -59,7 +57,6 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public final void setListener(IInputControllerListener listener)
   {
     this.listener = listener;
-    editorView.setSmartGuideMoreHandler(listener);
   }
 
   public final IInputControllerListener getListener()
@@ -217,7 +214,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
       editor.clampViewOffset(newOffset);
       editor.getRenderer().setViewOffset(newOffset.x, newOffset.y);
-      editorView.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
+      renderTarget.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
     }
     return true;
   }

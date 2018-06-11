@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       }
     });
 
-    editorView.setInputController(new InputController(this, editorView));
     setInputMode(InputController.INPUT_MODE_FORCE_PEN); // If using an active pen, put INPUT_MODE_AUTO here
 
     String packageName = "File1.iink";
