@@ -398,8 +398,6 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
 
   private void update(ContentBlock block, final UpdateCause cause)
   {
-    fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
-    
     if (block != null && block.getType().equals("Text"))
     {
       // Update size and position
@@ -522,8 +520,6 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
             }
           }
 
-          setVisibility(View.VISIBLE);
-
           int delay;
           if (cause == UpdateCause.EDIT)
           {
@@ -534,8 +530,16 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
           }
           else
             delay = fadeOutOtherDelay;
-          if (delay > 0)
-            fadeOutTimerHandler.postDelayed(fadeOutTimerRunnable, delay);
+
+          if (cause != UpdateCause.VIEW)
+          {
+            fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
+
+            if (delay > 0)
+              fadeOutTimerHandler.postDelayed(fadeOutTimerRunnable, delay);
+
+            setVisibility(View.VISIBLE);
+          }
         }
       });
 
@@ -544,6 +548,8 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     }
     else
     {
+      fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
+
       post(new Runnable() {
         @Override
         public void run() {
