@@ -395,6 +395,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     if (displayExport)
       items.add("Export");
 
+    if (items.isEmpty())
+      return;
+
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
     dialogBuilder.setTitle(contentBlock.getType() + " (id: " + contentBlock.getId() + ")");
     dialogBuilder.setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener()
