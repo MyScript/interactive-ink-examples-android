@@ -17,7 +17,6 @@ import com.myscript.iink.ContentPart;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
-
 import com.myscript.iink.uireferenceimplementation.EditorView;
 import com.myscript.iink.uireferenceimplementation.InputController;
 
@@ -45,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // configure recognition
     Configuration conf = engine.getConfiguration();
     String confDir = "zip://" + getPackageCodePath() + "!/assets/conf";
-    conf.setStringArray("configuration-manager.search-path", new String[] { confDir });
+    conf.setStringArray("configuration-manager.search-path", new String[]{confDir});
     String tempDir = getFilesDir().getPath() + File.separator + "tmp";
     conf.setString("content-package.temp-folder", tempDir);
 
@@ -106,14 +105,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     setTitle("Type: " + contentPart.getType());
 
     // wait for view size initialization before setting part
-    editorView.post(new Runnable() {
+    editorView.post(new Runnable()
+    {
       @Override
-      public void run() {
-          editorView.getRenderer().setViewOffset(0, 0);
-          editorView.getRenderer().setViewScale(1);
-          editorView.setVisibility(View.VISIBLE);
-          editor.setPart(contentPart);
-        }
+      public void run()
+      {
+        editorView.getRenderer().setViewOffset(0, 0);
+        editorView.getRenderer().setViewScale(1);
+        editorView.setVisibility(View.VISIBLE);
+        editor.setPart(contentPart);
+      }
     });
 
     findViewById(R.id.button_input_mode_forcePen).setOnClickListener(this);
@@ -221,14 +222,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Editor editor = editorView.getEditor();
     final boolean canUndo = editor.canUndo();
     final boolean canRedo = editor.canRedo();
-    runOnUiThread(new Runnable() {
+    runOnUiThread(new Runnable()
+    {
       @Override
-      public void run() {
-        ImageButton imageButtonUndo = (ImageButton)findViewById(R.id.button_undo);
+      public void run()
+      {
+        ImageButton imageButtonUndo = (ImageButton) findViewById(R.id.button_undo);
         imageButtonUndo.setEnabled(canUndo);
-        ImageButton imageButtonRedo = (ImageButton)findViewById(R.id.button_redo);
+        ImageButton imageButtonRedo = (ImageButton) findViewById(R.id.button_redo);
         imageButtonRedo.setEnabled(canRedo);
-        ImageButton imageButtonClear = (ImageButton)findViewById(R.id.button_clear);
+        ImageButton imageButtonClear = (ImageButton) findViewById(R.id.button_clear);
         imageButtonClear.setEnabled(contentPart != null);
       }
     });

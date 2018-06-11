@@ -109,7 +109,7 @@ public class DocumentController
       name = "File" + (++num) + ".iink";
     }
     while (new File(activity.getFilesDir(), name).exists() ||
-          (currentFile != null && currentFile.getName().equals(name)));
+        (currentFile != null && currentFile.getName().equals(name)));
     return name;
   }
 
@@ -166,7 +166,7 @@ public class DocumentController
     String[] fileNames = new String[files.length];
     for (int i = 0; i < files.length; ++i)
       fileNames[i] = files[i].getName();
-    final int[] selected = new int[] { 0 };
+    final int[] selected = new int[]{0};
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
     dialogBuilder.setTitle(R.string.openPackage_title);
     dialogBuilder.setSingleChoiceItems(fileNames, selected[0], new DialogInterface.OnClickListener()
@@ -265,7 +265,7 @@ public class DocumentController
 
     Engine engine = editor.getEngine();
     final String[] partTypes = engine.getSupportedPartTypes();
-    final int[] selected = new int[] { 0 };
+    final int[] selected = new int[]{0};
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity).setCancelable(false);
     dialogBuilder.setTitle(R.string.newPart_title);
     dialogBuilder.setSingleChoiceItems(partTypes, selected[0], new DialogInterface.OnClickListener()
@@ -405,7 +405,7 @@ public class DocumentController
     if (typeExtensions.isEmpty())
       return false;
 
-    final int[] selected = new int[] { 0 };
+    final int[] selected = new int[]{0};
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
 
     dialogBuilder.setTitle(R.string.exportType_title);

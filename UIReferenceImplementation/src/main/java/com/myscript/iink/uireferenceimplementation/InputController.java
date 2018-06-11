@@ -51,7 +51,10 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     this.inputMode = inputMode;
   }
 
-  public final int getInputMode() { return inputMode; }
+  public final int getInputMode()
+  {
+    return inputMode;
+  }
 
   public final void setListener(IInputControllerListener listener)
   {

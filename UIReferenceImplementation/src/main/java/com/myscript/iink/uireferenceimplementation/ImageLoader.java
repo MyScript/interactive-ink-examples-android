@@ -18,7 +18,7 @@ public class ImageLoader
   {
     void ready(String url, Bitmap image);
   }
-  
+
   private Editor editor;
   private File cacheDirectory;
   LruCache<String, Bitmap> cache;
@@ -29,19 +29,19 @@ public class ImageLoader
     this.cacheDirectory = new File(cacheDirectory, "tmp/render-cache");
 
     // Use a part of the maximum available memory to define the cache's size
-    int cacheSize = (int)(Runtime.getRuntime().maxMemory() / 8);
+    int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 8);
 
     this.cache = new LruCache<String, Bitmap>(cacheSize)
-                      {
-                        protected int sizeOf(String key, Bitmap value)
-                        {
-                          return value.getByteCount();
-                        }
-                      };
+    {
+      protected int sizeOf(String key, Bitmap value)
+      {
+        return value.getByteCount();
+      }
+    };
 
     this.cacheDirectory.mkdirs();
   }
-  
+
   public Editor getEditor()
   {
     return editor;
@@ -51,7 +51,7 @@ public class ImageLoader
   {
     return cacheDirectory;
   }
-  
+
   public synchronized Bitmap getImage(final String url, final String mimeType, final int dstWidth, final int dstHeight, final Observer observer)
   {
     Bitmap image = cache.get(url);
@@ -81,7 +81,7 @@ public class ImageLoader
     thread.start();
     return image;
   }
-  
+
   private final Bitmap renderObject(String url, String mimeType, int dstWidth, int dstHeight)
   {
     if (mimeType.startsWith("image/"))
@@ -113,7 +113,7 @@ public class ImageLoader
       image.eraseColor(Color.WHITE);
     return image;
   }
-  
+
   private final synchronized File getFile(String url) throws IOException
   {
     File file = new File(cacheDirectory, url);

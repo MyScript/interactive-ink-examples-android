@@ -157,7 +157,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       this.word = word;
       this.index = index;
       float textSizeInPixels = res.getDimension(R.dimen.smart_guide_text_size);
-      int textSize = (int)(textSizeInPixels / density);
+      int textSize = (int) (textSizeInPixels / density);
       setTextSize(textSize);
       setText(word.label.equals("\n") ? " " : word.label);
       if (word.modified)
@@ -232,24 +232,24 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
 
       final int selected = selectedCandidate;
       AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(v.getContext());
-        dialogBuilder.setSingleChoiceItems(candidates, selected, new DialogInterface.OnClickListener()
+      dialogBuilder.setSingleChoiceItems(candidates, selected, new DialogInterface.OnClickListener()
+      {
+        @Override
+        public void onClick(DialogInterface dialog, int checked)
         {
-          @Override
-          public void onClick(DialogInterface dialog, int checked)
+          if (word.candidates != null)
           {
-            if (word.candidates != null)
+            String newLabel = word.candidates[checked];
+            if (checked != selected)
             {
-              String newLabel = word.candidates[checked];
-              if (checked != selected)
-              {
-                updateWord(index, newLabel);
-                setText(newLabel);
-                word.label = newLabel;
-              }
+              updateWord(index, newLabel);
+              setText(newLabel);
+              word.label = newLabel;
             }
-            dialog.dismiss();
           }
-        });
+          dialog.dismiss();
+        }
+      });
       dialogBuilder.show();
     }
   }
@@ -301,7 +301,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
 
     TextView moreView = findViewById(R.id.more_view);
     moreView.setOnClickListener(this);
-    if (smartGuideMoreHandler==null)
+    if (smartGuideMoreHandler == null)
       moreView.setVisibility(View.GONE);
 
     fadeOutTimerHandler = new Handler();
@@ -442,11 +442,11 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       final HorizontalScrollView scrollView = findViewById(R.id.scroll_view);
       TextView moreView = findViewById(R.id.more_view);
 
-      final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)getLayoutParams();
-      layoutParams.leftMargin = (int)x;
-      layoutParams.topMargin = (int)y - getHeight();
-      final LinearLayout.LayoutParams scrollViewLayoutParams = (LinearLayout.LayoutParams)scrollView.getLayoutParams();
-      scrollViewLayoutParams.width = (int)width - styleView.getWidth() - moreView.getWidth();
+      final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
+      layoutParams.leftMargin = (int) x;
+      layoutParams.topMargin = (int) y - getHeight();
+      final LinearLayout.LayoutParams scrollViewLayoutParams = (LinearLayout.LayoutParams) scrollView.getLayoutParams();
+      scrollViewLayoutParams.width = (int) width - styleView.getWidth() - moreView.getWidth();
 
       // Update words
       final SmartGuideWord[] updatedWords;
@@ -501,7 +501,8 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       final boolean updateWords = this.words != updatedWords;
       final boolean isInDiagram = block.getId().startsWith("diagram/");
 
-      post(new Runnable() {
+      post(new Runnable()
+      {
         @Override
         public void run()
         {
@@ -526,8 +527,10 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
             if (lastModifiedWordView_ != null)
             {
               final SmartGuideWordView lastModifiedWordView = lastModifiedWordView_;
-              scrollView.post(new Runnable() {
-                public void run() {
+              scrollView.post(new Runnable()
+              {
+                public void run()
+                {
                   Rect rect = new Rect();
                   lastModifiedWordView.getHitRect(rect); // coordinates of lastModifiedWordView relative to its parent stackView
                   scrollView.requestChildRectangleOnScreen(stackView, rect, false);
@@ -566,9 +569,11 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     {
       fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
 
-      post(new Runnable() {
+      post(new Runnable()
+      {
         @Override
-        public void run() {
+        public void run()
+        {
           setVisibility(View.INVISIBLE);
         }
       });
@@ -608,23 +613,23 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     for (j = 0; j < len2; ++j)
       words[j].modified = true;
 
-    if ( (len1 > 0) && (len2 > 0) )
+    if ((len1 > 0) && (len2 > 0))
     {
       i = len1;
       j = len2;
 
       while (j > 0)
       {
-        int d01 = d[i][j-1];
-        int d11 = (i > 0) ? d[i-1][j-1] : -1;
-        int d10 = (i > 0) ? d[i-1][j] : -1;
+        int d01 = d[i][j - 1];
+        int d11 = (i > 0) ? d[i - 1][j - 1] : -1;
+        int d10 = (i > 0) ? d[i - 1][j] : -1;
 
-        if ( (d11 >= 0) && (d11 <= d10) && (d11 <= d01) )
+        if ((d11 >= 0) && (d11 <= d10) && (d11 <= d01))
         {
           --i;
           --j;
         }
-        else if ( (d10 >= 0) && (d10 <= d11) && (d10 <= d01) )
+        else if ((d10 >= 0) && (d10 <= d11) && (d10 <= d01))
         {
           --i;
         }
@@ -633,7 +638,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
           --j;
         }
 
-        if ( (i < len1) && (j < len2) )
+        if ((i < len1) && (j < len2))
           words[j].modified = !oldWords[i].label.equals(words[j].label);
       }
     }

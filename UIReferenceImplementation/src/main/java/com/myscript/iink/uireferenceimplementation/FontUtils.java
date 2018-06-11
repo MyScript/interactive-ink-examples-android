@@ -77,7 +77,7 @@ public final class FontUtils
       int version = readDword(header, 0);
 
       // The version must be either 'true' (0x74727565) or 0x00010000 or 'OTTO' (0x4f54544f) for CFF style fonts.
-      if ( version != 0x74727565 && version != 0x00010000 && version != 0x4f54544f)
+      if (version != 0x74727565 && version != 0x00010000 && version != 0x4f54544f)
         return null;
 
       // The TTF file consist of several sections called "tables", and we need to know how many of them are there.
@@ -136,7 +136,9 @@ public final class FontUtils
 
               // Make sure it is inside the array
               if (name_offset >= 0 && name_offset + name_length < table.length)
-              { return new String(table, name_offset, name_length); }
+              {
+                return new String(table, name_offset, name_length);
+              }
             }
           }
           // we jumped table's data so we can't continue reading table descriptors
@@ -153,7 +155,13 @@ public final class FontUtils
     }
     finally
     {
-      if (in != null) try { in.close(); } catch (IOException e) {}
+      if (in != null) try
+      {
+        in.close();
+      }
+      catch (IOException e)
+      {
+      }
     }
   }
 

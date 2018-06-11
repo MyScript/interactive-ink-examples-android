@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // configure recognition
     Configuration conf = engine.getConfiguration();
     String confDir = "zip://" + getPackageCodePath() + "!/assets/conf";
-    conf.setStringArray("configuration-manager.search-path", new String[] { confDir });
+    conf.setStringArray("configuration-manager.search-path", new String[]{confDir});
     String tempDir = getFilesDir().getPath() + File.separator + "tmp";
     conf.setString("content-package.temp-folder", tempDir);
 
@@ -202,7 +202,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       case R.id.menu_resetView:
         return documentController.resetView();
       case R.id.menu_convert:
-        editor.convert(null, editor.getSupportedTargetConversionStates(null)[0]); return true;
+        editor.convert(null, editor.getSupportedTargetConversionStates(null)[0]);
+        return true;
       case R.id.menu_export:
         return documentController.export(null);
       case R.id.menu_newPackage:
@@ -268,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     for (int i = 0; i < files.length; ++i)
       fileNames[i] = files[i].getName();
 
-    final int[] selected = new int[] { 0 };
+    final int[] selected = new int[]{0};
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
     dialogBuilder.setTitle(R.string.addImage_title);
 
@@ -456,14 +457,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Editor editor = editorView.getEditor();
     final boolean canUndo = editor.canUndo();
     final boolean canRedo = editor.canRedo();
-    runOnUiThread(new Runnable() {
+    runOnUiThread(new Runnable()
+    {
       @Override
-      public void run() {
-        ImageButton imageButtonUndo = (ImageButton)findViewById(R.id.button_undo);
+      public void run()
+      {
+        ImageButton imageButtonUndo = (ImageButton) findViewById(R.id.button_undo);
         imageButtonUndo.setEnabled(canUndo);
-        ImageButton imageButtonRedo = (ImageButton)findViewById(R.id.button_redo);
+        ImageButton imageButtonRedo = (ImageButton) findViewById(R.id.button_redo);
         imageButtonRedo.setEnabled(canRedo);
-        ImageButton imageButtonClear = (ImageButton)findViewById(R.id.button_clear);
+        ImageButton imageButtonClear = (ImageButton) findViewById(R.id.button_clear);
         imageButtonClear.setEnabled(documentController != null && documentController.hasPart());
       }
     });

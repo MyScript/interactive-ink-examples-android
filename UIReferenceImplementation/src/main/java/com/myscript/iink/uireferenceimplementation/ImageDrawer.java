@@ -14,8 +14,8 @@ import java.util.EnumSet;
 public class ImageDrawer implements IImageDrawer
 {
   private ImageLoader imageLoader = null;
-  private Bitmap              bitmap      = null;
-  private android.graphics.Canvas canvas      = null;
+  private Bitmap bitmap = null;
+  private android.graphics.Canvas canvas = null;
 
   public void setImageLoader(ImageLoader imageLoader)
   {

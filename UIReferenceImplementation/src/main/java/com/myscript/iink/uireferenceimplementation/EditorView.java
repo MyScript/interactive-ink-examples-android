@@ -35,11 +35,12 @@ public class EditorView extends FrameLayout implements IRenderTarget
   @Nullable
   private Engine engine;
 
-  @NonNull
+  @Nullable
   private Renderer renderer;
-  @NonNull
+  @Nullable
   private Editor editor;
 
+  @Nullable
   private InputController inputController;
   private ImageLoader imageLoader;
 
@@ -115,7 +116,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
       View view = getChildAt(i);
       if (view instanceof LayerView)
       {
-        ((LayerView)view).setCustomTypefaces(typefaceMap);
+        ((LayerView) view).setCustomTypefaces(typefaceMap);
       }
     }
     renderer = engine.createRenderer(displayMetrics.xdpi, displayMetrics.ydpi, this);
@@ -127,11 +128,13 @@ public class EditorView extends FrameLayout implements IRenderTarget
     smartGuideView.setEditor(editor);
   }
 
+  @Nullable
   public Editor getEditor()
   {
     return editor;
   }
 
+  @Nullable
   public Renderer getRenderer()
   {
     return renderer;
@@ -152,7 +155,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
       View view = getChildAt(i);
       if (view instanceof LayerView)
       {
-        ((LayerView)view).setImageLoader(imageLoader);
+        ((LayerView) view).setImageLoader(imageLoader);
       }
     }
   }
@@ -186,7 +189,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
       View view = getChildAt(i);
       if (view instanceof LayerView)
       {
-        LayerView layerView = (LayerView)view;
+        LayerView layerView = (LayerView) view;
         layerViews[layerView.getType().ordinal()] = layerView;
         layerView.setRenderTarget(this);
       }
@@ -217,7 +220,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
     if (width <= 0 || height <= 0)
       return;
 
-    for (LayerType type: layers)
+    for (LayerType type : layers)
     {
       LayerView layerView = layerViews[type.ordinal()];
       if (layerView != null)
