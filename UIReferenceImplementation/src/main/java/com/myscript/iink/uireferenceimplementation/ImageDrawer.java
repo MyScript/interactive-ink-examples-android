@@ -86,7 +86,7 @@ public class ImageDrawer implements IImageDrawer
 
       if (path.endsWith(".png"))
         format = Bitmap.CompressFormat.PNG;
-      else if (path.endsWith(".jpg"))
+      else if (path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".jpe"))
         format = Bitmap.CompressFormat.JPEG;
       else
         throw new IOException("No appropriate image format found");
