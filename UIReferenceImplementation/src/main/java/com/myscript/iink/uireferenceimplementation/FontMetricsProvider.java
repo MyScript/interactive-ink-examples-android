@@ -31,6 +31,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
 {
   DisplayMetrics displayMetrics;
   private TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+  private TextPaint paint_ = new TextPaint(Paint.ANTI_ALIAS_FLAG);
   private Path charPath = new Path();
   private RectF charBox = new RectF();
   private Map<String, Typeface> typefaceMap;
@@ -123,7 +124,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     }
 
     // Layout text
-    Layout layout = new StaticLayout(string, paint, 100000, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+    Layout layout = new StaticLayout(string, paint_, 100000, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
     if (layout.getLineCount() != 1)
       throw new RuntimeException();
 
