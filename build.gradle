@@ -20,13 +20,13 @@ allprojects {
         // configure versions used by dependencies to harmonize and update easily across all components
 
         // Android SDK
-        compileSdkVersion = 26
-        buildToolsVersion = '26.0.1'
+        compileSdkVersion = 27
+        buildToolsVersion = '27.0.3'
         minSdkVersion = 16
-        targetSdkVersion = 26
+        targetSdkVersion = 27
 
         // Android libraries
-        supportLibraryVersion = '26.1.0'
+        supportLibraryVersion = '27.1.1'
     }
 }
 
