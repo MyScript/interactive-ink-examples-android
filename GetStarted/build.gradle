@@ -23,8 +23,8 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
 
         applicationId 'com.myscript.iink.getstarted'
-        versionCode 4
-        versionName '1.1.2'
+        versionCode 10
+        versionName '1.2.1'
     }
 }
 
