@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -329,7 +332,94 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         catch (Exception e)
         {
-          Log.e(TAG, "Failed to add image", e);
+          Toast.makeText(MainActivity.this, "Failed to add image", Toast.LENGTH_LONG).show();
+        }
+      }
+    });
+
+    dialogBuilder.setNegativeButton(R.string.cancel, null);
+
+    AlertDialog dialog = dialogBuilder.create();
+    dialog.show();
+
+    return true;
+  }
+
+  private final boolean addBlock(final float x, final float y, final String blockType)
+  {
+    final Editor editor = editorView.getEditor();
+    final MimeType[] mimeTypes = editor.getSupportedAddBlockDataMimeTypes(blockType);
+
+    if (mimeTypes.length == 0)
+    {
+      editor.addBlock(x, y, blockType);
+      return true;
+    }
+
+    final ArrayList<String> typeDescriptions = new ArrayList<String>();
+
+    for (MimeType mimeType : mimeTypes)
+      typeDescriptions.add(mimeType.getTypeName());
+
+    if (typeDescriptions.isEmpty())
+      return false;
+
+    final int[] selected = new int[]{0};
+    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+
+    dialogBuilder.setTitle(R.string.addType_title);
+    dialogBuilder.setSingleChoiceItems(typeDescriptions.toArray(new String[0]), selected[0], new DialogInterface.OnClickListener()
+    {
+      @Override
+      public void onClick(DialogInterface dialog, int which)
+      {
+        selected[0] = which;
+      }
+    });
+    dialogBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+    {
+      @Override
+      public void onClick(DialogInterface dialog, int which)
+      {
+        addBlock_(x, y, blockType, mimeTypes[selected[0]]);
+      }
+    });
+    dialogBuilder.setNegativeButton(R.string.cancel, null);
+
+    AlertDialog dialog = dialogBuilder.create();
+    dialog.show();
+
+    return true;
+  }
+
+  private final boolean addBlock_(final float x, final float y, final String blockType, final MimeType mimeType)
+  {
+    final EditText input = new EditText(this);
+
+    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    input.setLayoutParams(params);
+    input.setMinLines(5);
+    input.setMaxLines(5);
+    input.setGravity(Gravity.TOP|Gravity.LEFT);
+
+    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+    dialogBuilder.setTitle(R.string.addData_title);
+    dialogBuilder.setView(input);
+    dialogBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+    {
+      @Override
+      public void onClick(DialogInterface dialog, int which)
+      {
+        try
+        {
+          String data = input.getText().toString();
+
+          if (!data.isEmpty())
+            editorView.getEditor().addBlock(x, y, blockType, mimeType, data);
+        }
+        catch (Exception e)
+        {
+          Toast.makeText(MainActivity.this, "Failed to add block", Toast.LENGTH_LONG).show();
         }
       }
     });
@@ -384,12 +474,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     if (displayAddBlock)
     {
       for (String blockType : supportedTypes)
-      {
-        // filter out "Text" block, until we have a popup menu to ask for text data to import
-        if (blockType.equals("Text"))
-          continue;
         items.add("Add " + blockType);
-      }
     }
 
     if (displayAddImage)
@@ -458,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
           else if (item.startsWith("Add "))
           {
             String blockType = item.substring(4);
-            editor.addBlock(x, y, blockType);
+            addBlock(x, y, blockType);
           }
         }
         catch (Exception e)

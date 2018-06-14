@@ -26,6 +26,8 @@
     <string name="exportType_title">Export - select type</string>
     <string name="exportPackage_title">Export - select file</string>
     <string name="addImage_title">Add image - select file</string>
+    <string name="addType_title">Add block - select type</string>
+    <string name="addData_title">Add block - enter data</string>
     <string name="inputMode_title">Input mode - select behavior</string>
     <string name="inputMode_forcePen">Pen</string>
     <string name="inputMode_forceTouch">Touch</string>
