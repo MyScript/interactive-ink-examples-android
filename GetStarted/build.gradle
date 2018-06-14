@@ -40,9 +40,13 @@ task DownloadAndExtractAssets(type: Copy) {
                       'https://s3-us-west-2.amazonaws.com/iink/assets/1.1.0/myscript-iink-recognition-text-en_US.zip']
     def temporaryDir = new File(projectDir, "build/assets")
     def zipDir = new File(temporaryDir, "zips")
-    def mathConf = new File(projectDir, "src/main/assets/conf/math.conf")
+    def targetDir = new File(projectDir, "src/main/assets/")
+    def diagramConf = new File(targetDir, "conf/diagram.conf")
+    def rawContentConf = new File(targetDir, "conf/raw-content.conf")
+    def mathConf = new File(targetDir, "conf/math.conf")
+    def textConf = new File(targetDir, "conf/en_US.conf")
 
-    if (!mathConf.exists()) {
+    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
         temporaryDir.deleteOnExit()
         if (!temporaryDir.isDirectory())
             temporaryDir.mkdirs()
@@ -65,9 +69,12 @@ task DownloadAndExtractAssets(type: Copy) {
 task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
     def recognitionAssetDir = new File(projectDir, "build/assets/recognition-assets/")
     def targetDir = new File(projectDir, "src/main/assets/")
+    def diagramConf = new File(targetDir, "conf/diagram.conf")
+    def rawContentConf = new File(targetDir, "conf/raw-content.conf")
     def mathConf = new File(targetDir, "conf/math.conf")
+    def textConf = new File(targetDir, "conf/en_US.conf")
 
-    if (!mathConf.exists()) {
+    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
         println "Copying downloaded assets from $recognitionAssetDir to $targetDir"
         from recognitionAssetDir
         into targetDir
