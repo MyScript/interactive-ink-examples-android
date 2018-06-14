@@ -504,7 +504,7 @@ public class DocumentController
             ImageDrawer imageDrawer = new ImageDrawer();
             imageDrawer.setImageLoader(editorView.getImageLoader());
             editor.waitForIdle();
-            editor.export_(block, file, imageDrawer);
+            editor.export_(block, file.getPath(), imageDrawer);
           }
           catch (Exception e)
           {
