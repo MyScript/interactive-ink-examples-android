@@ -99,9 +99,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     editorView.setInputControllerListener(new IInputControllerListener()
     {
       @Override
-      public void onDisplayContextMenu(final float x, final float y, final ContentBlock contentBlock, final String[] supportedAddBlockTypes)
+      public void onDisplayContextMenu(final float x, final float y, final ContentBlock contentBlock)
       {
-        displayContextMenu(x, y, contentBlock, supportedAddBlockTypes);
+        displayContextMenu(x, y, contentBlock);
       }
     });
 
@@ -342,33 +342,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     return true;
   }
 
-  private void displayContextMenu(final float x, final float y, ContentBlock contentBlock_, final String[] supportedAddBlockTypes)
+  private void displayContextMenu(final float x, final float y, ContentBlock contentBlock_)
   {
     final Editor editor = editorView.getEditor();
-    final ContentBlock contentBlock = contentBlock_ != null ? contentBlock_ : editor.getRootBlock();
 
-    final boolean isContainer = contentBlock.getType().equals("Container");
-    final boolean isRoot = contentBlock.getId().equals(editor.getRootBlock().getId());
+    final ContentPart part = editor.getPart();
+    if (part == null)
+      return;
 
+    final ContentBlock rootBlock = editor.getRootBlock();
+    final ContentBlock contentBlock = (contentBlock_ != null) && !contentBlock_.getType().equals("Container") ? contentBlock_ : rootBlock;
+
+    final boolean isRoot = contentBlock.getId().equals(rootBlock.getId());
+
+    final boolean onRawContent = part.getType().equals("Raw Content");
+    final boolean onTextDocument = part.getType().equals("Text Document");
+
+    final boolean isEmpty = editor.isEmpty(contentBlock);
+
+    final String[] supportedTypes = editor.getSupportedAddBlockTypes();
+    //final MimeType[] supportedExports = editor.getSupportedExportMimeTypes(onRawContent ? rootBlock : contentBlock);
+    //final MimeType[] supportedImports = editor.getSupportedImportMimeTypes(contentBlock);
     final ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(contentBlock);
 
-    final boolean displayConvert  = supportedStates.length > 0 && !isContainer;
-    final boolean displayAddBlock = supportedAddBlockTypes.length > 0 && isContainer;
-    final boolean displayAddImage = false; // supportedAddBlockTypes.length > 0 && isContainer;
-    final boolean displayRemove   = !isRoot && !isContainer;
-    final boolean displayCopy     = !isRoot && !isContainer;
-    final boolean displayPaste    = supportedAddBlockTypes.length > 0 && isContainer;
-    final boolean displayImport   = false;
-    final boolean displayExport   = false;
+    final boolean hasTypes = supportedTypes.length > 0;
+    //final boolean hasExports = supportedExports.length > 0;
+    //final boolean hasImports = supportedImports.length > 0;
+    final boolean hasStates = supportedStates.length > 0;
+
+    final boolean displayConvert = hasStates && !isEmpty;
+    final boolean displayAddBlock = hasTypes && isRoot;
+    final boolean displayAddImage = false; // hasTypes && isRoot;
+    final boolean displayRemove = !isRoot;
+    final boolean displayCopy = (onTextDocument ? !isRoot : !onRawContent);
+    final boolean displayPaste = hasTypes && isRoot;
+    final boolean displayImport = false; // hasImports;
+    final boolean displayExport = false; // hasExports;
 
     final ArrayList<String> items = new ArrayList<>();
 
-    if (displayConvert)
-      items.add("Convert");
-
     if (displayAddBlock)
     {
-      for (String blockType : supportedAddBlockTypes)
+      for (String blockType : supportedTypes)
       {
         // filter out "Text" block, until we have a popup menu to ask for text data to import
         if (blockType.equals("Text"))
@@ -380,14 +395,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     if (displayAddImage)
       items.add("Add Image");
 
-    if (displayPaste)
-      items.add("Paste");
-
     if (displayRemove)
       items.add("Remove");
 
+    if (displayConvert)
+      items.add("Convert");
+
     if (displayCopy)
       items.add("Copy");
+
+    if (displayPaste)
+      items.add("Paste");
 
     if (displayImport)
       items.add("Import");

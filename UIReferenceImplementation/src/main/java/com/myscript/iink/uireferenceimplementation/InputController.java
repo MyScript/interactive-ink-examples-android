@@ -202,7 +202,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     final float x = e.getX();
     final float y = e.getY();
     if (listener != null)
-      listener.onDisplayContextMenu(x, y, editor.hitBlock(x, y), editor.getSupportedAddBlockTypes());
+      listener.onDisplayContextMenu(x, y, editor.hitBlock(x, y));
   }
 
   @Override
