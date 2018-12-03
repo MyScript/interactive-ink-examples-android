@@ -109,36 +109,36 @@ public class LayerView extends View implements IRenderView
   @Override
   protected final void onDraw(android.graphics.Canvas canvas)
   {
-    Rect updateArea;
+    Rect localUpdateArea;
     Renderer renderer;
 
     synchronized (this)
     {
-      updateArea = this.updateArea;
+      localUpdateArea = this.updateArea;
       this.updateArea = null;
       renderer = lastRenderer;
       lastRenderer = null;
     }
 
-    if (updateArea != null)
+    if (localUpdateArea != null)
     {
 
-      prepare(sysCanvas, updateArea);
+      prepare(sysCanvas, localUpdateArea);
       try
       {
         switch (type)
         {
           case BACKGROUND:
-            renderer.drawBackground(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+            renderer.drawBackground(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           case MODEL:
-            renderer.drawModel(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+            renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           case TEMPORARY:
-            renderer.drawTemporaryItems(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+            renderer.drawTemporaryItems(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           case CAPTURE:
-            renderer.drawCaptureStrokes(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+            renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           default:
             // unknown layer type
