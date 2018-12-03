@@ -4,11 +4,14 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
+import android.util.Log;
 
 import com.myscript.iink.graphics.Style;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class FontUtils
@@ -16,6 +19,36 @@ public final class FontUtils
   private FontUtils()
   {
     // utility class
+  }
+
+  public static Map<String, Typeface> loadFontsFromAssets(AssetManager assetManager)
+  {
+    return loadFontsFromAssets(assetManager, "fonts");
+  }
+
+  public static Map<String, Typeface> loadFontsFromAssets(AssetManager assetManager, String assetsDir)
+  {
+    Map<String, Typeface> typefaceMap = new HashMap<>();
+    try
+    {
+      String[] files = assetManager.list(assetsDir);
+      for (String filename : files)
+      {
+        String fontPath = assetsDir + File.separatorChar + filename;
+        String fontFamily = FontUtils.getFontFamily(assetManager, fontPath);
+        final Typeface typeface = Typeface.createFromAsset(assetManager, fontPath);
+        if (fontFamily != null && typeface != null)
+        {
+          typefaceMap.put(fontFamily, typeface);
+        }
+      }
+    }
+    catch (IOException e)
+    {
+      Log.e("FontUtils", "Failed to list fonts from assets", e);
+      return null;
+    }
+    return typefaceMap;
   }
 
   public static int getTypefaceStyle(String fontStyle, String fontVariant, int fontWeight)
