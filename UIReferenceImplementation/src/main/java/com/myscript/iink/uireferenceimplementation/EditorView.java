@@ -97,6 +97,9 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   public void close()
   {
+    // unplug input management
+    setOnTouchListener(null);
+
     if (editor != null && !editor.isClosed())
     {
       editor.setPart(null);
@@ -156,8 +159,11 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   public void setInputControllerListener(IInputControllerListener listener)
   {
-    inputController.setListener(listener);
-    smartGuideView.setSmartGuideMoreHandler(listener);
+    if (inputController != null)
+    {
+      inputController.setListener(listener);
+      smartGuideView.setSmartGuideMoreHandler(listener);
+    }
   }
 
   public void setImageLoader(ImageLoader imageLoader)
