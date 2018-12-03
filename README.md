@@ -8,7 +8,7 @@ This repository contains a "get started" example, a complete example and a refer
 
 ### Prerequisites
 
-This getting started section has been tested with Android Studio 3.0.1 and supports Android SDK version 16+.
+This getting started section has been tested with Android Studio 3.2.1 and supports Android SDK version 16+.
 
 ### Installation
 
@@ -18,15 +18,13 @@ This getting started section has been tested with Android Studio 3.0.1 and suppo
 
 3. Copy this certificate to `GetStarted/src/main/java/com/myscript/certificate/MyCertificate.java` and `Demo/src/main/java/com/myscript/certificate/MyCertificate.java`
 
-The first time you open the project in Android Studio a "Android Gradle Plugin Update Recommended" popup will show asking you to upgrade to Android Gradle Plugin 3.0.1 and Gradle 4.1. Choose "Don't remind me again for this project" otherwise the gradle build will fail.
-
 ## Building your own integration
 
 This repository provides you with a ready-to-use reference implementation of the Android integration part, covering aspects like ink capture and rendering. It is located in `UIReferenceImplementation` directory and can be simply added to your project by referencing it in your `settings.gradle`.
 
 ## Documentation
 
-A complete guide is available on [MyScript Developer website](https://developer.myscript.com/docs/interactive-ink/1.0/android/).
+A complete guide is available on [MyScript Developer website](https://developer.myscript.com/docs/interactive-ink/latest/android/).
 
 The API Reference is available directly in Android Studio once the dependencies are downloaded.
 
