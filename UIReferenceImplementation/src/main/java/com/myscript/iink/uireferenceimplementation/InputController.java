@@ -20,6 +20,9 @@ import java.util.EnumSet;
 
 public class InputController implements View.OnTouchListener, GestureDetector.OnGestureListener
 {
+  private static final String TAG = "InputController";
+
+  public static final int INPUT_MODE_NONE = -1;
   public static final int INPUT_MODE_FORCE_PEN = 0;
   public static final int INPUT_MODE_FORCE_TOUCH = 1;
   public static final int INPUT_MODE_AUTO = 2;
@@ -64,7 +67,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     return _listener;
   }
 
-  public final boolean handleOnTouchForPointer(MotionEvent event, int actionMask, int pointerIndex)
+  private boolean handleOnTouchForPointer(MotionEvent event, int actionMask, int pointerIndex)
   {
     final int pointerId = event.getPointerId(pointerIndex);
     final int pointerType = event.getToolType(pointerIndex);
@@ -116,7 +119,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
           for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
+            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
           pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
           editor.pointerEvents(pointerEvents, true);
         }
@@ -132,7 +135,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize];
           for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
+            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
           editor.pointerEvents(pointerEvents, true);
         }
         editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
@@ -169,39 +172,38 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       final int pointerCount = event.getPointerCount();
       for (int pointerIndex = 0; pointerIndex < pointerCount; pointerIndex++)
       {
-        boolean consumed_ = handleOnTouchForPointer(event, actionMask, pointerIndex);
-        consumed = consumed || consumed_;
+        consumed = consumed || handleOnTouchForPointer(event, actionMask, pointerIndex);
       }
       return consumed;
     }
   }
 
   @Override
-  public boolean onDown(MotionEvent e)
-  {
-    return true;
-  }
-
-  @Override
-  public void onShowPress(MotionEvent e)
-  {
-    // no-op
-  }
-
-  @Override
-  public boolean onSingleTapUp(MotionEvent e)
+  public boolean onDown(MotionEvent event)
   {
     return false;
   }
 
   @Override
-  public void onLongPress(MotionEvent e)
+  public void onShowPress(MotionEvent event)
   {
-    final float x = e.getX();
-    final float y = e.getY();
+    // no-op
+  }
+
+  @Override
+  public boolean onSingleTapUp(MotionEvent event)
+  {
+    return false;
+  }
+
+  @Override
+  public void onLongPress(MotionEvent event)
+  {
+    final float x = event.getX();
+    final float y = event.getY();
     IInputControllerListener listener = getListener();
     if (listener != null)
-      listener.onDisplayContextMenu(x, y, editor.hitBlock(x, y));
+      listener.onLongPress(x, y, editor.hitBlock(x, y));
   }
 
   @Override
@@ -214,13 +216,14 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       editor.clampViewOffset(newOffset);
       editor.getRenderer().setViewOffset(newOffset.x, newOffset.y);
       renderTarget.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
+      return true;
     }
-    return true;
+    return false;
   }
 
   @Override
   public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
   {
-    return true;
+    return false;
   }
 }

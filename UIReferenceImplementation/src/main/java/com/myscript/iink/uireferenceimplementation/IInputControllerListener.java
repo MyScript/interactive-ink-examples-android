@@ -6,5 +6,5 @@ import com.myscript.iink.ContentBlock;
 
 public interface IInputControllerListener
 {
-  void onDisplayContextMenu(final float x, final float y, final ContentBlock contentBlock);
+  boolean onLongPress(final float x, final float y, final ContentBlock contentBlock);
 }
