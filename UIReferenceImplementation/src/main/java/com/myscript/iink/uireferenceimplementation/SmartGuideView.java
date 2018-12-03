@@ -425,7 +425,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       {
         final float x = v.getX();
         final float y = v.getY();
-        smartGuideMoreHandler.onDisplayContextMenu(x, y, block);
+        smartGuideMoreHandler.onLongPress(x, y, block);
       }
     }
   }

@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     editorView.setInputControllerListener(new IInputControllerListener()
     {
       @Override
-      public void onDisplayContextMenu(final float x, final float y, final ContentBlock contentBlock)
+      public boolean onLongPress(final float x, final float y, final ContentBlock contentBlock)
       {
-        displayContextMenu(x, y, contentBlock);
+        return displayContextMenu(x, y, contentBlock);
       }
     });
 
@@ -432,13 +432,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     return true;
   }
 
-  private void displayContextMenu(final float x, final float y, ContentBlock contentBlock_)
+  private boolean displayContextMenu(final float x, final float y, final ContentBlock contentBlock_)
   {
     final Editor editor = editorView.getEditor();
 
     final ContentPart part = editor.getPart();
     if (part == null)
-      return;
+      return true;
 
     final ContentBlock rootBlock = editor.getRootBlock();
     final ContentBlock contentBlock = (contentBlock_ != null) && !contentBlock_.getType().equals("Container") ? contentBlock_ : rootBlock;
@@ -499,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       items.add("Export");
 
     if (items.isEmpty())
-      return;
+      return true;
 
     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
     dialogBuilder.setTitle(contentBlock.getType() + " (id: " + contentBlock.getId() + ")");
@@ -554,6 +554,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       }
     });
     dialogBuilder.show();
+    return true;
   }
 
   private void setInputMode(int inputMode)
