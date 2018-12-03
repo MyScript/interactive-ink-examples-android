@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.myscript.iink.Configuration;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IRenderTarget;
@@ -123,6 +124,19 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
     editor = engine.createEditor(renderer);
     editor.setFontMetricsProvider(new FontMetricsProvider(displayMetrics, typefaceMap));
+
+    Configuration conf = editor.getConfiguration();
+    float verticalMarginPX = getResources().getDimension(R.dimen.vertical_margin);
+    float horizontalMarginPX = getResources().getDimension(R.dimen.horizontal_margin);
+    float verticalMarginMM = 25.4f * verticalMarginPX / displayMetrics.ydpi;
+    float horizontalMarginMM = 25.4f * horizontalMarginPX / displayMetrics.xdpi;
+    conf.setNumber("text.margin.top", verticalMarginMM);
+    conf.setNumber("text.margin.left", horizontalMarginMM);
+    conf.setNumber("text.margin.right", horizontalMarginMM);
+    conf.setNumber("math.margin.top", verticalMarginMM);
+    conf.setNumber("math.margin.bottom", verticalMarginMM);
+    conf.setNumber("math.margin.left", horizontalMarginMM);
+    conf.setNumber("math.margin.right", horizontalMarginMM);
 
     smartGuideView = findViewById(R.id.smart_guide_view);
     smartGuideView.setEditor(editor);
