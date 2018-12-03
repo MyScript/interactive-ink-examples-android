@@ -82,6 +82,9 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
   private Editor editor;
 
   @Nullable
+  private ParameterSet exportParams;
+
+  @Nullable
   private ContentBlock activeBlock;
   @Nullable
   private ContentBlock selectedBlock;
@@ -175,9 +178,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       String jiixString = null;
       try
       {
-        ParameterSet conf = editor.getEngine().createParameterSet();
-        conf.setBoolean("export.jiix.strokes", false);
-        jiixString = editor.export_(block, MimeType.JIIX, conf);
+        jiixString = editor.export_(block, MimeType.JIIX, exportParams);
       }
       catch (Exception e)
       {
@@ -295,6 +296,13 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     this.editor = editor;
     editor.addListener(this);
     editor.getRenderer().addListener(this);
+
+    this.exportParams = editor.getEngine().createParameterSet();
+    this.exportParams.setBoolean("export.jiix.strokes", false);
+    this.exportParams.setBoolean("export.jiix.bounding-box", false);
+    this.exportParams.setBoolean("export.jiix.glyphs", false);
+    this.exportParams.setBoolean("export.jiix.primitives", false);
+    this.exportParams.setBoolean("export.jiix.chars", false);
 
     Configuration configuration = editor.getEngine().getConfiguration();
     fadeOutWriteInDiagramDelay = configuration.getNumber("smart-guide.fade-out-delay.write-in-diagram", SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT).intValue();
@@ -479,9 +487,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         String jiixString;
         try
         {
-          ParameterSet conf = editor.getEngine().createParameterSet();
-          conf.setBoolean("export.jiix.strokes", false);
-          jiixString = editor.export_(block, MimeType.JIIX, conf);
+          jiixString = editor.export_(block, MimeType.JIIX, this.exportParams);
         }
         catch (Exception e)
         {
