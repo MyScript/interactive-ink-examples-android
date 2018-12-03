@@ -3,37 +3,28 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
-import android.content.res.AssetManager;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.myscript.iink.Configuration;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.Renderer;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EditorView extends FrameLayout implements IRenderTarget
 {
-  private static final String TAG = "EditorView";
-
   private int viewWidth;
   private int viewHeight;
-
-  @Nullable
-  private Engine engine;
 
   @Nullable
   private Renderer renderer;
@@ -57,12 +48,12 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   public EditorView(Context context)
   {
-    this(context, null, 0);
+    super(context);
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs)
   {
-    this(context, attrs, 0);
+    super(context, attrs);
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
@@ -125,22 +116,6 @@ public class EditorView extends FrameLayout implements IRenderTarget
   {
     DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
 
-    this.engine = engine;
-    Configuration conf = engine.getConfiguration();
-    float verticalMarginPX = getResources().getDimension(R.dimen.vertical_margin);
-    float horizontalMarginPX = getResources().getDimension(R.dimen.horizontal_margin);
-    float verticalMarginMM = 25.4f * verticalMarginPX / displayMetrics.ydpi;
-    float horizontalMarginMM = 25.4f * horizontalMarginPX / displayMetrics.xdpi;
-    conf.setNumber("text.margin.top", verticalMarginMM);
-    conf.setNumber("text.margin.left", horizontalMarginMM);
-    conf.setNumber("text.margin.right", horizontalMarginMM);
-    conf.setNumber("math.margin.top", verticalMarginMM);
-    conf.setNumber("math.margin.bottom", verticalMarginMM);
-    conf.setNumber("math.margin.left", horizontalMarginMM);
-    conf.setNumber("math.margin.right", horizontalMarginMM);
-
-    loadFonts();
-
     renderer = engine.createRenderer(displayMetrics.xdpi, displayMetrics.ydpi, this);
 
     editor = engine.createEditor(renderer);
@@ -165,12 +140,6 @@ public class EditorView extends FrameLayout implements IRenderTarget
           layerViews[i].setEditor(editor);
       }
     }
-  }
-
-  @Nullable
-  Engine getEngine()
-  {
-    return engine;
   }
 
   @Nullable
@@ -217,12 +186,15 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   public void setInputMode(int inputMode)
   {
-    inputController.setInputMode(inputMode);
+    if (inputController != null)
+    {
+      inputController.setInputMode(inputMode);
+    }
   }
 
   public int getInputMode()
   {
-    return inputController.getInputMode();
+    return inputController != null ? inputController.getInputMode() : InputController.INPUT_MODE_NONE;
   }
 
   @Override
@@ -267,27 +239,28 @@ public class EditorView extends FrameLayout implements IRenderTarget
     }
   }
 
-  private void loadFonts()
+  @Override
+  public void invalidate()
   {
-    AssetManager assets = this.getContext().getApplicationContext().getAssets();
-    try
-    {
-      String assetsDir = "fonts";
-      String[] files = assets.list(assetsDir);
-      for (String filename : files)
-      {
-        String fontPath = assetsDir + File.separatorChar + filename;
-        String fontFamily = FontUtils.getFontFamily(assets, fontPath);
-        final Typeface typeface = Typeface.createFromAsset(assets, fontPath);
-        if (fontFamily != null && typeface != null)
-        {
-          typefaceMap.put(fontFamily, typeface);
-        }
-      }
-    }
-    catch (IOException e)
-    {
-      Log.e(TAG, "Failed to list fonts from assets", e);
-    }
+    super.invalidate();
+    invalidate(renderer, EnumSet.allOf(LayerType.class));
+  }
+
+  @Override
+  public void invalidate(int l, int t, int r, int b)
+  {
+    super.invalidate(l, t, r, b);
+    invalidate(renderer, l, t, r - l, b - t, EnumSet.allOf(LayerType.class));
+  }
+
+  @Override
+  public void invalidate(Rect dirty)
+  {
+    super.invalidate(dirty);
+    int l = dirty.left;
+    int t = dirty.top;
+    int w = dirty.width();
+    int h = dirty.height();
+    invalidate(renderer, l, t, w, h, EnumSet.allOf(LayerType.class));
   }
 }
