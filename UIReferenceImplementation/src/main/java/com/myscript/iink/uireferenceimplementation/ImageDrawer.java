@@ -4,6 +4,7 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.annotation.ColorInt;
 
 import com.myscript.iink.IImageDrawer;
@@ -12,10 +13,12 @@ import com.myscript.iink.Renderer;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Map;
 
 public class ImageDrawer implements IImageDrawer
 {
   private ImageLoader imageLoader = null;
+  private Map<String, Typeface> typefaceMap = null;
   private Bitmap bitmap = null;
   private android.graphics.Canvas canvas = null;
   @ColorInt
@@ -24,6 +27,11 @@ public class ImageDrawer implements IImageDrawer
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
+  }
+
+  public void setTypefaceMap(Map<String, Typeface> typefaceMap)
+  {
+    this.typefaceMap = typefaceMap;
   }
 
   public void setBackgroundColor(@ColorInt int backgroundColor)
@@ -49,7 +57,7 @@ public class ImageDrawer implements IImageDrawer
       return;
 
     canvas.drawARGB(Color.alpha(backgroundColor), Color.red(backgroundColor), Color.green(backgroundColor), Color.blue(backgroundColor));
-    Canvas androidCanvas = new Canvas(canvas, null, imageLoader, this);
+    Canvas androidCanvas = new Canvas(canvas, typefaceMap, imageLoader, this);
 
     if (layers.contains(LayerType.MODEL))
       renderer.drawModel(x, y, width, height, androidCanvas);
