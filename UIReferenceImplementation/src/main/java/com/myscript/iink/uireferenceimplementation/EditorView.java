@@ -41,7 +41,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
   @Nullable
   private IRenderView[] layerViews;
 
-  private final Map<String, Typeface> typefaceMap = new HashMap<>();
+  private Map<String, Typeface> typefaceMap = new HashMap<>();
 
   @Nullable
   private SmartGuideView smartGuideView;
@@ -181,6 +181,20 @@ public class EditorView extends FrameLayout implements IRenderTarget
       {
         if (layerViews[i] != null)
           layerViews[i].setImageLoader(imageLoader);
+      }
+    }
+  }
+
+  public void setTypefaces(@NonNull Map<String, Typeface> typefaceMap)
+  {
+    this.typefaceMap = typefaceMap;
+    for (int i = 0, count = getChildCount(); i < count; ++i)
+    {
+      View view = getChildAt(i);
+      if (view instanceof IRenderView)
+      {
+        IRenderView renderView = (IRenderView) view;
+        renderView.setCustomTypefaces(typefaceMap);
       }
     }
   }

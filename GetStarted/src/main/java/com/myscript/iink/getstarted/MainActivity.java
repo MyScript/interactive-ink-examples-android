@@ -2,6 +2,8 @@
 
 package com.myscript.iink.getstarted;
 
+import android.content.res.AssetManager;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -19,10 +21,12 @@ import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
 import com.myscript.iink.uireferenceimplementation.EditorView;
+import com.myscript.iink.uireferenceimplementation.FontUtils;
 import com.myscript.iink.uireferenceimplementation.InputController;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
@@ -52,6 +56,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     setContentView(R.layout.activity_main);
 
     editorView = findViewById(R.id.editor_view);
+
+    // load fonts
+    AssetManager assetManager = getApplicationContext().getAssets();
+    Map<String, Typeface> typefaceMap = FontUtils.loadFontsFromAssets(assetManager);
+    editorView.setTypefaces(typefaceMap);
+
     editorView.setEngine(engine);
 
     final Editor editor = editorView.getEditor();
