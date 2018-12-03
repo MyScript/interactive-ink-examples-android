@@ -16,7 +16,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
-    buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
@@ -25,21 +24,20 @@ android {
         applicationId 'com.myscript.iink.getstarted'
         versionCode 11
         versionName '1.2.2'
+
+        vectorDrawables.useSupportLibrary true
     }
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:${project.ext.supportLibraryVersion}"
-    debugCompile project(path: ':UIReferenceImplementation', configuration: 'debug')
-    releaseCompile project(path: ':UIReferenceImplementation', configuration: 'release')
+    implementation "com.android.support:appcompat-v7:${project.ext.supportLibraryVersion}"
+    implementation project(':UIReferenceImplementation')
 }
 
 task DownloadAndExtractAssets(type: Copy) {
     def sourceUrls = ['https://s3-us-west-2.amazonaws.com/iink/assets/1.2.0/myscript-iink-recognition-diagram.zip',
                       'https://s3-us-west-2.amazonaws.com/iink/assets/1.2.0/myscript-iink-recognition-math.zip',
                       'https://s3-us-west-2.amazonaws.com/iink/assets/1.2.0/myscript-iink-recognition-text-en_US.zip']
-    def temporaryDir = new File(projectDir, "build/assets")
-    def zipDir = new File(temporaryDir, "zips")
     def targetDir = new File(projectDir, "src/main/assets/")
     def diagramConf = new File(targetDir, "conf/diagram.conf")
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
@@ -47,9 +45,11 @@ task DownloadAndExtractAssets(type: Copy) {
     def textConf = new File(targetDir, "conf/en_US.conf")
 
     if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
-        temporaryDir.deleteOnExit()
-        if (!temporaryDir.isDirectory())
-            temporaryDir.mkdirs()
+        def tmpAssetsDir = new File(projectDir, "tmp-assets/")
+        def zipDir = new File(tmpAssetsDir, "zips")
+
+        if (!tmpAssetsDir.isDirectory())
+            tmpAssetsDir.mkdirs()
 
         if (!zipDir.isDirectory())
             zipDir.mkdirs()
@@ -61,13 +61,12 @@ task DownloadAndExtractAssets(type: Copy) {
         File[] zipFiles = FileUtils.listFiles(zipDir, FileFilterUtils.suffixFileFilter("zip"), FileFilterUtils.trueFileFilter())
         zipFiles.each { File zipFile ->
             from zipTree(zipFile)
-            into temporaryDir
+            into tmpAssetsDir
         }
     }
 }
 
 task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
-    def recognitionAssetDir = new File(projectDir, "build/assets/recognition-assets/")
     def targetDir = new File(projectDir, "src/main/assets/")
     def diagramConf = new File(targetDir, "conf/diagram.conf")
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
@@ -75,9 +74,20 @@ task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
     def textConf = new File(targetDir, "conf/en_US.conf")
 
     if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
+        def tmpAssetsDir = new File(projectDir, "tmp-assets/")
+
+        if (!tmpAssetsDir.isDirectory())
+            tmpAssetsDir.mkdirs()
+
+        def recognitionAssetDir = new File(tmpAssetsDir, "recognition-assets/")
+
         println "Copying downloaded assets from $recognitionAssetDir to $targetDir"
         from recognitionAssetDir
         into targetDir
+
+        doLast {
+            tmpAssetsDir.deleteDir()
+        }
     }
 }
 
