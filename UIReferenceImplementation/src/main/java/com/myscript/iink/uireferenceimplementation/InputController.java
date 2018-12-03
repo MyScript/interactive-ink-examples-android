@@ -130,16 +130,12 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       case MotionEvent.ACTION_UP:
         if (historySize > 0)
         {
-          PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
+          PointerEvent[] pointerEvents = new PointerEvent[historySize];
           for (int i = 0; i < historySize; ++i)
             pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(i), event.getHistoricalY(i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(i), iinkPointerType, pointerId);
-          pointerEvents[historySize] = new PointerEvent(PointerEventType.UP, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
           editor.pointerEvents(pointerEvents, true);
         }
-        else
-        {
-          editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
-        }
+        editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         return true;
 
       case MotionEvent.ACTION_CANCEL:
