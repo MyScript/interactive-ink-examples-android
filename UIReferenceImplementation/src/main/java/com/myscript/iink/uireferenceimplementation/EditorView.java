@@ -42,11 +42,15 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
   @Nullable
   private InputController inputController;
+  @Nullable
   private ImageLoader imageLoader;
 
-  private LayerView[] layerViews = new LayerView[LayerType.values().length];
+  @Nullable
+  private IRenderView renderView;
+  @Nullable
+  private IRenderView[] layerViews;
 
-  private Map<String, Typeface> typefaceMap = new HashMap<>();
+  private final Map<String, Typeface> typefaceMap = new HashMap<>();
 
   @Nullable
   private SmartGuideView smartGuideView;
@@ -64,8 +68,40 @@ public class EditorView extends FrameLayout implements IRenderTarget
   public EditorView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
+  }
 
-    smartGuideView = null;
+  @Override
+  protected void onFinishInflate()
+  {
+    super.onFinishInflate();
+
+    // find child render views and initialize them
+    for (int i = 0, count = getChildCount(); i < count; ++i)
+    {
+      View view = getChildAt(i);
+      if (view instanceof IRenderView)
+      {
+        IRenderView renderView = (IRenderView) view;
+        if (renderView.isSingleLayerView())
+        {
+          if (layerViews == null)
+            layerViews = new IRenderView[LayerType.values().length];
+          layerViews[renderView.getType().ordinal()] = renderView;
+        }
+        else
+        {
+          this.renderView = renderView;
+        }
+        renderView.setRenderTarget(this);
+        if (editor != null) // if null it will be transferred in setEngine() below
+          renderView.setEditor(editor);
+        if (imageLoader != null) // if null it will be transferred in setImageLoader() below
+          renderView.setImageLoader(imageLoader);
+        renderView.setCustomTypefaces(typefaceMap);
+      }
+    }
+
+    smartGuideView = findViewById(R.id.smart_guide_view);
   }
 
   public void close()
@@ -83,12 +119,6 @@ public class EditorView extends FrameLayout implements IRenderTarget
       renderer.close();
       renderer = null;
     }
-  }
-
-  @Nullable
-  Engine getEngine()
-  {
-    return engine;
   }
 
   public void setEngine(@NonNull Engine engine)
@@ -111,14 +141,6 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
     loadFonts();
 
-    for (int i = 0, count = getChildCount(); i < count; ++i)
-    {
-      View view = getChildAt(i);
-      if (view instanceof LayerView)
-      {
-        ((LayerView) view).setCustomTypefaces(typefaceMap);
-      }
-    }
     renderer = engine.createRenderer(displayMetrics.xdpi, displayMetrics.ydpi, this);
 
     editor = engine.createEditor(renderer);
@@ -129,6 +151,26 @@ public class EditorView extends FrameLayout implements IRenderTarget
 
     inputController = new InputController(getContext(), this, getEditor());
     setOnTouchListener(inputController);
+
+    // transfer editor to render views
+    if (renderView != null)
+    {
+      renderView.setEditor(editor);
+    }
+    else if (layerViews != null)
+    {
+      for (int i = 0; i < layerViews.length; ++i)
+      {
+        if (layerViews[i] != null)
+          layerViews[i].setEditor(editor);
+      }
+    }
+  }
+
+  @Nullable
+  Engine getEngine()
+  {
+    return engine;
   }
 
   @Nullable
@@ -153,12 +195,17 @@ public class EditorView extends FrameLayout implements IRenderTarget
   {
     this.imageLoader = imageLoader;
 
-    for (int i = 0, count = getChildCount(); i < count; ++i)
+    // transfer image loader to render views
+    if (renderView != null)
     {
-      View view = getChildAt(i);
-      if (view instanceof LayerView)
+      renderView.setImageLoader(imageLoader);
+    }
+    else if (layerViews != null)
+    {
+      for (int i = 0; i < layerViews.length; ++i)
       {
-        ((LayerView) view).setImageLoader(imageLoader);
+        if (layerViews[i] != null)
+          layerViews[i].setImageLoader(imageLoader);
       }
     }
   }
@@ -179,29 +226,16 @@ public class EditorView extends FrameLayout implements IRenderTarget
   }
 
   @Override
-  protected void onAttachedToWindow()
-  {
-    super.onAttachedToWindow();
-    for (int i = 0, count = getChildCount(); i < count; ++i)
-    {
-      View view = getChildAt(i);
-      if (view instanceof LayerView)
-      {
-        LayerView layerView = (LayerView) view;
-        layerViews[layerView.getType().ordinal()] = layerView;
-        layerView.setRenderTarget(this);
-      }
-    }
-  }
-
-  @Override
   protected void onSizeChanged(int newWidth, int newHeight, int oldWidth, int oldHeight)
   {
     viewWidth = newWidth;
     viewHeight = newHeight;
 
-    editor.setViewSize(newWidth, newHeight);
-    invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+    if (editor != null)
+    {
+      editor.setViewSize(newWidth, newHeight);
+      invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+    }
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }
@@ -218,11 +252,18 @@ public class EditorView extends FrameLayout implements IRenderTarget
     if (width <= 0 || height <= 0)
       return;
 
-    for (LayerType type : layers)
+    if (renderView != null)
     {
-      LayerView layerView = layerViews[type.ordinal()];
-      if (layerView != null)
-        layerView.update(renderer, x, y, width, height);
+      renderView.update(renderer, x, y, width, height, layers);
+    }
+    else if (layerViews != null)
+    {
+      for (LayerType type : layers)
+      {
+        IRenderView layerView = layerViews[type.ordinal()];
+        if (layerView != null)
+          layerView.update(renderer, x, y, width, height, layers);
+      }
     }
   }
 

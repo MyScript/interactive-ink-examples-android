@@ -13,13 +13,15 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.myscript.iink.Editor;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.IRenderTarget.LayerType;
 import com.myscript.iink.Renderer;
 
+import java.util.EnumSet;
 import java.util.Map;
 
-public class LayerView extends View
+public class LayerView extends View implements IRenderView
 {
   private LayerType type;
   private IRenderTarget renderTarget;
@@ -69,6 +71,31 @@ public class LayerView extends View
     }
   }
 
+  @Override
+  public boolean isSingleLayerView()
+  {
+    return true;
+  }
+
+  @Override
+  public LayerType getType()
+  {
+    return type;
+  }
+
+  @Override
+  public void setRenderTarget(IRenderTarget renderTarget)
+  {
+    this.renderTarget = renderTarget;
+  }
+
+  @Override
+  public void setEditor(Editor editor)
+  {
+    // don't need the editor
+  }
+
+  @Override
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
@@ -77,16 +104,6 @@ public class LayerView extends View
   public void setCustomTypefaces(Map<String, Typeface> typefaceMap)
   {
     this.typefaceMap = typefaceMap;
-  }
-
-  public void setRenderTarget(IRenderTarget renderTarget)
-  {
-    this.renderTarget = renderTarget;
-  }
-
-  public LayerType getType()
-  {
-    return type;
   }
 
   @Override
@@ -163,7 +180,8 @@ public class LayerView extends View
     canvas.restore();
   }
 
-  public final void update(Renderer renderer, int x, int y, int width, int height)
+  @Override
+  public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
     synchronized (this)
     {
