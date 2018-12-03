@@ -463,9 +463,20 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       float y = left.y;
       float width = right.x - left.x;
 
-      TextView styleView = findViewById(R.id.style_view);
-      final HorizontalScrollView scrollView = findViewById(R.id.scroll_view);
-      TextView moreView = findViewById(R.id.more_view);
+      TextView styleView;
+      final HorizontalScrollView scrollView;
+      TextView moreView;
+      try
+      {
+        styleView = findViewById(R.id.style_view);
+        scrollView = findViewById(R.id.scroll_view);
+        moreView = findViewById(R.id.more_view);
+      }
+      catch(NullPointerException e)
+      {
+        Log.e(TAG, "Failed to access views :" + e.toString());
+        return;
+      }
 
       final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
       layoutParams.leftMargin = (int) x;
