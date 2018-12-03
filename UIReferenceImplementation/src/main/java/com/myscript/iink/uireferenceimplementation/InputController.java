@@ -24,19 +24,19 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public static final int INPUT_MODE_FORCE_TOUCH = 1;
   public static final int INPUT_MODE_AUTO = 2;
 
-  private IRenderTarget renderTarget;
-  private Editor editor;
-  private int inputMode;
-  private GestureDetectorCompat gestureDetector;
-  private IInputControllerListener listener;
-  private long eventTimeOffset;
+  private final IRenderTarget renderTarget;
+  private final Editor editor;
+  private int _inputMode;
+  private final GestureDetectorCompat gestureDetector;
+  private IInputControllerListener _listener;
+  private final long eventTimeOffset;
 
   public InputController(Context context, IRenderTarget renderTarget, Editor editor)
   {
     this.renderTarget = renderTarget;
     this.editor = editor;
-    this.listener = null;
-    inputMode = INPUT_MODE_AUTO;
+    _listener = null;
+    _inputMode = INPUT_MODE_AUTO;
     gestureDetector = new GestureDetectorCompat(context, this);
 
     long rel_t = SystemClock.uptimeMillis();
@@ -44,30 +44,32 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     eventTimeOffset = abs_t - rel_t;
   }
 
-  public final void setInputMode(int inputMode)
+  public final synchronized void setInputMode(int inputMode)
   {
-    this.inputMode = inputMode;
+    this._inputMode = inputMode;
   }
 
-  public final int getInputMode()
+  public final synchronized int getInputMode()
   {
-    return inputMode;
+    return _inputMode;
   }
 
-  public final void setListener(IInputControllerListener listener)
+  public final synchronized void setListener(IInputControllerListener listener)
   {
-    this.listener = listener;
+    this._listener = listener;
   }
 
-  public final IInputControllerListener getListener()
+  public final synchronized IInputControllerListener getListener()
   {
-    return listener;
+    return _listener;
   }
 
   public final boolean handleOnTouchForPointer(MotionEvent event, int actionMask, int pointerIndex)
   {
     final int pointerId = event.getPointerId(pointerIndex);
     final int pointerType = event.getToolType(pointerIndex);
+
+    int inputMode = getInputMode();
 
     PointerType iinkPointerType;
     if (inputMode == INPUT_MODE_FORCE_PEN)
@@ -201,6 +203,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   {
     final float x = e.getX();
     final float y = e.getY();
+    IInputControllerListener listener = getListener();
     if (listener != null)
       listener.onDisplayContextMenu(x, y, editor.hitBlock(x, y));
   }
