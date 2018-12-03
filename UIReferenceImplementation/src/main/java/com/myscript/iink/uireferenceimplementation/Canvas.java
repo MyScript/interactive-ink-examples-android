@@ -59,8 +59,7 @@ public class Canvas implements ICanvas
   private final float[] transformValues;
 
   @Nullable
-  private ImageLoader imageLoader;
-  @NonNull
+  private final ImageLoader imageLoader;
   private final IRenderTarget target;
 
   private final Set<String> clips;
@@ -68,15 +67,15 @@ public class Canvas implements ICanvas
   private final Map<String, Typeface> typefaceMap;
 
   private float[] dashArray;
-  private final int dashOffset = 0;
+  private int dashOffset = 0;
 
   @NonNull
   private final DisplayMetrics displayMetrics;
 
   @NonNull
-  private Matrix textScaleMatrix;
+  private final Matrix textScaleMatrix;
   @NonNull
-  private Matrix pointScaleMatrix;
+  private final Matrix pointScaleMatrix;
 
   public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target)
   {
@@ -356,10 +355,10 @@ public class Canvas implements ICanvas
     transform.apply(screenMax);
 
     final Rect targetRect = new Rect(
-        (int)Math.floor(screenMin.x),
-        (int)Math.floor(screenMin.y),
-        (int)(Math.ceil(screenMax.x) - x),
-        (int)(Math.ceil(screenMax.y) - y));
+        (int) Math.floor(screenMin.x),
+        (int) Math.floor(screenMin.y),
+        (int) (Math.ceil(screenMax.x) - x),
+        (int) (Math.ceil(screenMax.y) - y));
 
     Bitmap image = imageLoader.getImage(url, mimeType, targetRect.width(), targetRect.height(), new ImageLoader.Observer()
     {
@@ -400,7 +399,7 @@ public class Canvas implements ICanvas
 
       // draw the image
       Rect srcRect = new Rect(0, 0, image.getWidth(), image.getHeight());
-      RectF dstRect = new RectF(x, y, x+width, y+height);
+      RectF dstRect = new RectF(x, y, x + width, y + height);
       canvas.drawBitmap(image, srcRect, dstRect, null);
     }
   }

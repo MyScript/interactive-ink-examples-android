@@ -10,23 +10,6 @@ import android.text.style.TextAppearanceSpan;
 
 public class CustomTextSpan extends TextAppearanceSpan
 {
-  private Typeface mTypeface;
-
-  public CustomTextSpan(Typeface tf, int style, int size, ColorStateList color, ColorStateList linkColor)
-  {
-    super("", style, size, color, linkColor);
-    mTypeface = tf;
-  }
-
-  protected CustomTextSpan(Parcel in)
-  {
-    super(in);
-  }
-
-  public int describeContents()
-  {
-    return 0;
-  }
 
   public static final Creator<CustomTextSpan> CREATOR = new Creator<CustomTextSpan>()
   {
@@ -42,6 +25,25 @@ public class CustomTextSpan extends TextAppearanceSpan
       return new CustomTextSpan[size];
     }
   };
+
+  private Typeface mTypeface;
+
+  public CustomTextSpan(Typeface tf, int style, int size, ColorStateList color, ColorStateList linkColor)
+  {
+    super("", style, size, color, linkColor);
+    mTypeface = tf;
+  }
+
+  protected CustomTextSpan(Parcel in)
+  {
+    super(in);
+  }
+
+  @Override
+  public int describeContents()
+  {
+    return 0;
+  }
 
   @Override
   public void updateDrawState(TextPaint ds)
@@ -74,7 +76,7 @@ public class CustomTextSpan extends TextAppearanceSpan
     if (mTypeface != null || mStyle != 0)
     {
       Typeface tf = ds.getTypeface();
-      int style = 0;
+      int style = Typeface.NORMAL;
 
       if (tf != null)
       {

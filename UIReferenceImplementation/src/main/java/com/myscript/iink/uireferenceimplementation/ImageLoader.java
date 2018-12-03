@@ -7,10 +7,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.util.LruCache;
 
+import com.myscript.iink.Editor;
+
 import java.io.File;
 import java.io.IOException;
-
-import com.myscript.iink.Editor;
 
 public class ImageLoader
 {
@@ -64,17 +64,17 @@ public class ImageLoader
       @Override
       public void run()
       {
-        Bitmap image_ = renderObject(url, mimeType, dstWidth, dstHeight);
+        Bitmap image = renderObject(url, mimeType, dstWidth, dstHeight);
 
-        if (image_ != null)
+        if (image != null)
         {
           synchronized (ImageLoader.this)
           {
-            cache.put(url, image_);
+            cache.put(url, image);
           }
         }
 
-        observer.ready(url, image_);
+        observer.ready(url, image);
       }
     });
 
