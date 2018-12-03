@@ -66,7 +66,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
   {
     paint.setTypeface(typefaces[spanIndex]);
     paint.setTextSize(fontSizes[spanIndex]);
-    return spans.length > spanIndex + 1 ? spans[1].getBeginPosition() : glyphCount;
+    return spans.length > spanIndex + 1 ? spans[spanIndex + 1].getBeginPosition() : glyphCount;
   }
 
   @Override
