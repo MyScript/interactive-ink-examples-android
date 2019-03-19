@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
-        versionCode 1300
-        versionName '1.3.0'
+        versionCode 1310
+        versionName '1.3.1'
 
         vectorDrawables.useSupportLibrary true
     }
@@ -16,5 +16,5 @@ android {
 dependencies {
     implementation "com.android.support:appcompat-v7:${project.ext.supportLibraryVersion}"
     implementation "com.google.code.gson:gson:2.8.2"
-    api "com.myscript:iink:1.3.0"
+    api "com.myscript:iink:1.3.1"
 }

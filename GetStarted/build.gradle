@@ -11,8 +11,8 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
 
         applicationId 'com.myscript.iink.getstarted'
-        versionCode 1300
-        versionName '1.3.0'
+        versionCode 1310
+        versionName '1.3.1'
 
         vectorDrawables.useSupportLibrary true
     }
