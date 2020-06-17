@@ -172,7 +172,7 @@ public final class FontUtils
               { return new String(table, nameOffset, nameLength); }
             }
           }
-          // we jumped table's data so we can't continue reading table descriptors
+          // we jumped table's data so we cannot continue reading table descriptors
           break;
         }
       }

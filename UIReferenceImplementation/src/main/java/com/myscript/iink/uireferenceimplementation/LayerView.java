@@ -99,7 +99,7 @@ public class LayerView extends View implements IRenderView
   @Override
   public void setEditor(Editor editor)
   {
-    // don't need the editor
+    // do not need the editor
   }
 
   @Override

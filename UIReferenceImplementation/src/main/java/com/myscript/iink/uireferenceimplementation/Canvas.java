@@ -315,7 +315,7 @@ public class Canvas implements ICanvas2
     if (offlineSurfaceManager != null)
       canvas.drawRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3], clearPaint);
 
-    // Hardware canvas doesn't support PorterDuffXfermode
+    // Hardware canvas does not support PorterDuffXfermode
     canvas.clipRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3]);
   }
 
