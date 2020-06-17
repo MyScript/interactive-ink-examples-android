@@ -9,3 +9,6 @@
 
 LICENSE text
 gradlew text eol=lf
+
+# shell scripts
+*.bat text eol=crlf
