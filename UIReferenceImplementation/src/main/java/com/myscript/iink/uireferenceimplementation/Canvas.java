@@ -152,7 +152,8 @@ public class Canvas implements ICanvas2
     setStrokeDashOffset(style.getStrokeDashOffset());
     setFillColor(style.getFillColor());
     setFillRule(style.getFillRule());
-    setFontProperties(style.getFontFamily(), style.getFontLineHeight(), style.getFontSize(),
+
+    setFontProperties(FontMetricsProvider.toPlatformFontFamily(style), style.getFontLineHeight(), style.getFontSize(),
                       style.getFontStyle(), style.getFontVariant(), style.getFontWeight());
   }
 
@@ -287,9 +288,10 @@ public class Canvas implements ICanvas2
   public final void setFontProperties(@NonNull String fontFamily, float fontLineHeight, float fontSize, String fontStyle,
                                       @NonNull String fontVariant, int fontWeight)
   {
+    String resolvedFontFamily = FontMetricsProvider.toPlatformFontFamily(fontFamily, fontStyle);
     Typeface typeface = typefaceMap == null ?
-        FontUtils.getTypeface(fontFamily, fontStyle, fontVariant, fontWeight) :
-        FontUtils.getTypeface(typefaceMap, fontFamily, fontStyle, fontVariant, fontWeight);
+        FontUtils.getTypeface(resolvedFontFamily, fontStyle, fontVariant, fontWeight) :
+        FontUtils.getTypeface(typefaceMap, resolvedFontFamily, fontStyle, fontVariant, fontWeight);
 
     // scale font size to the canvas transform scale, to ensure best font rendering
     // (text size is expressed in pixels, while fontSize is in mm)

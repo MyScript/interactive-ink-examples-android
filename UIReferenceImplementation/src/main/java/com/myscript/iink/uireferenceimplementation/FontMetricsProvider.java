@@ -39,6 +39,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     final String family;
     final int style;
     final int size;
+
     public FontKey(@NonNull String family, int style, int size)
     {
       this.family = family;
@@ -175,7 +176,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     {
       Style style = spans[i].getStyle();
 
-      String fontFamily = style.getFontFamily();
+      String fontFamily = toPlatformFontFamily(style);
 
       int typefaceStyle = FontUtils.getTypefaceStyle(style);
       int fontSize = Math.round(y_mm2px(style.getFontSize()));
@@ -210,7 +211,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
       if (i >= spanEnd)
       {
         ++spanIndex;
-        fontKey = new FontKey(spans[spanIndex].getStyle().getFontFamily(), typefaces[spanIndex].getStyle(), fontSizes[spanIndex]);
+        fontKey = new FontKey(toPlatformFontFamily(spans[spanIndex].getStyle()), typefaces[spanIndex].getStyle(), fontSizes[spanIndex]);
         spanEnd = spans[spanIndex].getEndPosition();
         updatePaint(fontSizes, typefaces, spanIndex);
       }
@@ -296,5 +297,15 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     }
 
     return charBoxes;
+  }
+
+  public static final String toPlatformFontFamily(Style style)
+  {
+    return toPlatformFontFamily(style.getFontFamily(), style.getFontStyle());
+  }
+
+  public static final String toPlatformFontFamily(String fontFamily, String fontStyle)
+  {
+    return "STIXGeneral".equals(fontFamily) && "italic".equals(fontStyle) ? "STIX" : fontFamily;
   }
 }
