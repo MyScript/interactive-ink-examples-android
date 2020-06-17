@@ -122,6 +122,7 @@ public class LayerView extends View implements IRenderView
     synchronized (this)
     {
       localUpdateArea = this.updateArea;
+
       this.updateArea = null;
       renderer = lastRenderer;
       lastRenderer = null;
@@ -190,6 +191,7 @@ public class LayerView extends View implements IRenderView
   @Override
   public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
+    boolean emptyArea;
     synchronized (this)
     {
       if (updateArea != null)
@@ -197,9 +199,13 @@ public class LayerView extends View implements IRenderView
       else
         updateArea = new Rect(x, y, x + width, y + height);
 
+      if (bitmap != null)
+        updateArea.intersect(new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()));
+      emptyArea = updateArea.isEmpty();
       lastRenderer = renderer;
     }
 
-    postInvalidate(x, y, x + width, y + height);
+    if (!emptyArea)
+      postInvalidate(x, y, x + width, y + height);
   }
 }
