@@ -135,7 +135,7 @@ public class DocumentController
 
   public final boolean newPackage()
   {
-    final Activity context = this.activity;
+    final Activity context = activity;
     String fileName = makeUntitledFilename();
     File file = new File(activity.getFilesDir(), fileName);
     try
@@ -157,7 +157,7 @@ public class DocumentController
   public final boolean openPackage()
   {
     final File[] files = activity.getFilesDir().listFiles();
-    final Activity context = this.activity;
+    final Activity context = activity;
 
     if (files.length == 0)
     {
@@ -215,7 +215,7 @@ public class DocumentController
     }
     catch (IOException e)
     {
-      Toast.makeText(this.activity, "Failed to save package", Toast.LENGTH_LONG).show();
+      Toast.makeText(activity, "Failed to save package", Toast.LENGTH_LONG).show();
     }
     return true;
   }
@@ -232,7 +232,7 @@ public class DocumentController
     }
     catch (IOException e)
     {
-      Toast.makeText(this.activity, "Failed to save package to temporary directory", Toast.LENGTH_LONG).show();
+      Toast.makeText(activity, "Failed to save package to temporary directory", Toast.LENGTH_LONG).show();
     }
     return true;
   }
@@ -316,7 +316,7 @@ public class DocumentController
     }
     catch (IOException e)
     {
-      Toast.makeText(this.activity, "Failed to open part for file \"" + fileName + "\" with index " + indexOfPart, Toast.LENGTH_LONG).show();
+      Toast.makeText(activity, "Failed to open part for file \"" + fileName + "\" with index " + indexOfPart, Toast.LENGTH_LONG).show();
     }
     return true;
   }
@@ -448,7 +448,7 @@ public class DocumentController
 
   private final boolean export_(final ContentBlock block, final String fileExtension)
   {
-    final Activity context = this.activity;
+    final Activity context = activity;
     final File[] fileHolder = new File[1];
     final EditText input = new EditText(activity);
 

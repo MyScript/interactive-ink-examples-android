@@ -297,12 +297,12 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     editor.addListener(this);
     editor.getRenderer().addListener(this);
 
-    this.exportParams = editor.getEngine().createParameterSet();
-    this.exportParams.setBoolean("export.jiix.strokes", false);
-    this.exportParams.setBoolean("export.jiix.bounding-box", false);
-    this.exportParams.setBoolean("export.jiix.glyphs", false);
-    this.exportParams.setBoolean("export.jiix.primitives", false);
-    this.exportParams.setBoolean("export.jiix.chars", false);
+    exportParams = editor.getEngine().createParameterSet();
+    exportParams.setBoolean("export.jiix.strokes", false);
+    exportParams.setBoolean("export.jiix.bounding-box", false);
+    exportParams.setBoolean("export.jiix.glyphs", false);
+    exportParams.setBoolean("export.jiix.primitives", false);
+    exportParams.setBoolean("export.jiix.chars", false);
 
     Configuration configuration = editor.getEngine().getConfiguration();
     fadeOutWriteInDiagramDelay = configuration.getNumber("smart-guide.fade-out-delay.write-in-diagram", SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT).intValue();
@@ -490,7 +490,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       if (cause != UpdateCause.EDIT && isSameActiveBlock)
       {
         // Nothing changed so keep same words
-        updatedWords = this.words;
+        updatedWords = words;
       }
       else
       {
@@ -498,7 +498,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         String jiixString;
         try
         {
-          jiixString = editor.export_(block, MimeType.JIIX, this.exportParams);
+          jiixString = editor.export_(block, MimeType.JIIX, exportParams);
         }
         catch (Exception e)
         {
@@ -534,7 +534,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         }
       }
 
-      final boolean updateWords = this.words != updatedWords;
+      final boolean updateWords = words != updatedWords;
       final boolean isInDiagram = block.getId().startsWith("diagram/");
 
       post(new Runnable()
@@ -599,7 +599,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
       });
 
       this.block = block;
-      this.words = updatedWords;
+      words = updatedWords;
     }
     else
     {
