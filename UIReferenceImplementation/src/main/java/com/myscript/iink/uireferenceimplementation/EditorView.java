@@ -83,8 +83,13 @@ public class EditorView extends FrameLayout implements IRenderTarget2
         if (renderView.isSingleLayerView())
         {
           if (layerViews == null)
-            layerViews = new IRenderView[LayerType.values().length];
-          layerViews[renderView.getType().ordinal()] = renderView;
+            layerViews = new IRenderView[2];
+          if (renderView.getType() == LayerType.BACKGROUND ||renderView.getType() == LayerType.MODEL ||renderView.getType() == LayerType.TEMPORARY)
+            layerViews[0] = renderView;
+          else if (renderView.getType() == LayerType.CAPTURE)
+            layerViews[1] = renderView;
+          else
+            throw new RuntimeException("Unknown layer view type");
         }
         else
         {
@@ -280,7 +285,10 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     {
       for (LayerType type : layers)
       {
-        IRenderView layerView = layerViews[type.ordinal()];
+        int layerID = 1;
+        if (type == LayerType.BACKGROUND ||type == LayerType.MODEL ||type == LayerType.TEMPORARY)
+          layerID = 0;
+        IRenderView layerView = layerViews[layerID];
         if (layerView != null)
           layerView.update(renderer, x, y, width, height, layers);
       }
