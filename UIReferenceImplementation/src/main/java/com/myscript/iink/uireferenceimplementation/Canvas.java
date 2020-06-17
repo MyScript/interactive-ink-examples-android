@@ -309,12 +309,9 @@ public class Canvas implements ICanvas2
     pointsCache[2] = x + width;
     pointsCache[3] = y + height;
 
-    // When hardware accelerated, no need to clear the destination
     // When offscreen rendering is supported, clear the destination
     // Otherwise, do not clear the destination (e.g. when exporting image, we want a white background)
-    if (canvas.isHardwareAccelerated())
-      transformMatrix.mapPoints(pointsCache);
-    else if (offlineSurfaceManager != null)
+    if (offlineSurfaceManager != null)
       canvas.drawRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3], clearPaint);
 
     // Hardware canvas doesn't support PorterDuffXfermode
@@ -481,11 +478,6 @@ public class Canvas implements ICanvas2
       if (bitmap != null)
       {
         floatRectCache.set(destX, destY, destX + destWidth, destY + destHeight);
-        if (canvas.isHardwareAccelerated())
-        {
-          transformMatrix.mapRect(floatRectCache);
-        }
-
         simpleRectCache.set(Math.round(srcX), Math.round(srcY),
                 Math.round(srcX + srcWidth), Math.round(srcY + srcHeight));
         bitmapAlphaPaint.setColor(argb(blendColor));
