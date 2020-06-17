@@ -415,38 +415,41 @@ public class Canvas implements ICanvas2
         (int) (Math.ceil(screenMax.x) - x),
         (int) (Math.ceil(screenMax.y) - y));
 
-    Bitmap image = imageLoader.getImage(url, mimeType, targetRect.width(), targetRect.height());
+    synchronized (imageLoader)
+    {
+      Bitmap image = imageLoader.getImage(url, mimeType, targetRect.width(), targetRect.height());
 
-    if (image == null)
-    {
-      // image is not ready yet...
-      if (fillPaint.getColor() != android.graphics.Color.TRANSPARENT)
+      if (image == null)
       {
-        canvas.drawRect(x, y, width, height, fillPaint);
-      }
-    }
-    else
-    {
-      // adjust rectangle so that the image gets fit into original rectangle
-      float fx = width / image.getWidth();
-      float fy = height / image.getHeight();
-      if (fx > fy)
-      {
-        float w = image.getWidth() * fy;
-        x += (width - w) / 2;
-        width = w;
+        // image is not ready yet...
+        if (fillPaint.getColor() != android.graphics.Color.TRANSPARENT)
+        {
+          canvas.drawRect(x, y, width, height, fillPaint);
+        }
       }
       else
       {
-        float h = image.getHeight() * fx;
-        y += (height - h) / 2;
-        height = h;
-      }
+        // adjust rectangle so that the image gets fit into original rectangle
+        float fx = width / image.getWidth();
+        float fy = height / image.getHeight();
+        if (fx > fy)
+        {
+          float w = image.getWidth() * fy;
+          x += (width - w) / 2;
+          width = w;
+        }
+        else
+        {
+          float h = image.getHeight() * fx;
+          y += (height - h) / 2;
+          height = h;
+        }
 
-      // draw the image
-      Rect srcRect = new Rect(0, 0, image.getWidth(), image.getHeight());
-      RectF dstRect = new RectF(x, y, x + width, y + height);
-      canvas.drawBitmap(image, srcRect, dstRect, null);
+        // draw the image
+        Rect srcRect = new Rect(0, 0, image.getWidth(), image.getHeight());
+        RectF dstRect = new RectF(x, y, x + width, y + height);
+        canvas.drawBitmap(image, srcRect, dstRect, null);
+      }
     }
   }
 

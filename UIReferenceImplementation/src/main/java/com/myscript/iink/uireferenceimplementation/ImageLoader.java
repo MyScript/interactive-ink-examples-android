@@ -10,7 +10,8 @@ import android.util.LruCache;
 import com.myscript.iink.Editor;
 
 import java.io.File;
-import java.io.IOException;
+import android.util.Pair;
+
 
 public class ImageLoader
 {
@@ -26,9 +27,20 @@ public class ImageLoader
 
     this.cache = new LruCache<String, Bitmap>(cacheSize)
     {
+      @Override
       protected int sizeOf(String key, Bitmap value)
       {
+        // The cache size will be measured in bytes rather than number of items
         return value.getByteCount();
+      }
+      @Override
+      protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue)
+      {
+        if (evicted && oldValue != null && !oldValue.isRecycled())
+        {
+          oldValue.recycle();
+        }
+        super.entryRemoved(evicted, key, oldValue, newValue);
       }
     };
   }
@@ -44,13 +56,15 @@ public class ImageLoader
     if (image != null)
       return image;
 
-    image = renderObject(url, mimeType, dstWidth, dstHeight);
-    cache.put(url, image);
+    Pair<Bitmap, Boolean> newImage = renderObject(url, mimeType, dstWidth, dstHeight);
 
-    return image;
+    if (newImage.second) // Not dummy
+      cache.put(url, newImage.first);
+
+    return newImage.first;
   }
 
-  private final Bitmap renderObject(String url, String mimeType, int dstWidth, int dstHeight)
+  private final Pair<Bitmap, Boolean> renderObject(String url, String mimeType, int dstWidth, int dstHeight)
   {
     if (mimeType.startsWith("image/"))
     {
@@ -61,13 +75,25 @@ public class ImageLoader
 
         if (image != null)
         {
-          Bitmap scaledImage = Bitmap.createScaledBitmap(image, dstWidth, dstHeight, false);
+          // Reduce size if larger than destination
+          if (image.getWidth() > dstWidth || image.getHeight() > dstHeight)
+          {
+            Bitmap scaledImage = Bitmap.createScaledBitmap(image, dstWidth, dstHeight, false);
 
-          if (scaledImage != null)
-            return scaledImage;
+            if (scaledImage != null)
+              return Pair.create(scaledImage, true);
+          }
+          else
+          {
+            return Pair.create(image, true);
+          }
         }
       }
       catch (Exception e)
+      {
+        // Error: use fallback bitmap
+      }
+      catch (java.lang.OutOfMemoryError e)
       {
         // Error: use fallback bitmap
       }
@@ -77,6 +103,6 @@ public class ImageLoader
     Bitmap image = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565);
     if (image != null)
       image.eraseColor(Color.WHITE);
-    return image;
+    return Pair.create(image, false);
   }
 }

@@ -36,6 +36,10 @@ public class OfflineSurfaceManager
     {
       return -1;
     }
+    catch (java.lang.OutOfMemoryError e)
+    {
+      return -1;
+    }
     offlineSurfaces.put(offscreenID, surface);
 
     return offscreenID;
