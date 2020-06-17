@@ -5,12 +5,13 @@ package com.myscript.iink.uireferenceimplementation;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.util.Log;
+import android.util.Pair;
 import android.util.LruCache;
 
-import com.myscript.iink.Editor;
-
 import java.io.File;
-import android.util.Pair;
+
+import com.myscript.iink.Editor;
 
 
 public class ImageLoader
@@ -92,10 +93,12 @@ public class ImageLoader
       catch (Exception e)
       {
         // Error: use fallback bitmap
+        Log.e("ImageLoader", "Unexpected exception: using placeholder image", e);
       }
-      catch (java.lang.OutOfMemoryError e)
+      catch (OutOfMemoryError e)
       {
         // Error: use fallback bitmap
+        Log.w("ImageLoader", "Out of memory: unable to load image, using placeholder instead", e);
       }
     }
 

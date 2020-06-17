@@ -36,7 +36,7 @@ public class OfflineSurfaceManager
     {
       return -1;
     }
-    catch (java.lang.OutOfMemoryError e)
+    catch (OutOfMemoryError e)
     {
       return -1;
     }

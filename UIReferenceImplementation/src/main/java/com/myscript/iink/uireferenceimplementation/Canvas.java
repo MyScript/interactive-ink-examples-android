@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.graphics.Color;
@@ -448,7 +449,10 @@ public class Canvas implements ICanvas2
         // draw the image
         Rect srcRect = new Rect(0, 0, image.getWidth(), image.getHeight());
         RectF dstRect = new RectF(x, y, x + width, y + height);
-        canvas.drawBitmap(image, srcRect, dstRect, null);
+        if (!image.isRecycled())
+          canvas.drawBitmap(image, srcRect, dstRect, null);
+        else
+          Log.e("Canvas", "Trying to draw recycled Bitmap");
       }
     }
   }
