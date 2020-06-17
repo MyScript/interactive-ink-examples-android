@@ -101,7 +101,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     try
     {
       contentPackage = engine.createPackage(file);
-      contentPart = contentPackage.createPart("Text Document"); // Choose type of content (possible values are: "Text Document", "Text", "Diagram", "Math", and "Drawing")
+      // Choose type of content (possible values are: "Text Document", "Text", "Diagram", "Math", "Drawing" and "Raw Content")
+      contentPart = contentPackage.createPart("Text Document");
     }
     catch (IOException e)
     {
