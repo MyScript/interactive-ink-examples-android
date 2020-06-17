@@ -37,6 +37,7 @@ import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Rectangle;
 import com.myscript.iink.graphics.Transform;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SmartGuideView extends LinearLayout implements IEditorListener2, IRendererListener, View.OnClickListener
@@ -115,7 +116,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
 
     public SmartGuideWord(JiixDefinitions.Word word)
     {
-      label = word.label;
+      label = word.reflowlabel == null ? word.label : word.reflowlabel;
       candidates = word.candidates;
       modified = false;
     }
@@ -298,6 +299,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
     editor.getRenderer().addListener(this);
 
     exportParams = editor.getEngine().createParameterSet();
+    exportParams.setBoolean("export.jiix.text.words", true);
     exportParams.setBoolean("export.jiix.strokes", false);
     exportParams.setBoolean("export.jiix.bounding-box", false);
     exportParams.setBoolean("export.jiix.glyphs", false);
@@ -504,23 +506,23 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
         {
           return; // when processing is ongoing, export may fail: ignore
         }
-        SmartGuideWord[] smartGuideWords = null;
+        ArrayList<SmartGuideWord> smartGuideWords = new ArrayList<>();
         try
         {
           JiixDefinitions.Result result = gson.fromJson(jiixString, JiixDefinitions.Result.class);
           if (result != null && result.words != null)
           {
             int count = result.words.length;
-            smartGuideWords = new SmartGuideWord[count];
             for (int i = 0; i < count; ++i)
-              smartGuideWords[i] = new SmartGuideWord(result.words[i]);
+              smartGuideWords.add(new SmartGuideWord(result.words[i]));
           }
         }
         catch (JsonSyntaxException e)
         {
           Log.e(TAG, "Failed to parse jiix string as json words: " + e.toString());
         }
-        updatedWords = smartGuideWords;
+        updatedWords = new SmartGuideWord[smartGuideWords.size()];
+        smartGuideWords.toArray(updatedWords);
 
         // Possibly compute difference with previous state
         if (isSameActiveBlock)
