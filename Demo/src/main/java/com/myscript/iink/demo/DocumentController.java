@@ -74,7 +74,17 @@ public class DocumentController
     if (currentPart != null)
       currentPart.close();
     if (currentPackage != null)
+    {
+      try
+      {
+        currentPackage.save();
+      }
+      catch (IOException e)
+      {
+        Toast.makeText(activity, "Failed to save package", Toast.LENGTH_LONG).show();
+      }
       currentPackage.close();
+    }
 
     currentFile = null;
     currentPackage = null;
@@ -124,7 +134,17 @@ public class DocumentController
     if (currentPart != null && currentPart != newPart)
       currentPart.close();
     if (currentPackage != null && currentPackage != newPackage)
+    {
+      try
+      {
+        currentPackage.save();
+      }
+      catch (IOException e)
+      {
+        Toast.makeText(activity, "Failed to save package", Toast.LENGTH_LONG).show();
+      }
       currentPackage.close();
+    }
 
     currentFile = newFile;
     currentPackage = newPackage;
@@ -295,7 +315,17 @@ public class DocumentController
         public void onClick(DialogInterface dialog, int which)
         {
           if (closeOnCancel)
+          {
+            try
+            {
+              targetPackage.save();
+            }
+            catch (IOException e)
+            {
+              Log.e(TAG, "Failed to save package", e);
+            }
             targetPackage.close();
+          }
         }
       });
     }
