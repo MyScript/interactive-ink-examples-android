@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPackage;
 import com.myscript.iink.ContentPart;
@@ -115,12 +116,17 @@ public class DocumentController
   {
     int num = 0;
     String name;
+    String tempName;
+    Configuration conf = editor.getEngine().getConfiguration();
+    String tempDir = conf.getString("content-package.temp-folder");
     do
     {
       name = "File" + (++num) + ".iink";
+      tempName = name + "-files";
     }
     while (new File(activity.getFilesDir(), name).exists() ||
-        (currentFile != null && currentFile.getName().equals(name)));
+           new File(tempDir, tempName).exists() ||
+           (currentFile != null && currentFile.getName().equals(name)));
     return name;
   }
 
