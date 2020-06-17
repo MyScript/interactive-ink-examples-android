@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -19,7 +21,7 @@ import android.util.DisplayMetrics;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.graphics.Color;
 import com.myscript.iink.graphics.FillRule;
-import com.myscript.iink.graphics.ICanvas;
+import com.myscript.iink.graphics.ICanvas2;
 import com.myscript.iink.graphics.IPath;
 import com.myscript.iink.graphics.LineCap;
 import com.myscript.iink.graphics.LineJoin;
@@ -32,7 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Canvas implements ICanvas
+public class Canvas implements ICanvas2
 {
 
   private static final Style DEFAULT_SVG_STYLE = new Style();
@@ -42,6 +44,11 @@ public class Canvas implements ICanvas
 
   @NonNull
   private final Paint strokePaint;
+
+  @NonNull
+  private final Paint bitmapAlphaPaint;
+  @NonNull
+  private final Paint clearPaint;
 
   @NonNull
   private final TextPaint textPaint;
@@ -58,9 +65,18 @@ public class Canvas implements ICanvas
   @NonNull
   private final float[] transformValues;
 
+  // Cache variable to prevent garbage collection
+  @NonNull
+  private final float[] pointsCache = new float[4];
+  @NonNull
+  private final Rect simpleRectCache = new Rect();
+  @NonNull
+  private final RectF floatRectCache = new RectF();
+
   @Nullable
   private final ImageLoader imageLoader;
   private final IRenderTarget target;
+  private final OfflineSurfaceManager offlineSurfaceManager;
 
   private final Set<String> clips;
 
@@ -77,12 +93,13 @@ public class Canvas implements ICanvas
   @NonNull
   private final Matrix pointScaleMatrix;
 
-  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target)
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, OfflineSurfaceManager offlineSurfaceManager)
   {
     this.canvas = canvas;
     this.typefaceMap = typefaceMap;
     this.imageLoader = imageLoader;
     this.target = target;
+    this.offlineSurfaceManager = offlineSurfaceManager;
 
     clips = new HashSet<>();
 
@@ -90,6 +107,12 @@ public class Canvas implements ICanvas
     strokePaint.setStyle(Paint.Style.STROKE);
 
     textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+
+    bitmapAlphaPaint = new Paint();
+    clearPaint = new Paint();
+    clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+    clearPaint.setStyle(Paint.Style.FILL);
+    clearPaint.setColor(android.graphics.Color.TRANSPARENT);
 
     fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     fillPaint.setStyle(Paint.Style.FILL);
@@ -111,6 +134,11 @@ public class Canvas implements ICanvas
 
     // it is mandatory to configure the Paint with SVG defaults represented by default Style object
     applyStyle(DEFAULT_SVG_STYLE);
+  }
+
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target)
+  {
+    this(canvas, typefaceMap, imageLoader, target, null);
   }
 
   private void applyStyle(@NonNull Style style)
@@ -270,6 +298,30 @@ public class Canvas implements ICanvas
   }
 
   @Override
+  public void startDraw(int x, int y, int width, int height)
+  {
+    canvas.save();
+
+    pointsCache[0] = x;
+    pointsCache[1] = y;
+    pointsCache[2] = x + width;
+    pointsCache[3] = y + height;
+
+    if (canvas.isHardwareAccelerated())
+      transformMatrix.mapPoints(pointsCache);
+    else
+      canvas.drawRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3], clearPaint);
+    // Hardware canvas doesn't support PorterDuffXfermode
+    canvas.clipRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3]);
+  }
+
+  @Override
+  public void endDraw()
+  {
+    canvas.restore();
+  }
+
+  @Override
   public void startGroup(@NonNull String id, float x, float y, float width, float height, boolean clipContent)
   {
     if (clipContent)
@@ -419,5 +471,31 @@ public class Canvas implements ICanvas
 
     // restore transform
     canvas.setMatrix(transformMatrix);
+  }
+
+  @Override
+  public void blendOffscreen(int id, float srcX, float srcY, float srcWidth, float srcHeight,
+                             float destX, float destY, float destWidth, float destHeight, Color blendColor)
+  {
+    if (offlineSurfaceManager != null)
+    {
+      Bitmap bitmap = offlineSurfaceManager.getBitmap(id);
+
+      if (bitmap != null)
+      {
+        floatRectCache.set(destX, destY, destX + destWidth, destY + destHeight);
+        if (canvas.isHardwareAccelerated())
+        {
+          transformMatrix.mapRect(floatRectCache);
+        }
+        simpleRectCache.set(Math.round(srcX), Math.round(srcY),
+                Math.round(srcX + srcWidth), Math.round(srcY + srcHeight));
+        bitmapAlphaPaint.setColor(argb(blendColor));
+
+        canvas.drawBitmap(bitmap,
+                simpleRectCache, floatRectCache,
+                bitmapAlphaPaint);
+      }
+    }
   }
 }

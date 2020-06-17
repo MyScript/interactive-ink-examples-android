@@ -42,6 +42,8 @@ public class LayerView extends View implements IRenderView
   private android.graphics.Canvas sysCanvas;
   @Nullable
   private Canvas iinkCanvas;
+  @Nullable
+  private OfflineSurfaceManager offlineSurfaceManager = null;
 
   public LayerView(Context context)
   {
@@ -87,6 +89,11 @@ public class LayerView extends View implements IRenderView
   public void setRenderTarget(IRenderTarget renderTarget)
   {
     this.renderTarget = renderTarget;
+  }
+
+  public void setOfflineSurfaceManager(OfflineSurfaceManager offlineSurfaceManager)
+  {
+    this.offlineSurfaceManager = offlineSurfaceManager;
   }
 
   @Override
@@ -163,7 +170,7 @@ public class LayerView extends View implements IRenderView
     }
     bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
     sysCanvas = new android.graphics.Canvas(bitmap);
-    iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, renderTarget);
+    iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, renderTarget, offlineSurfaceManager);
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }

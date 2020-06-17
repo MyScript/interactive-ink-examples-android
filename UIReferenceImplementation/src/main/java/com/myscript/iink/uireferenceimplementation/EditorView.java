@@ -4,6 +4,7 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,14 +16,15 @@ import android.widget.FrameLayout;
 import com.myscript.iink.Configuration;
 import com.myscript.iink.Editor;
 import com.myscript.iink.Engine;
-import com.myscript.iink.IRenderTarget;
+import com.myscript.iink.IRenderTarget2;
 import com.myscript.iink.Renderer;
+import com.myscript.iink.graphics.ICanvas2;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EditorView extends FrameLayout implements IRenderTarget
+public class EditorView extends FrameLayout implements IRenderTarget2
 {
   private int viewWidth;
   private int viewHeight;
@@ -36,6 +38,8 @@ public class EditorView extends FrameLayout implements IRenderTarget
   private InputController inputController;
   @Nullable
   private ImageLoader imageLoader;
+  @Nullable
+  private OfflineSurfaceManager offlineSurfaceManager;
 
   @Nullable
   private IRenderView renderView;
@@ -67,6 +71,8 @@ public class EditorView extends FrameLayout implements IRenderTarget
   {
     super.onFinishInflate();
 
+    offlineSurfaceManager = new OfflineSurfaceManager();
+
     // find child render views and initialize them
     for (int i = 0, count = getChildCount(); i < count; ++i)
     {
@@ -84,12 +90,20 @@ public class EditorView extends FrameLayout implements IRenderTarget
         {
           this.renderView = renderView;
         }
+
         renderView.setRenderTarget(this);
         if (editor != null) // if null it will be transferred in setEngine() below
           renderView.setEditor(editor);
         if (imageLoader != null) // if null it will be transferred in setImageLoader() below
           renderView.setImageLoader(imageLoader);
+
         renderView.setCustomTypefaces(typefaceMap);
+
+        if (view instanceof LayerView)
+        {
+          LayerView layerView = (LayerView) view;
+          layerView.setOfflineSurfaceManager(offlineSurfaceManager);
+        }
       }
     }
 
@@ -240,7 +254,7 @@ public class EditorView extends FrameLayout implements IRenderTarget
     if (editor != null)
     {
       editor.setViewSize(newWidth, newHeight);
-      invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+      invalidate(renderer, EnumSet.allOf(IRenderTarget2.LayerType.class));
     }
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
@@ -296,5 +310,38 @@ public class EditorView extends FrameLayout implements IRenderTarget
     int w = dirty.width();
     int h = dirty.height();
     invalidate(renderer, l, t, w, h, EnumSet.allOf(LayerType.class));
+  }
+
+  @Override
+  public boolean supportsOffscreenRendering()
+  {
+    return offlineSurfaceManager != null;
+  }
+
+  @Override
+  public int createOffscreenRenderSurface(int width, int height, boolean alphaOnly)
+  {
+    if (offlineSurfaceManager == null)
+      return -1;
+    return offlineSurfaceManager.create(width, height, alphaOnly);
+  }
+
+  @Override
+  public void releaseOffscreenRenderSurface(int offscreenID)
+  {
+    if (offlineSurfaceManager != null)
+      offlineSurfaceManager.release(offscreenID);
+  }
+
+  @Override
+  public ICanvas2 createOffscreenRenderCanvas(int offscreenID)
+  {
+    if (offscreenID < 0 || offlineSurfaceManager == null)
+      return null;
+    Bitmap offlineBitmap = offlineSurfaceManager.getBitmap(offscreenID);
+    if (offlineBitmap == null)
+      return null;
+    android.graphics.Canvas canvas = new android.graphics.Canvas(offlineBitmap);
+    return new Canvas(canvas, typefaceMap, imageLoader, this, offlineSurfaceManager);
   }
 }
