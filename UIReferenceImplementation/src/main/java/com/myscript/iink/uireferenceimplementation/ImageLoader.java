@@ -14,19 +14,12 @@ import java.io.IOException;
 
 public class ImageLoader
 {
-  public interface Observer
-  {
-    void ready(String url, Bitmap image);
-  }
-
   private Editor editor;
-  private File cacheDirectory;
   LruCache<String, Bitmap> cache;
 
-  public ImageLoader(Editor editor, File cacheDirectory)
+  public ImageLoader(Editor editor)
   {
     this.editor = editor;
-    this.cacheDirectory = new File(cacheDirectory, "tmp/render-cache");
 
     // Use a part of the maximum available memory to define the cache's size
     int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 8);
@@ -38,8 +31,6 @@ public class ImageLoader
         return value.getByteCount();
       }
     };
-
-    this.cacheDirectory.mkdirs();
   }
 
   public Editor getEditor()
@@ -47,38 +38,15 @@ public class ImageLoader
     return editor;
   }
 
-  public File getCacheDirectory()
-  {
-    return cacheDirectory;
-  }
-
-  public synchronized Bitmap getImage(final String url, final String mimeType, final int dstWidth, final int dstHeight, final Observer observer)
+  public synchronized Bitmap getImage(final String url, final String mimeType, final int dstWidth, final int dstHeight)
   {
     Bitmap image = cache.get(url);
-
     if (image != null)
       return image;
 
-    Thread thread = new Thread(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        Bitmap image = renderObject(url, mimeType, dstWidth, dstHeight);
+    image = renderObject(url, mimeType, dstWidth, dstHeight);
+    cache.put(url, image);
 
-        if (image != null)
-        {
-          synchronized (ImageLoader.this)
-          {
-            cache.put(url, image);
-          }
-        }
-
-        observer.ready(url, image);
-      }
-    });
-
-    thread.start();
     return image;
   }
 
@@ -88,10 +56,8 @@ public class ImageLoader
     {
       try
       {
-        File file = getFile(url);
+        File file = new File(url);
         Bitmap image = BitmapFactory.decodeFile(file.getAbsolutePath());
-
-        file.delete();
 
         if (image != null)
         {
@@ -112,13 +78,5 @@ public class ImageLoader
     if (image != null)
       image.eraseColor(Color.WHITE);
     return image;
-  }
-
-  private final synchronized File getFile(String url) throws IOException
-  {
-    File file = new File(cacheDirectory, url);
-    file.getParentFile().mkdirs();
-    editor.getPart().getPackage().extractObject(url, file);
-    return file;
   }
 }

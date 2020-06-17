@@ -412,16 +412,7 @@ public class Canvas implements ICanvas2
         (int) (Math.ceil(screenMax.x) - x),
         (int) (Math.ceil(screenMax.y) - y));
 
-    Bitmap image = imageLoader.getImage(url, mimeType, targetRect.width(), targetRect.height(), new ImageLoader.Observer()
-    {
-      @Override
-      public void ready(String url, Bitmap image)
-      {
-        // image was not ready but is now so repaint the target component to get it displayed
-
-        target.invalidate(imageLoader.getEditor().getRenderer(), targetRect.left, targetRect.top, targetRect.width(), targetRect.height(), EnumSet.allOf(IRenderTarget.LayerType.class));
-      }
-    });
+    Bitmap image = imageLoader.getImage(url, mimeType, targetRect.width(), targetRect.height());
 
     if (image == null)
     {

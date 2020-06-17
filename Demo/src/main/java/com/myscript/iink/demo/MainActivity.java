@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       }
     });
 
-    editorView.setImageLoader(new ImageLoader(editor, this.getCacheDir()));
+    editorView.setImageLoader(new ImageLoader(editor));
     editorView.setInputControllerListener(new IInputControllerListener()
     {
       @Override
