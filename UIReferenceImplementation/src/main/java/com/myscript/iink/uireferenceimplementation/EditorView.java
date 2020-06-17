@@ -28,6 +28,7 @@ public class EditorView extends FrameLayout implements IRenderTarget2
 {
   private int viewWidth;
   private int viewHeight;
+  private float pixelDensity;
 
   @Nullable
   private Renderer renderer;
@@ -138,6 +139,8 @@ public class EditorView extends FrameLayout implements IRenderTarget2
   public void setEngine(@NonNull Engine engine)
   {
     DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+
+    pixelDensity = 1;
 
     renderer = engine.createRenderer(displayMetrics.xdpi, displayMetrics.ydpi, this);
 
@@ -329,6 +332,12 @@ public class EditorView extends FrameLayout implements IRenderTarget2
   public boolean supportsOffscreenRendering()
   {
     return offlineSurfaceManager != null;
+  }
+
+  @Override
+  public float getPixelDensity()
+  {
+    return pixelDensity;
   }
 
   @Override
