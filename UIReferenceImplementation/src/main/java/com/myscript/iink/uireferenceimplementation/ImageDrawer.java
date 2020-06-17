@@ -56,7 +56,9 @@ public class ImageDrawer implements IImageDrawer
     if (canvas == null)
       return;
 
+    // set the background of the image to backgroundColor
     canvas.drawARGB(Color.alpha(backgroundColor), Color.red(backgroundColor), Color.green(backgroundColor), Color.blue(backgroundColor));
+
     Canvas androidCanvas = new Canvas(canvas, typefaceMap, imageLoader, this);
 
     if (layers.contains(LayerType.MODEL))

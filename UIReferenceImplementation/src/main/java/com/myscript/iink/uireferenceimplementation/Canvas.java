@@ -110,7 +110,7 @@ public class Canvas implements ICanvas2
 
     bitmapAlphaPaint = new Paint();
     clearPaint = new Paint();
-    clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+    clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
     clearPaint.setStyle(Paint.Style.FILL);
     clearPaint.setColor(android.graphics.Color.TRANSPARENT);
 
@@ -309,10 +309,14 @@ public class Canvas implements ICanvas2
     pointsCache[2] = x + width;
     pointsCache[3] = y + height;
 
+    // When hardware accelerated, no need to clear the destination
+    // When offscreen rendering is supported, clear the destination
+    // Otherwise, do not clear the destination (e.g. when exporting image, we want a white background)
     if (canvas.isHardwareAccelerated())
       transformMatrix.mapPoints(pointsCache);
-    else
+    else if (offlineSurfaceManager != null)
       canvas.drawRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3], clearPaint);
+
     // Hardware canvas doesn't support PorterDuffXfermode
     canvas.clipRect(pointsCache[0], pointsCache[1], pointsCache[2], pointsCache[3]);
   }
@@ -481,6 +485,7 @@ public class Canvas implements ICanvas2
         {
           transformMatrix.mapRect(floatRectCache);
         }
+
         simpleRectCache.set(Math.round(srcX), Math.round(srcY),
                 Math.round(srcX + srcWidth), Math.round(srcY + srcHeight));
         bitmapAlphaPaint.setColor(argb(blendColor));
