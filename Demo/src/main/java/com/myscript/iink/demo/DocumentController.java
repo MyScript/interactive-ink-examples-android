@@ -503,6 +503,7 @@ public class DocumentController
           {
             ImageDrawer imageDrawer = new ImageDrawer();
             imageDrawer.setImageLoader(editorView.getImageLoader());
+            imageDrawer.setTypefaceMap(editorView.getTypefaces());
             editor.waitForIdle();
             editor.export_(block, file.getPath(), imageDrawer);
           }

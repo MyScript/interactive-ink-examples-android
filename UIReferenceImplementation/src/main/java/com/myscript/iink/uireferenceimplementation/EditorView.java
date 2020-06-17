@@ -232,6 +232,11 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     }
   }
 
+  public Map<String, Typeface> getTypefaces()
+  {
+    return this.typefaceMap;
+  }
+
   public ImageLoader getImageLoader()
   {
     return imageLoader;
