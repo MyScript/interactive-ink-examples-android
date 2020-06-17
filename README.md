@@ -8,7 +8,7 @@ This repository contains a "get started" example, a complete example and a refer
 
 ### Prerequisites
 
-This getting started section has been tested with Android Studio 3.2.1 and supports Android SDK version 16+.
+This getting started section has been tested with Android Studio 3.6+ and supports Android SDK version 16+.
 
 ### Installation
 
@@ -31,6 +31,10 @@ The API Reference is available directly in Android Studio once the dependencies 
 ## Getting support
 
 You can get some support from the dedicated section on [MyScript Developer website](https://developer.myscript.com/support/).
+
+## Troubleshoot
+
+If you encounter build errors of the form `No version of NDK matched the requested version`, please install the requested NDK version or update the one referenced in `build.gradle` to match your installed NDK version. You can follow [these instructions](https://developer.android.com/studio/projects/install-ndk#specific-version).
 
 ## Sharing your feedback ?
 
