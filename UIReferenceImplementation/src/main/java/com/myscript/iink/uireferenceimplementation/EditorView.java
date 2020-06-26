@@ -223,6 +223,9 @@ public class EditorView extends FrameLayout implements IRenderTarget2
 
   public void setTypefaces(@NonNull Map<String, Typeface> typefaceMap)
   {
+    if (editor != null)
+      throw new IllegalStateException("Please set the typeface map of the EditorView before calling EditorView.setEngine()");
+
     this.typefaceMap = typefaceMap;
     for (int i = 0, count = getChildCount(); i < count; ++i)
     {
