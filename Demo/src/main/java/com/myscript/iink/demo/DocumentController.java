@@ -66,7 +66,7 @@ public class DocumentController
     currentPackage = null;
     currentPart = null;
 
-    stateFile = new File(activity.getFilesDir().getPath() + File.separator + DOCUMENT_CONTROLLER_STATE_FILE_NAME);
+    stateFile = new File(activity.getExternalFilesDir(null).getPath() + File.separator + DOCUMENT_CONTROLLER_STATE_FILE_NAME);
     loadState();
   }
 
@@ -124,7 +124,7 @@ public class DocumentController
       name = "File" + (++num) + ".iink";
       tempName = name + "-files";
     }
-    while (new File(activity.getFilesDir(), name).exists() ||
+    while (new File(activity.getExternalFilesDir(null), name).exists() ||
            new File(tempDir, tempName).exists() ||
            (currentFile != null && currentFile.getName().equals(name)));
     return name;
@@ -163,7 +163,7 @@ public class DocumentController
   {
     final Activity context = activity;
     String fileName = makeUntitledFilename();
-    File file = new File(activity.getFilesDir(), fileName);
+    File file = new File(activity.getExternalFilesDir(null), fileName);
     try
     {
       ContentPackage newPackage = editor.getEngine().createPackage(file);
@@ -182,12 +182,12 @@ public class DocumentController
 
   public final boolean openPackage()
   {
-    final File[] files = activity.getFilesDir().listFiles();
+    final File[] files = activity.getExternalFilesDir(null).listFiles();
     final Activity context = activity;
 
     if (files.length == 0)
     {
-      Log.e(TAG, "Failed to list files in \"" + activity.getFilesDir() + "\"");
+      Log.e(TAG, "Failed to list files in \"" + activity.getExternalFilesDir(null) + "\"");
       return false;
     }
     String[] fileNames = new String[files.length];
@@ -344,7 +344,7 @@ public class DocumentController
   {
     try
     {
-      File file = new File(activity.getFilesDir(), fileName);
+      File file = new File(activity.getExternalFilesDir(null), fileName);
       ContentPackage newPackage = editor.getEngine().openPackage(file);
       ContentPart newPart = newPackage.getPart(indexOfPart);
 
@@ -508,7 +508,7 @@ public class DocumentController
         if (!fileName.endsWith(fileExtension))
           fileName = fileName + fileExtension;
 
-        File file = new File(activity.getFilesDir(), fileName);
+        File file = new File(activity.getExternalFilesDir(null), fileName);
 
         fileHolder[0] = file;
         if (file.exists())

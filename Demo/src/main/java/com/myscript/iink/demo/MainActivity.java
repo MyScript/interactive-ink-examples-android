@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Configuration conf = engine.getConfiguration();
     String confDir = "zip://" + getPackageCodePath() + "!/assets/conf";
     conf.setStringArray("configuration-manager.search-path", new String[]{confDir});
-    String tempDir = getFilesDir().getPath() + File.separator + "tmp";
+    String tempDir = getExternalFilesDir(null).getPath() + File.separator + "tmp";
     conf.setString("content-package.temp-folder", tempDir);
 
     setContentView(R.layout.activity_main);
@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   private boolean addImage(final float x, final float y)
   {
-    final File[] files = getFilesDir().listFiles(new FilenameFilter()
+    final File[] files = getExternalFilesDir(null).listFiles(new FilenameFilter()
     {
       @Override
       public boolean accept(File dir, String name)
