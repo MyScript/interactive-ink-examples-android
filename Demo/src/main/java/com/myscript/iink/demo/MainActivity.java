@@ -475,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     final boolean displayAddImage = false; // hasTypes && isRoot;
     final boolean displayRemove = !isRoot;
     final boolean displayCopy = !onTextDocument || !isRoot;
-    final boolean displayPaste = hasTypes && isRoot;
+    final boolean displayPaste = isRoot;
     final boolean displayImport = false; // hasImports;
     final boolean displayExport = false; // hasExports;
 
