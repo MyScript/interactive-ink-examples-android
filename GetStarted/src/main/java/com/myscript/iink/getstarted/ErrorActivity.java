@@ -1,4 +1,4 @@
-// Copyright MyScript. All rights reserved.
+// Copyright @ MyScript. All rights reserved.
 
 package com.myscript.iink.getstarted;
 
