@@ -6,8 +6,7 @@
         android:id="@+id/editor_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible"
-        android:background="@android:color/white">
+        android:visibility="invisible">
 
         <com.myscript.iink.uireferenceimplementation.LayerView
             android:id="@+id/layer_model"
