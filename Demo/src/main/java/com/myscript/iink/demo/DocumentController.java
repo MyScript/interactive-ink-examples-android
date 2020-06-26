@@ -132,9 +132,19 @@ public class DocumentController
 
   public final void setPart(File newFile, ContentPackage newPackage, ContentPart newPart)
   {
-    editor.getRenderer().setViewOffset(0, 0);
-    editor.getRenderer().setViewScale(1);
-    editor.setPart(newPart);
+    try
+    {
+      editor.getRenderer().setViewOffset(0, 0);
+      editor.getRenderer().setViewScale(1);
+      editor.setPart(newPart);
+    }
+    catch (IllegalStateException e)
+    {
+      Toast.makeText(activity, "Failed to open part", Toast.LENGTH_LONG).show();
+      editor.setPart(currentPart);
+      return;
+    }
+
     editorView.setVisibility(View.VISIBLE);
 
     if (currentPart != null && currentPart != newPart)
