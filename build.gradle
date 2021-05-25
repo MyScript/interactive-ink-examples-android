@@ -13,7 +13,7 @@ subprojects {
     afterEvaluate { proj ->
         if (proj.hasProperty('android')) {
             android {
-                ndkVersion '16.1.4479499'
+                ndkVersion '21.4.7075529'
             }
         }
     }
