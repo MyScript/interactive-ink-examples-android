@@ -28,7 +28,8 @@ import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
 import com.myscript.iink.Editor;
-import com.myscript.iink.IEditorListener2;
+import com.myscript.iink.EditorError;
+import com.myscript.iink.IEditorListener;
 import com.myscript.iink.IRendererListener;
 import com.myscript.iink.MimeType;
 import com.myscript.iink.ParameterSet;
@@ -40,7 +41,7 @@ import com.myscript.iink.graphics.Transform;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class SmartGuideView extends LinearLayout implements IEditorListener2, IRendererListener, View.OnClickListener
+public class SmartGuideView extends LinearLayout implements IEditorListener, IRendererListener, View.OnClickListener
 {
   private static final String TAG = "SmartGuideView";
   private static final int SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT = 3000;
@@ -379,7 +380,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener2, IR
   }
 
   @Override
-  public void onError(Editor editor, String blockId, String message)
+  public void onError(Editor editor, String blockId, EditorError err, String message)
   {
     Log.e(TAG, "Failed to edit block \"" + blockId + "\": " + message);
   }

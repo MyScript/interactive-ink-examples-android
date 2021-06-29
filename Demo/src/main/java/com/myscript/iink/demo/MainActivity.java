@@ -24,6 +24,7 @@ import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
 import com.myscript.iink.ConversionState;
 import com.myscript.iink.Editor;
+import com.myscript.iink.EditorError;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
 import com.myscript.iink.MimeType;
@@ -102,9 +103,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       }
 
       @Override
-      public void onError(Editor editor, String blockId, String message)
+      public void onError(Editor editor, String blockId, EditorError error, String message)
       {
         Log.e(TAG, "Failed to edit block \"" + blockId + "\"" + message);
+      }
+
+      @Override
+      public void selectionChanged(Editor editor, String[] blockIds)
+      {
+        // no-op
+      }
+
+      @Override
+      public void activeBlockChanged(Editor editor, String blockId)
+      {
+        // no-op
       }
     });
 
