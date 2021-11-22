@@ -136,20 +136,13 @@ public class LayerView extends View implements IRenderView
       {
         switch (type)
         {
-          case BACKGROUND:
-            renderer.drawBackground(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
-            break;
           case MODEL:
             renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
-            break;
-          case TEMPORARY:
-            renderer.drawTemporaryItems(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           case CAPTURE:
             renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
             break;
           default:
-            // unknown layer type
             break;
         }
       }
