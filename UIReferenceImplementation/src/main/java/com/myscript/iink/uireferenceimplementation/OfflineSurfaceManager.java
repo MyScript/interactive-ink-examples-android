@@ -54,6 +54,7 @@ public class OfflineSurfaceManager
     if (bitmap == null)
       return;
     offlineSurfaces.remove(offscreenID);
+    bitmap.recycle();
   }
 
   public synchronized Bitmap getBitmap(int id)
