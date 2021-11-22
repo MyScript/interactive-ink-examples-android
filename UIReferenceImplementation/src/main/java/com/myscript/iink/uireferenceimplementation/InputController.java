@@ -172,7 +172,13 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       final int pointerCount = event.getPointerCount();
       for (int pointerIndex = 0; pointerIndex < pointerCount; pointerIndex++)
       {
-        consumed = consumed || handleOnTouchForPointer(event, actionMask, pointerIndex);
+        try
+        {
+          consumed = consumed || handleOnTouchForPointer(event, actionMask, pointerIndex);
+        }
+        catch(Exception e) {
+          // ignore spurious invalid touch events that may occurs when spamming undo/redo button
+        }
       }
       return consumed;
     }
