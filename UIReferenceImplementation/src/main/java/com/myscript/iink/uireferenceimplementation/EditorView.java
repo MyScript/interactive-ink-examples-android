@@ -361,12 +361,14 @@ public class EditorView extends FrameLayout implements IRenderTarget2
   @Override
   public ICanvas2 createOffscreenRenderCanvas(int offscreenID)
   {
+    if (renderer == null)
+      throw new IllegalStateException("Cannot create offscreen render canvas if renderer is null");
     if (offscreenID < 0 || offlineSurfaceManager == null)
       return null;
     Bitmap offlineBitmap = offlineSurfaceManager.getBitmap(offscreenID);
     if (offlineBitmap == null)
       return null;
     android.graphics.Canvas canvas = new android.graphics.Canvas(offlineBitmap);
-    return new Canvas(canvas, typefaceMap, imageLoader, this, offlineSurfaceManager);
+    return new Canvas(canvas, typefaceMap, imageLoader, this, offlineSurfaceManager, renderer.getDpiX(), renderer.getDpiY());
   }
 }

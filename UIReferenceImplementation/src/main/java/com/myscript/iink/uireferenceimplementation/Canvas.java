@@ -16,7 +16,6 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextPaint;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.myscript.iink.IRenderTarget;
@@ -30,7 +29,6 @@ import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Style;
 import com.myscript.iink.graphics.Transform;
 
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -86,21 +84,23 @@ public class Canvas implements ICanvas2
   private float[] dashArray;
   private int dashOffset = 0;
 
-  @NonNull
-  private final DisplayMetrics displayMetrics;
+  private final float xdpi;
+  private final float ydpi;
 
   @NonNull
   private final Matrix textScaleMatrix;
   @NonNull
   private final Matrix pointScaleMatrix;
 
-  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, OfflineSurfaceManager offlineSurfaceManager)
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, @Nullable  OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
   {
     this.canvas = canvas;
     this.typefaceMap = typefaceMap;
     this.imageLoader = imageLoader;
     this.target = target;
     this.offlineSurfaceManager = offlineSurfaceManager;
+    this.xdpi = xdpi;
+    this.ydpi = ydpi;
 
     clips = new HashSet<>();
 
@@ -127,9 +127,8 @@ public class Canvas implements ICanvas2
 
     dashArray = null;
 
-    displayMetrics = Resources.getSystem().getDisplayMetrics();
     textScaleMatrix = new Matrix();
-    textScaleMatrix.setScale(25.4f / displayMetrics.xdpi, 25.4f / displayMetrics.ydpi);
+    textScaleMatrix.setScale(25.4f / xdpi, 25.4f / ydpi);
     pointScaleMatrix = new Matrix();
     textScaleMatrix.invert(pointScaleMatrix);
 
@@ -137,9 +136,9 @@ public class Canvas implements ICanvas2
     applyStyle(DEFAULT_SVG_STYLE);
   }
 
-  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target)
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, float xdpi, float ydpi)
   {
-    this(canvas, typefaceMap, imageLoader, target, null);
+    this(canvas, typefaceMap, imageLoader, target, null, xdpi, ydpi);
   }
 
   private void applyStyle(@NonNull Style style)
@@ -297,7 +296,7 @@ public class Canvas implements ICanvas2
     // scale font size to the canvas transform scale, to ensure best font rendering
     // (text size is expressed in pixels, while fontSize is in mm)
     textPaint.setTypeface(typeface);
-    textPaint.setTextSize(Math.round((fontSize / 25.4f) * displayMetrics.ydpi));
+    textPaint.setTextSize(Math.round((fontSize / 25.4f) * ydpi));
   }
 
   @Override
@@ -476,7 +475,7 @@ public class Canvas implements ICanvas2
 
   @Override
   public void blendOffscreen(int id, float srcX, float srcY, float srcWidth, float srcHeight,
-                             float destX, float destY, float destWidth, float destHeight, Color blendColor)
+                             float destX, float destY, float destWidth, float destHeight, @NonNull Color blendColor)
   {
     if (offlineSurfaceManager != null)
     {

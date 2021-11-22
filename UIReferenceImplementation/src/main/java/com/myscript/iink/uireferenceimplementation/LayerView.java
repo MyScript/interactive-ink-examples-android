@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import androidx.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 
 import com.myscript.iink.Editor;
@@ -164,7 +165,8 @@ public class LayerView extends View implements IRenderView
     }
     bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
     sysCanvas = new android.graphics.Canvas(bitmap);
-    iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, renderTarget, offlineSurfaceManager);
+    DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+    iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, renderTarget, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }

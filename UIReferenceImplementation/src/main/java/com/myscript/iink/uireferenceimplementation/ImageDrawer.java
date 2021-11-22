@@ -55,11 +55,13 @@ public class ImageDrawer implements IImageDrawer
   {
     if (canvas == null)
       return;
+    if (renderer == null)
+      throw new IllegalStateException("Cannot invalidate render canvas if renderer is null");
 
     // set the background of the image to backgroundColor
     canvas.drawARGB(Color.alpha(backgroundColor), Color.red(backgroundColor), Color.green(backgroundColor), Color.blue(backgroundColor));
 
-    Canvas androidCanvas = new Canvas(canvas, typefaceMap, imageLoader, this);
+    Canvas androidCanvas = new Canvas(canvas, typefaceMap, imageLoader, this, renderer.getDpiX(), renderer.getDpiY());
 
     if (layers.contains(LayerType.MODEL))
       renderer.drawModel(x, y, width, height, androidCanvas);
