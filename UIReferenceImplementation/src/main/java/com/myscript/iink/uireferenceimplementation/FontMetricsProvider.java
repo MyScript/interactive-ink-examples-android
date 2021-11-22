@@ -78,7 +78,6 @@ public class FontMetricsProvider implements IFontMetricsProvider2
   private Map<String, Typeface> typefaceMap;
 
   private final LruCache<Pair<FontKey, String>, GlyphMetrics> glyphMetricsCache = new LruCache<>(1024);
-  private final LruCache<Pair<FontKey, String>, Float> pairKerningCache = new LruCache<>(2048);
 
   public FontMetricsProvider(DisplayMetrics displayMetrics, Map<String, Typeface> typefaceMap)
   {
@@ -143,21 +142,6 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     }
   }
 
-  private float getPairKerning(FontKey fontKey, String glyph1, String glyph2, IValueProvider<Float> valueProvider)
-  {
-    Pair<FontKey, String> key = new Pair<>(fontKey, glyph1 + glyph2);
-    synchronized (pairKerningCache)
-    {
-      Float value = pairKerningCache.get(key);
-      if (value == null)
-      {
-        value = valueProvider.get();
-        pairKerningCache.put(key, value);
-      }
-      return value;
-    }
-  }
-
   @Override
   public GlyphMetrics[] getGlyphMetrics(Text text, TextSpan[] spans)
   {
@@ -203,9 +187,13 @@ public class FontMetricsProvider implements IFontMetricsProvider2
     int spanEnd = -1;
     int spanIndex = -1;
     FontKey fontKey = null;
-    float pos = 0;
-    String glyph_ = null;
-    final Layout[] layout = new Layout[1];
+
+    final Layout layout = new StaticLayout(string, paint_, Integer.MAX_VALUE, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+    if (layout.getLineCount() != 1)
+    {
+      throw new RuntimeException();
+    }
+
     for (int i = 0; i < glyphCount; ++i)
     {
       if (i >= spanEnd)
@@ -260,40 +248,7 @@ public class FontMetricsProvider implements IFontMetricsProvider2
         }
       });
 
-      if (i > 0)
-      {
-        float pairKerning;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && (" ".equals(glyph_) || " ".equals(glyph)))
-        {
-          pairKerning = 0; // pair kerning is zero for space, when right side bearing is correct
-        }
-        else
-        {
-          final float defaultPos = pos;
-          pairKerning = getPairKerning(fontKey, glyph_, glyph, new IValueProvider<Float>()
-          {
-            @Override
-            public Float get()
-            {
-              if (layout[0] == null)
-              {
-                layout[0] = new StaticLayout(string, paint_, 100000, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
-                if (layout[0].getLineCount() != 1)
-                  throw new RuntimeException();
-              }
-              float posPx = layout[0].getPrimaryHorizontal(start);
-              float pos = x_px2mm(posPx);
-              return pos - defaultPos;
-            }
-          });
-        }
-        pos += pairKerning;
-      }
-
-      charBoxes[i] = new GlyphMetrics(pos + m.boundingBox.x, m.boundingBox.y, m.boundingBox.width, m.boundingBox.height, m.leftSideBearing, m.rightSideBearing);
-
-      glyph_ = glyph;
-      pos += m.boundingBox.width - m.leftSideBearing + m.rightSideBearing;
+      charBoxes[i] = new GlyphMetrics(x_px2mm(layout.getPrimaryHorizontal(start)) + m.boundingBox.x, m.boundingBox.y, m.boundingBox.width, m.boundingBox.height, m.leftSideBearing, m.rightSideBearing);
     }
 
     return charBoxes;
