@@ -593,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Editor editor = editorView.getEditor();
     final boolean canUndo = editor.canUndo();
     final boolean canRedo = editor.canRedo();
+    final boolean hasPart = editor.getPart() != null;
     runOnUiThread(new Runnable()
     {
       @Override
@@ -603,7 +604,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ImageButton imageButtonRedo = (ImageButton) findViewById(R.id.button_redo);
         imageButtonRedo.setEnabled(canRedo);
         ImageButton imageButtonClear = (ImageButton) findViewById(R.id.button_clear);
-        imageButtonClear.setEnabled(documentController != null && documentController.hasPart());
+        imageButtonClear.setEnabled(hasPart);
       }
     });
   }
