@@ -285,6 +285,9 @@ public class Canvas implements ICanvas2
   }
 
   @Override
+  public void setDropShadow(float xOffset, float yOffset, float radius, Color color) { }
+
+  @Override
   public final void setFontProperties(@NonNull String fontFamily, float fontLineHeight, float fontSize, String fontStyle,
                                       @NonNull String fontVariant, int fontWeight)
   {
