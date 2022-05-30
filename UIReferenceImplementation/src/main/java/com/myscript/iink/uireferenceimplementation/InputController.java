@@ -4,11 +4,11 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
 import android.os.SystemClock;
-import androidx.core.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.myscript.iink.ContentBlock;
 import com.myscript.iink.Editor;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.PointerEvent;
@@ -18,14 +18,23 @@ import com.myscript.iink.graphics.Point;
 
 import java.util.EnumSet;
 
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.core.view.GestureDetectorCompat;
+
 public class InputController implements View.OnTouchListener, GestureDetector.OnGestureListener
 {
-  private static final String TAG = "InputController";
+
+  public interface ViewListener
+  {
+    void showScrollbars();
+  }
 
   public static final int INPUT_MODE_NONE = -1;
   public static final int INPUT_MODE_FORCE_PEN = 0;
   public static final int INPUT_MODE_FORCE_TOUCH = 1;
   public static final int INPUT_MODE_AUTO = 2;
+  public static final int INPUT_MODE_ERASER = 3;
 
   private final IRenderTarget renderTarget;
   private final Editor editor;
@@ -33,6 +42,9 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   private final GestureDetectorCompat gestureDetector;
   private IInputControllerListener _listener;
   private final long eventTimeOffset;
+  @VisibleForTesting
+  public PointerType iinkPointerType;
+  private ViewListener _viewListener;
 
   public InputController(Context context, IRenderTarget renderTarget, Editor editor)
   {
@@ -57,6 +69,11 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     return _inputMode;
   }
 
+  public final synchronized void setViewListener(ViewListener listener)
+  {
+    this._viewListener = listener;
+  }
+
   public final synchronized void setListener(IInputControllerListener listener)
   {
     this._listener = listener;
@@ -74,7 +91,6 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
 
     int inputMode = getInputMode();
 
-    PointerType iinkPointerType;
     if (inputMode == INPUT_MODE_FORCE_PEN)
     {
       iinkPointerType = PointerType.PEN;
@@ -88,7 +104,14 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       switch (pointerType)
       {
         case MotionEvent.TOOL_TYPE_STYLUS:
-          iinkPointerType = PointerType.PEN;
+          if (inputMode == INPUT_MODE_ERASER)
+          {
+            iinkPointerType = PointerType.ERASER;
+          }
+          else
+          {
+            iinkPointerType = PointerType.PEN;
+          }
           break;
         case MotionEvent.TOOL_TYPE_FINGER:
         case MotionEvent.TOOL_TYPE_MOUSE:
@@ -205,11 +228,22 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   @Override
   public void onLongPress(MotionEvent event)
   {
-    final float x = event.getX();
-    final float y = event.getY();
     IInputControllerListener listener = getListener();
     if (listener != null)
-      listener.onLongPress(x, y, editor.hitBlock(x, y));
+    {
+      final float x = event.getX();
+      final float y = event.getY();
+      // Only handle block ID and not `ContentBlock` to simplify native `AutoCloseable` object lifecycle.
+      // Otherwise, depending on which object owns such `ContentBlock`, the reasoning about closing it
+      // would be more complicated.
+      // Providing block ID delegates to listeners the ownership of the retrieved block (if any),
+      // typically calling `Editor.getBlockById()`.
+      try (@Nullable ContentBlock block = editor.hitBlock(x, y))
+      {
+        String blockId = block != null ? block.getId() : null;
+        listener.onLongPress(x, y, blockId);
+      }
+    }
   }
 
   @Override
@@ -220,8 +254,12 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       Point oldOffset = editor.getRenderer().getViewOffset();
       Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
       editor.clampViewOffset(newOffset);
-      editor.getRenderer().setViewOffset(newOffset.x, newOffset.y);
+      editor.getRenderer().setViewOffset(Math.round(newOffset.x), Math.round(newOffset.y));
       renderTarget.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
+      if(_viewListener != null)
+      {
+        _viewListener.showScrollbars();
+      }
       return true;
     }
     return false;

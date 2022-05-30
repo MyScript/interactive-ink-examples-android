@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar_settings_bottom_sheet"
+    android:layout_width="wrap_content"
+    android:minWidth="350dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_gravity="center_horizontal"
+    style="?attr/bottomSheetStyle"
+    android:background="?android:attr/colorBackground"
+    android:elevation="16dp"
+    app:behavior_hideable="false"
+    app:behavior_saveFlags="all"
+    app:behavior_peekHeight="68dp"
+    app:layout_behavior="@string/bottom_sheet_behavior">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="4dp"
+        android:src="@drawable/bottom_sheet_handle"
+        app:tint="?attr/colorControlNormal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/toolbar_tools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/toolbar_tool_cell"
+        tools:itemCount="5" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/toolbar_colors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/toolbar_color_cell"
+        tools:itemCount="4" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/toolbar_thicknesses"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/toolbar_thickness_cell"
+        tools:itemCount="3" />
+
+</LinearLayout>

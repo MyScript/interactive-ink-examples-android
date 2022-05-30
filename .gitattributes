@@ -3,12 +3,41 @@
 # git
 .gitignore text
 
-*.java text diff=java filter=expand-tabs
-*.xml text
-*.gradle text
+# source & misc files
+*.c text diff=cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.cpp text diff=cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.cs text diff=csharp whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.h text diff=cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.hpp text diff=cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.html text diff=html whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.java text diff=java whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.js text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.l text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.m text diff=objc whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.mm text diff=objc whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,no-newline-at-eof
+*.pl text diff=perl whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.py text diff=python whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.rb text diff=ruby whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.tex text diff=text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.txt text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.xml text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.y text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+*.tsv text whitespace=-blank-at-eol,blank-at-eof,-space-before-tab,-tab-in-indent
+*.groovy text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
 
-LICENSE text
-gradlew text eol=lf
+# Shell scripts
+*.sh diff=bash text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=lf executable=maybe
+*.bat text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=crlf executable=maybe
+*.ps1 text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=crlf executable=maybe
 
-# shell scripts
-*.bat text eol=crlf
+# Awk scripts
+*.awk text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=lf
+
+# GNU Makefile
+Makefile text whitespace=blank-at-eol,blank-at-eof,space-before-tab eol=lf
+
+# Android
+*.mk text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=lf
+*.gradle text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent
+gradlew text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=lf executable
+gradlew.bat text whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent eol=crlf executable=maybe

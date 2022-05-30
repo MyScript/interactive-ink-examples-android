@@ -13,13 +13,16 @@ import java.io.File;
 
 import com.myscript.iink.Editor;
 
+import androidx.annotation.NonNull;
+
 
 public class ImageLoader
 {
-  private Editor editor;
+  @NonNull
+  private final Editor editor;
   LruCache<String, Bitmap> cache;
 
-  public ImageLoader(Editor editor)
+  public ImageLoader(@NonNull Editor editor)
   {
     this.editor = editor;
 
@@ -46,6 +49,7 @@ public class ImageLoader
     };
   }
 
+  @NonNull
   public Editor getEditor()
   {
     return editor;
@@ -65,7 +69,7 @@ public class ImageLoader
     return newImage.first;
   }
 
-  private final Pair<Bitmap, Boolean> renderObject(String url, String mimeType, int dstWidth, int dstHeight)
+  private Pair<Bitmap, Boolean> renderObject(String url, String mimeType, int dstWidth, int dstHeight)
   {
     if (mimeType.startsWith("image/"))
     {

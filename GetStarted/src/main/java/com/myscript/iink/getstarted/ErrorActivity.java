@@ -30,7 +30,7 @@ public class ErrorActivity extends Activity
   {
     super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.activity_error);
+    setContentView(R.layout.error_activity);
 
     TextView messageView = findViewById(R.id.error_message);
     messageView.setText(getIntent().getStringExtra(INTENT_EXTRA_MESSAGE));

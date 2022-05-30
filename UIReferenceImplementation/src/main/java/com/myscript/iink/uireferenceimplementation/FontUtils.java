@@ -99,26 +99,14 @@ public final class FontUtils
 
   public static String getFontFamily(AssetManager assets, String fontPath)
   {
-    InputStream in = null;
-    try
+    try (InputStream in = assets.open(fontPath))
     {
-      in = assets.open(fontPath);
       return TTFAnalyzer.getTtfFontName(in);
     }
     catch (IOException e)
     {
       // Most likely a corrupted font file
       return null;
-    }
-    finally
-    {
-      if (in != null) try
-      {
-        in.close();
-      }
-      catch (IOException e)
-      {
-      }
     }
   }
 }

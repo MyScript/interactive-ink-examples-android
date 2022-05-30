@@ -1,18 +1,25 @@
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.FileFilterUtils
 
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
+
+    buildFeatures {
+        viewBinding true
+    }
 
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
 
         applicationId 'com.myscript.iink.demo'
-        versionCode 1510
-        versionName '1.5.1'
+        versionCode 2010
+        versionName '2.0.1'
 
         vectorDrawables.useSupportLibrary true
     }
@@ -20,6 +27,18 @@ android {
 
 dependencies {
     implementation "androidx.appcompat:appcompat:${project.ext.appcompatVersion}"
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.activity:activity-ktx:1.4.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    implementation 'com.google.android.material:material:1.5.0'
+
+    def lifecycle_version = '2.4.1'
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+
     implementation project(':UIReferenceImplementation')
 }
 

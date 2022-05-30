@@ -2,9 +2,9 @@
 
 package com.myscript.iink.uireferenceimplementation;
 
-import com.myscript.iink.ContentBlock;
+import androidx.annotation.Nullable;
 
 public interface IInputControllerListener
 {
-  boolean onLongPress(final float x, final float y, final ContentBlock contentBlock);
+  boolean onLongPress(final float x, final float y, final @Nullable String contentBlockId);
 }

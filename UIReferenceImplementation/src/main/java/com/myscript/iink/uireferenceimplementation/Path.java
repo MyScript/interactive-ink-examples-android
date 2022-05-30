@@ -6,9 +6,12 @@ import com.myscript.iink.graphics.IPath;
 
 import java.util.EnumSet;
 
+import androidx.annotation.NonNull;
+
 public class Path extends android.graphics.Path implements IPath
 {
 
+  @NonNull
   @Override
   public EnumSet<OperationType> unsupportedOperations()
   {

@@ -5,13 +5,18 @@ package com.myscript.iink.getstarted;
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
+
+import androidx.annotation.DimenRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 
 import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentPackage;
@@ -21,22 +26,32 @@ import com.myscript.iink.Editor;
 import com.myscript.iink.EditorError;
 import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
+import com.myscript.iink.Renderer;
+import com.myscript.iink.getstarted.databinding.MainActivityBinding;
+import com.myscript.iink.uireferenceimplementation.EditorBinding;
+import com.myscript.iink.uireferenceimplementation.EditorData;
 import com.myscript.iink.uireferenceimplementation.EditorView;
 import com.myscript.iink.uireferenceimplementation.FontUtils;
 import com.myscript.iink.uireferenceimplementation.InputController;
+import com.myscript.iink.uireferenceimplementation.SmartGuideView;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener
+public class MainActivity extends AppCompatActivity
 {
   private static final String TAG = "MainActivity";
 
   private Engine engine;
   private ContentPackage contentPackage;
   private ContentPart contentPart;
+
+  private EditorData editorData;
   private EditorView editorView;
+  private SmartGuideView smartGuideView;
+
+  private MainActivityBinding binding;
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState)
@@ -54,58 +69,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String tempDir = getFilesDir().getPath() + File.separator + "tmp";
     conf.setString("content-package.temp-folder", tempDir);
 
-    setContentView(R.layout.activity_main);
+    binding = MainActivityBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
     editorView = findViewById(R.id.editor_view);
+    smartGuideView = findViewById(R.id.smart_guide_view);
 
     // load fonts
     AssetManager assetManager = getApplicationContext().getAssets();
     Map<String, Typeface> typefaceMap = FontUtils.loadFontsFromAssets(assetManager);
     editorView.setTypefaces(typefaceMap);
 
-    editorView.setEngine(engine);
+    EditorBinding editorBinding = new EditorBinding(engine, typefaceMap);
+    editorData = editorBinding.openEditor(editorView);
 
-    final Editor editor = editorView.getEditor();
+    Editor editor = editorData.getEditor();
+    setMargins(editor, R.dimen.editor_horizontal_margin, R.dimen.editor_vertical_margin);
     editor.addListener(new IEditorListener()
     {
       @Override
-      public void partChanging(Editor editor, ContentPart oldPart, ContentPart newPart)
+      public void partChanging(@NonNull Editor editor, ContentPart oldPart, ContentPart newPart)
       {
         // no-op
       }
 
       @Override
-      public void partChanged(Editor editor)
+      public void partChanged(@NonNull Editor editor)
       {
         invalidateOptionsMenu();
         invalidateIconButtons();
       }
 
       @Override
-      public void contentChanged(Editor editor, String[] blockIds)
+      public void contentChanged(@NonNull Editor editor, String[] blockIds)
       {
         invalidateOptionsMenu();
         invalidateIconButtons();
       }
 
       @Override
-      public void onError(Editor editor, String blockId, EditorError error, String message)
+      public void onError(@NonNull Editor editor, @NonNull String blockId, @NonNull EditorError error, @NonNull String message)
       {
         Log.e(TAG, "Failed to edit block \"" + blockId + "\"" + message);
       }
 
       @Override
-      public void selectionChanged(Editor editor, String[] blockIds)
+      public void selectionChanged(@NonNull Editor editor)
       {
         // no-op
       }
 
       @Override
-      public void activeBlockChanged(Editor editor, String blockId)
+      public void activeBlockChanged(@NonNull Editor editor, @NonNull String blockId)
       {
         // no-op
       }
     });
+
+    smartGuideView.setEditor(editor);
 
     setInputMode(InputController.INPUT_MODE_FORCE_PEN); // If using an active pen, put INPUT_MODE_AUTO here
 
@@ -117,36 +138,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       // Choose type of content (possible values are: "Text Document", "Text", "Diagram", "Math", "Drawing" and "Raw Content")
       contentPart = contentPackage.createPart("Text Document");
     }
-    catch (IOException e)
-    {
-      Log.e(TAG, "Failed to open package \"" + packageName + "\"", e);
-    }
-    catch (IllegalArgumentException e)
+    catch (IOException | IllegalArgumentException e)
     {
       Log.e(TAG, "Failed to open package \"" + packageName + "\"", e);
     }
 
-    setTitle("Type: " + contentPart.getType());
+    ActionBar actionBar = getSupportActionBar();
+    if (actionBar != null && contentPart != null)
+    {
+      actionBar.setTitle(getString(R.string.main_title, contentPart.getType()));
+      actionBar.setSubtitle(R.string.app_name);
+    }
+    else
+    {
+      setTitle(R.string.app_name);
+    }
 
     // wait for view size initialization before setting part
-    editorView.post(new Runnable()
-    {
-      @Override
-      public void run()
+    editorView.post(() -> {
+      Renderer renderer = editorView.getRenderer();
+      if (renderer != null)
       {
-        editorView.getRenderer().setViewOffset(0, 0);
+        renderer.setViewOffset(0, 0);
         editorView.getRenderer().setViewScale(1);
         editorView.setVisibility(View.VISIBLE);
         editor.setPart(contentPart);
       }
     });
 
-    findViewById(R.id.button_input_mode_forcePen).setOnClickListener(this);
-    findViewById(R.id.button_input_mode_forceTouch).setOnClickListener(this);
-    findViewById(R.id.button_input_mode_auto).setOnClickListener(this);
-    findViewById(R.id.button_undo).setOnClickListener(this);
-    findViewById(R.id.button_redo).setOnClickListener(this);
-    findViewById(R.id.button_clear).setOnClickListener(this);
+    binding.inputModeForcePenButton.setOnClickListener((v) -> setInputMode(InputController.INPUT_MODE_FORCE_PEN));
+    binding.inputModeForceTouchButton.setOnClickListener((v) -> setInputMode(InputController.INPUT_MODE_FORCE_TOUCH));
+    binding.inputModeAutoButton.setOnClickListener((v) -> setInputMode(InputController.INPUT_MODE_AUTO));
+    binding.undoButton.setOnClickListener((v) -> editor.undo());
+    binding.redoButton.setOnClickListener((v) -> editor.redo());
+    binding.clearButton.setOnClickListener((v) -> editor.clear());
 
     invalidateIconButtons();
   }
@@ -154,8 +179,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @Override
   protected void onDestroy()
   {
+    binding.inputModeForcePenButton.setOnClickListener(null);
+    binding.inputModeForceTouchButton.setOnClickListener(null);
+    binding.inputModeAutoButton.setOnClickListener(null);
+    binding.undoButton.setOnClickListener(null);
+    binding.redoButton.setOnClickListener(null);
+    binding.clearButton.setOnClickListener(null);
+
+    smartGuideView.setEditor(null);
+
+    Editor editor = editorData.getEditor();
+    if (editor != null)
+    {
+      editor.getRenderer().close();
+      editor.close();
+    }
     editorView.setOnTouchListener(null);
-    editorView.close();
+    editorView.setEditor(null);
 
     if (contentPart != null)
     {
@@ -168,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       contentPackage = null;
     }
 
-
     // IInkApplication has the ownership, do not close here
     engine = null;
 
@@ -178,10 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
   {
-    getMenuInflater().inflate(R.menu.activity_main, menu);
-
-    MenuItem convertMenuItem = menu.findItem(R.id.menu_convert);
-    convertMenuItem.setEnabled(true);
+    getMenuInflater().inflate(R.menu.main_activity_menu, menu);
 
     return super.onCreateOptionsMenu(menu);
   }
@@ -189,77 +225,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {
-    switch (item.getItemId())
+    Editor editor = editorData.getEditor();
+    if (item.getItemId() == R.id.menu_convert && editor != null && !editor.isClosed())
     {
-      case R.id.menu_convert:
-      {
-        Editor editor = editorView.getEditor();
-        ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(null);
-        if (supportedStates.length > 0)
-          editor.convert(null, supportedStates[0]);
-        return true;
-      }
-      default:
-      {
-        return super.onOptionsItemSelected(item);
-      }
+      ConversionState[] supportedStates = editor.getSupportedTargetConversionStates(null);
+      if (supportedStates.length > 0)
+        editor.convert(null, supportedStates[0]);
+      return true;
     }
+    return super.onOptionsItemSelected(item);
   }
 
-  @Override
-  public void onClick(View v)
+  private void setMargins(Editor editor, @DimenRes int horizontalMarginRes, @DimenRes int verticalMarginRes)
   {
-    switch (v.getId())
-    {
-      case R.id.button_input_mode_forcePen:
-        setInputMode(InputController.INPUT_MODE_FORCE_PEN);
-        break;
-      case R.id.button_input_mode_forceTouch:
-        setInputMode(InputController.INPUT_MODE_FORCE_TOUCH);
-        break;
-      case R.id.button_input_mode_auto:
-        setInputMode(InputController.INPUT_MODE_AUTO);
-        break;
-      case R.id.button_undo:
-        editorView.getEditor().undo();
-        break;
-      case R.id.button_redo:
-        editorView.getEditor().redo();
-        break;
-      case R.id.button_clear:
-        editorView.getEditor().clear();
-        break;
-      default:
-        Log.e(TAG, "Failed to handle click event");
-        break;
-    }
+    DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+    Configuration conf = editor.getConfiguration();
+    float verticalMarginPX = getResources().getDimension(verticalMarginRes);
+    float verticalMarginMM = 25.4f * verticalMarginPX / displayMetrics.ydpi;
+    float horizontalMarginPX = getResources().getDimension(horizontalMarginRes);
+    float horizontalMarginMM = 25.4f * horizontalMarginPX / displayMetrics.xdpi;
+    conf.setNumber("text.margin.top", verticalMarginMM);
+    conf.setNumber("text.margin.left", horizontalMarginMM);
+    conf.setNumber("text.margin.right", horizontalMarginMM);
+    conf.setNumber("math.margin.top", verticalMarginMM);
+    conf.setNumber("math.margin.bottom", verticalMarginMM);
+    conf.setNumber("math.margin.left", horizontalMarginMM);
+    conf.setNumber("math.margin.right", horizontalMarginMM);
   }
 
   private void setInputMode(int inputMode)
   {
-    editorView.setInputMode(inputMode);
-    findViewById(R.id.button_input_mode_forcePen).setEnabled(inputMode != InputController.INPUT_MODE_FORCE_PEN);
-    findViewById(R.id.button_input_mode_forceTouch).setEnabled(inputMode != InputController.INPUT_MODE_FORCE_TOUCH);
-    findViewById(R.id.button_input_mode_auto).setEnabled(inputMode != InputController.INPUT_MODE_AUTO);
+    editorData.getInputController().setInputMode(inputMode);
+    binding.inputModeForcePenButton.setEnabled(inputMode != InputController.INPUT_MODE_FORCE_PEN);
+    binding.inputModeForceTouchButton.setEnabled(inputMode != InputController.INPUT_MODE_FORCE_TOUCH);
+    binding.inputModeAutoButton.setEnabled(inputMode != InputController.INPUT_MODE_AUTO);
   }
 
   private void invalidateIconButtons()
   {
-    Editor editor = editorView.getEditor();
+    Editor editor = editorData.getEditor();
+    if (editor == null)
+      return;
     final boolean canUndo = editor.canUndo();
     final boolean canRedo = editor.canRedo();
-    runOnUiThread(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        ImageButton imageButtonUndo = (ImageButton) findViewById(R.id.button_undo);
-        imageButtonUndo.setEnabled(canUndo);
-        ImageButton imageButtonRedo = (ImageButton) findViewById(R.id.button_redo);
-        imageButtonRedo.setEnabled(canRedo);
-        ImageButton imageButtonClear = (ImageButton) findViewById(R.id.button_clear);
-        imageButtonClear.setEnabled(contentPart != null);
-      }
+    runOnUiThread(() -> {
+      binding.undoButton.setEnabled(canUndo);
+      binding.redoButton.setEnabled(canRedo);
+      binding.clearButton.setEnabled(contentPart != null);
     });
   }
 }

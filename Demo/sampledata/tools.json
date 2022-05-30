@@ -1,0 +1,9 @@
+{
+  "tools": [
+    "@drawable/ic_hand_outlined",
+    "@drawable/ic_pen_outlined",
+    "@drawable/ic_brush_outlined",
+    "@drawable/ic_eraser",
+    "@drawable/ic_lasso"
+  ]
+}

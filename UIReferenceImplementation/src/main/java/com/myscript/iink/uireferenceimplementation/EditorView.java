@@ -3,45 +3,39 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.Typeface;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.myscript.iink.Configuration;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.myscript.iink.Editor;
-import com.myscript.iink.Engine;
-import com.myscript.iink.IRenderTarget2;
+import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.Renderer;
-import com.myscript.iink.graphics.ICanvas2;
+import com.myscript.iink.graphics.ICanvas;
+import com.myscript.iink.graphics.Point;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EditorView extends FrameLayout implements IRenderTarget2
+public class EditorView extends FrameLayout implements IRenderTarget, InputController.ViewListener
 {
   private int viewWidth;
   private int viewHeight;
-  private float pixelDensity;
 
   @Nullable
   private Renderer renderer;
   @Nullable
   private Editor editor;
-
-  @Nullable
-  private InputController inputController;
   @Nullable
   private ImageLoader imageLoader;
-  @Nullable
-  private OfflineSurfaceManager offlineSurfaceManager;
-
+  @NonNull
+  private final OfflineSurfaceManager offlineSurfaceManager;
   @Nullable
   private IRenderView renderView;
   @Nullable
@@ -49,30 +43,28 @@ public class EditorView extends FrameLayout implements IRenderTarget2
 
   private Map<String, Typeface> typefaceMap = new HashMap<>();
 
-  @Nullable
-  private SmartGuideView smartGuideView;
-
   public EditorView(Context context)
   {
     super(context);
+    offlineSurfaceManager = new OfflineSurfaceManager();
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs)
   {
     super(context, attrs);
+    offlineSurfaceManager = new OfflineSurfaceManager();
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
+    offlineSurfaceManager = new OfflineSurfaceManager();
   }
 
   @Override
   protected void onFinishInflate()
   {
     super.onFinishInflate();
-
-    offlineSurfaceManager = new OfflineSurfaceManager();
 
     // find child render views and initialize them
     for (int i = 0, count = getChildCount(); i < count; ++i)
@@ -85,12 +77,16 @@ public class EditorView extends FrameLayout implements IRenderTarget2
         {
           if (layerViews == null)
             layerViews = new IRenderView[2];
-          if (renderView.getType() == LayerType.BACKGROUND ||renderView.getType() == LayerType.MODEL ||renderView.getType() == LayerType.TEMPORARY)
+          if (renderView.getType() == LayerType.MODEL)
             layerViews[0] = renderView;
           else if (renderView.getType() == LayerType.CAPTURE)
+          {
             layerViews[1] = renderView;
+          }
           else
+          {
             throw new RuntimeException("Unknown layer view type");
+          }
         }
         else
         {
@@ -98,10 +94,14 @@ public class EditorView extends FrameLayout implements IRenderTarget2
         }
 
         renderView.setRenderTarget(this);
-        if (editor != null) // if null it will be transferred in setEngine() below
+        if (editor != null)
+        {
           renderView.setEditor(editor);
-        if (imageLoader != null) // if null it will be transferred in setImageLoader() below
+        }
+        if (imageLoader != null)
+        {
           renderView.setImageLoader(imageLoader);
+        }
 
         renderView.setCustomTypefaces(typefaceMap);
 
@@ -112,72 +112,42 @@ public class EditorView extends FrameLayout implements IRenderTarget2
         }
       }
     }
-
-    smartGuideView = findViewById(R.id.smart_guide_view);
   }
 
-  public void close()
+  /**
+   * editor creation logic to this view.
+   *
+   * @param editor the editor to bind to this view to edit content.
+   */
+  public void setEditor(@Nullable Editor editor)
   {
-    // unplug input management
-    setOnTouchListener(null);
-
-    if (editor != null && !editor.isClosed())
+    this.editor = editor;
+    if (editor != null)
     {
-      editor.setPart(null);
-      editor.setFontMetricsProvider(null);
-      editor.close();
-      editor = null;
-    }
-
-    if (renderer != null && !renderer.isClosed())
-    {
-      renderer.close();
-      renderer = null;
-    }
-  }
-
-  public void setEngine(@NonNull Engine engine)
-  {
-    DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-
-    pixelDensity = 1;
-
-    renderer = engine.createRenderer(displayMetrics.xdpi, displayMetrics.ydpi, this);
-
-    editor = engine.createEditor(renderer);
-    editor.setFontMetricsProvider(new FontMetricsProvider(displayMetrics, typefaceMap));
-
-    Configuration conf = editor.getConfiguration();
-    float verticalMarginPX = getResources().getDimension(R.dimen.vertical_margin);
-    float horizontalMarginPX = getResources().getDimension(R.dimen.horizontal_margin);
-    float verticalMarginMM = 25.4f * verticalMarginPX / displayMetrics.ydpi;
-    float horizontalMarginMM = 25.4f * horizontalMarginPX / displayMetrics.xdpi;
-    conf.setNumber("text.margin.top", verticalMarginMM);
-    conf.setNumber("text.margin.left", horizontalMarginMM);
-    conf.setNumber("text.margin.right", horizontalMarginMM);
-    conf.setNumber("math.margin.top", verticalMarginMM);
-    conf.setNumber("math.margin.bottom", verticalMarginMM);
-    conf.setNumber("math.margin.left", horizontalMarginMM);
-    conf.setNumber("math.margin.right", horizontalMarginMM);
-
-    smartGuideView = findViewById(R.id.smart_guide_view);
-    smartGuideView.setEditor(editor);
-
-    inputController = new InputController(getContext(), this, getEditor());
-    setOnTouchListener(inputController);
-
-    // transfer editor to render views
-    if (renderView != null)
-    {
-      renderView.setEditor(editor);
-    }
-    else if (layerViews != null)
-    {
-      for (int i = 0; i < layerViews.length; ++i)
+      renderer = editor.getRenderer();
+      if (renderView != null)
       {
-        if (layerViews[i] != null)
-          layerViews[i].setEditor(editor);
+        renderView.setEditor(editor);
       }
+      else if (layerViews != null)
+      {
+        for (IRenderView layerView : layerViews)
+        {
+          if (layerView != null)
+          {
+            layerView.setEditor(editor);
+          }
+        }
+      }
+      if (viewWidth > 0 && viewHeight > 0)
+      {
+        editor.setViewSize(viewWidth, viewHeight);
+      }
+      invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+    }
+    else
+    {
+      renderer = null;
     }
   }
 
@@ -193,15 +163,6 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     return renderer;
   }
 
-  public void setInputControllerListener(IInputControllerListener listener)
-  {
-    if (inputController != null)
-    {
-      inputController.setListener(listener);
-      smartGuideView.setSmartGuideMoreHandler(listener);
-    }
-  }
-
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
@@ -213,10 +174,10 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     }
     else if (layerViews != null)
     {
-      for (int i = 0; i < layerViews.length; ++i)
+      for (IRenderView layerView : layerViews)
       {
-        if (layerViews[i] != null)
-          layerViews[i].setImageLoader(imageLoader);
+        if (layerView != null)
+          layerView.setImageLoader(imageLoader);
       }
     }
   }
@@ -224,7 +185,9 @@ public class EditorView extends FrameLayout implements IRenderTarget2
   public void setTypefaces(@NonNull Map<String, Typeface> typefaceMap)
   {
     if (editor != null)
-      throw new IllegalStateException("Please set the typeface map of the EditorView before calling EditorView.setEngine()");
+    {
+      throw new IllegalStateException("Please set the typeface map of the EditorView before binding the editor (through EditorView.setEngine() or EditorView.setEditor())");
+    }
 
     this.typefaceMap = typefaceMap;
     for (int i = 0, count = getChildCount(); i < count; ++i)
@@ -243,22 +206,10 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     return typefaceMap;
   }
 
+  @Nullable
   public ImageLoader getImageLoader()
   {
     return imageLoader;
-  }
-
-  public void setInputMode(int inputMode)
-  {
-    if (inputController != null)
-    {
-      inputController.setInputMode(inputMode);
-    }
-  }
-
-  public int getInputMode()
-  {
-    return inputController != null ? inputController.getInputMode() : InputController.INPUT_MODE_NONE;
   }
 
   @Override
@@ -270,20 +221,20 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     if (editor != null)
     {
       editor.setViewSize(newWidth, newHeight);
-      invalidate(renderer, EnumSet.allOf(IRenderTarget2.LayerType.class));
+      invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
     }
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }
 
   @Override
-  public final void invalidate(Renderer renderer, EnumSet<LayerType> layers)
+  public final void invalidate(@NonNull Renderer renderer, @NonNull EnumSet<LayerType> layers)
   {
     invalidate(renderer, 0, 0, viewWidth, viewHeight, layers);
   }
 
   @Override
-  public final void invalidate(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
+  public final void invalidate(@NonNull Renderer renderer, int x, int y, int width, int height, @NonNull EnumSet<LayerType> layers)
   {
     if (width <= 0 || height <= 0)
       return;
@@ -296,9 +247,7 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     {
       for (LayerType type : layers)
       {
-        int layerID = 1;
-        if (type == LayerType.BACKGROUND ||type == LayerType.MODEL ||type == LayerType.TEMPORARY)
-          layerID = 0;
+        int layerID = (type == LayerType.MODEL) ? 0 : 1;
         IRenderView layerView = layerViews[layerID];
         if (layerView != null)
           layerView.update(renderer, x, y, width, height, layers);
@@ -313,6 +262,7 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     invalidate(renderer, EnumSet.allOf(LayerType.class));
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void invalidate(int l, int t, int r, int b)
   {
@@ -320,6 +270,7 @@ public class EditorView extends FrameLayout implements IRenderTarget2
     invalidate(renderer, l, t, r - l, b - t, EnumSet.allOf(LayerType.class));
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void invalidate(Rect dirty)
   {
@@ -334,41 +285,56 @@ public class EditorView extends FrameLayout implements IRenderTarget2
   @Override
   public boolean supportsOffscreenRendering()
   {
-    return offlineSurfaceManager != null;
+    return true;
   }
 
   @Override
   public float getPixelDensity()
   {
-    return pixelDensity;
+    return 1f;
   }
 
   @Override
   public int createOffscreenRenderSurface(int width, int height, boolean alphaOnly)
   {
-    if (offlineSurfaceManager == null)
-      return -1;
     return offlineSurfaceManager.create(width, height, alphaOnly);
   }
 
   @Override
   public void releaseOffscreenRenderSurface(int offscreenID)
   {
-    if (offlineSurfaceManager != null)
-      offlineSurfaceManager.release(offscreenID);
+    offlineSurfaceManager.release(offscreenID);
   }
 
   @Override
-  public ICanvas2 createOffscreenRenderCanvas(int offscreenID)
+  public ICanvas createOffscreenRenderCanvas(int offscreenID)
   {
     if (renderer == null)
       throw new IllegalStateException("Cannot create offscreen render canvas if renderer is null");
-    if (offscreenID < 0 || offlineSurfaceManager == null)
+    if (offscreenID < 0)
       return null;
     Bitmap offlineBitmap = offlineSurfaceManager.getBitmap(offscreenID);
     if (offlineBitmap == null)
       return null;
     android.graphics.Canvas canvas = new android.graphics.Canvas(offlineBitmap);
-    return new Canvas(canvas, typefaceMap, imageLoader, this, offlineSurfaceManager, renderer.getDpiX(), renderer.getDpiY());
+    return new Canvas(canvas, typefaceMap, imageLoader, offlineSurfaceManager, renderer.getDpiX(), renderer.getDpiY());
+  }
+
+  @Override
+  public void showScrollbars()
+  {
+    int viewHeightPx = editor.getViewHeight();
+    int viewWidthPx = editor.getViewWidth();
+    Point topLeftPx = new Point(Integer.MIN_VALUE, Integer.MIN_VALUE);
+    Point bottomRightPx = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+    editor.clampViewOffset(topLeftPx);
+    editor.clampViewOffset(bottomRightPx);
+    float pageHeightPx = bottomRightPx.y - topLeftPx.y + viewHeightPx;
+    float pageWidthPx = bottomRightPx.x - topLeftPx.x + viewWidthPx;
+    for (IRenderView layerView : layerViews)
+    {
+      if (layerView instanceof LayerView && layerView.getType() == LayerType.MODEL)
+        ((LayerView) layerView).setScrollbar(renderer, viewWidthPx, (int) pageWidthPx, (int) topLeftPx.x, viewHeightPx, (int) pageHeightPx, (int) topLeftPx.y);
+    }
   }
 }

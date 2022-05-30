@@ -1,3 +1,5 @@
+// Copyright @ MyScript. All rights reserved.
+
 package com.myscript.iink.uireferenceimplementation;
 
 import android.graphics.Typeface;

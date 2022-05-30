@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-  <dimen name="image_button_size">40dp</dimen>
-  <dimen name="text_button_width">55dp</dimen>
-  <dimen name="text_button_height">30dp</dimen>
-  <dimen name="text_button_margin">5dp</dimen>
+  <dimen name="image_button_size">48dp</dimen>
+  <dimen name="image_button_padding">12dp</dimen>
+  <dimen name="text_button_width">56dp</dimen>
+  <dimen name="text_button_height">32dp</dimen>
+
+  <dimen name="editor_vertical_margin">72dp</dimen>
+  <dimen name="editor_horizontal_margin">24dp</dimen>
 
 </resources>

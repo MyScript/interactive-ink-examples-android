@@ -1,0 +1,54 @@
+<com.myscript.iink.uireferenceimplementation.SmartGuideView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/smart_guide_view"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:visibility="invisible"
+    android:background="@drawable/smart_guide_bottom_border"
+    tools:layout_marginTop="48dp"
+    tools:layout_marginStart="24dp"
+    tools:layout_marginEnd="24dp"
+    tools:layout_width="match_parent"
+    tools:visibility="visible">
+
+    <HorizontalScrollView
+        android:id="@+id/smart_guide_scroll_view"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/smart_guide_stack_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingStart="@dimen/smart_guide_horizontal_padding"
+            android:paddingEnd="@dimen/smart_guide_horizontal_padding"
+            android:gravity="left|center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/smart_guide_word_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/smart_guide_text_size"
+                android:textColor="@color/word_gray"
+                tools:text="hello world!" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <ImageButton
+        android:id="@+id/smart_guide_more_view"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:gravity="end|center_vertical"
+        android:src="@drawable/ic_smart_guide_more"
+        tools:tint="@color/control_gray"
+        android:background="?attr/selectableItemBackground" />
+
+</com.myscript.iink.uireferenceimplementation.SmartGuideView>

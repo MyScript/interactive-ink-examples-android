@@ -1,39 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- App name -->
     <string name="app_name" translatable="false">iink Demo</string>
 
-    <string name="menu_inputMode">Input mode</string>
-    <string name="menu_undo">Undo</string>
-    <string name="menu_redo">Redo</string>
-    <string name="menu_clear">Clear</string>
-    <string name="menu_convert">Convert</string>
-    <string name="menu_newPackage">New...</string>
-    <string name="menu_openPackage">Open...</string>
-    <string name="menu_savePackage">Save</string>
-    <string name="menu_export">Export</string>
-    <string name="menu_newPart">New part...</string>
-    <string name="menu_previousPart">Previous part</string>
-    <string name="menu_nextPart">Next part</string>
-    <string name="menu_resetView">Reset view</string>
-    <string name="menu_zoomIn">Zoom in</string>
-    <string name="menu_zoomOut">Zoom out</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
 
-    <string name="newPackage_title">New package - enter file name</string>
-    <string name="openPackage_title">Open package - select file</string>
-    <string name="newPart_title">New part - select type</string>
-    <string name="exportType_title">Export - select type</string>
-    <string name="exportPackage_title">Export - select file</string>
-    <string name="addImage_title">Add image - select file</string>
-    <string name="addType_title">Add block - select type</string>
-    <string name="addData_title">Add block - enter data</string>
-    <string name="inputMode_title">Input mode - select behavior</string>
-    <string name="inputMode_forcePen">Pen</string>
-    <string name="inputMode_forceTouch">Touch</string>
-    <string name="inputMode_auto">Auto</string>
+    <string name="app_error_invalid_certificate_title">Invalid certificate</string>
+    <string name="app_error_invalid_certificate_message">Please check certificate data provided at Engine creation.</string>
+    <string name="app_error_notification">[%1$s] %2$s</string>
 
-    <string name="ok">Ok</string>
-    <string name="cancel">Cancel</string>
+    <string name="nav_menu_new_part">New part…</string>
+    <string name="nav_new_part_dialog_title">New part type</string>
+    <string name="nav_menu_previous_part">Previous part</string>
+    <string name="nav_menu_next_part">Next part</string>
+
+    <string name="editor_menu_convert">Convert</string>
+    <string name="editor_menu_export">Export…</string>
+    <string name="editor_export_type_label">%1$s (%2$s)</string>
+    <string name="editor_export_failed">Export error</string>
+    <string name="editor_menu_save">Save</string>
+    <string name="editor_menu_import_file">Import file…</string>
+    <string name="editor_menu_share_file">Share file…</string>
+
+    <string name="editor_enable_active_pen">Active pen</string>
+    <string name="editor_undo">Undo</string>
+    <string name="editor_redo">Redo</string>
+    <string name="editor_clear">Clear content</string>
+    <string name="editor_zoom_in">Zoom in</string>
+    <string name="editor_zoom_out">Zoom out</string>
+    <string name="editor_resetView">Reset view</string>
+
+    <string name="editor_action_copy">Copy</string>
+    <string name="editor_action_paste">Paste</string>
+    <string name="editor_action_delete">Delete</string>
+    <string name="editor_action_convert">Convert</string>
+    <string name="editor_action_export">Export…</string>
+    <string name="editor_action_add_block">Add…</string>
+    <string name="editor_action_format_text">Format text…</string>
+    <string name="editor_action_format_text_as_heading1">As heading level 1</string>
+    <string name="editor_action_format_text_as_heading2">As heading level 2</string>
+    <string name="editor_action_format_text_as_paragraph">As paragraph</string>
+
+    <string name="editor_dialog_thickness_choice_title">Tool thickness</string>
+    <string name="editor_dialog_color_picker_title">Choose a color</string>
+    <string name="editor_dialog_insert_text_title">Add text block</string>
+    <string name="editor_dialog_insert_text_action">Insert</string>
 
 </resources>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="?attr/actionBarTheme"
+            android:orientation="vertical"
+            android:animateLayoutChanges="true">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize" />
+
+            <include
+                android:id="@+id/editor_toolbar"
+                layout="@layout/editor_toolbar" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.core.widget.ContentLoadingProgressBar
+                android:id="@+id/part_editor_progress"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:layout_margin="4dp"
+                android:indeterminate="true"
+                android:layout_gravity="top|end"
+                android:visibility="visible"
+                tools:visibility="visible" />
+
+            <include layout="@layout/editor_view" />
+
+            <include layout="@layout/smart_guide_layout" />
+
+        </FrameLayout>
+    </LinearLayout>
+
+    <include
+        android:id="@+id/editor_toolbar_sheet"
+        layout="@layout/toolbar_settings_sheet_layout" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

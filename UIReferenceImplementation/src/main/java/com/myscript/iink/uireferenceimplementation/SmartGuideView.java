@@ -4,21 +4,23 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatTextView;
+import android.os.Looper;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatTextView;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -27,8 +29,11 @@ import com.google.gson.JsonSyntaxException;
 import com.myscript.iink.Configuration;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
+import com.myscript.iink.ContentSelection;
+import com.myscript.iink.ContentSelectionMode;
 import com.myscript.iink.Editor;
 import com.myscript.iink.EditorError;
+import com.myscript.iink.Engine;
 import com.myscript.iink.IEditorListener;
 import com.myscript.iink.IRendererListener;
 import com.myscript.iink.MimeType;
@@ -43,6 +48,12 @@ import java.util.Arrays;
 
 public class SmartGuideView extends LinearLayout implements IEditorListener, IRendererListener, View.OnClickListener
 {
+
+  public interface MenuListener
+  {
+    void onMoreMenuClicked(float x, float y, @NonNull String blockId);
+  }
+
   private static final String TAG = "SmartGuideView";
   private static final int SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT = 3000;
   private static final int SMART_GUIDE_FADE_OUT_DELAY_WRITE_DEFAULT = 0;
@@ -72,31 +83,22 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
     VIEW
   }
 
-  enum TextBlockStyle
-  {
-    H1,
-    H2,
-    H3,
-    NORMAL
-  }
-
   @Nullable
   private Editor editor;
 
   @Nullable
   private ParameterSet exportParams;
+  @Nullable
+  private ParameterSet importParams;
 
   @Nullable
   private ContentBlock activeBlock;
   @Nullable
   private ContentBlock selectedBlock;
-  @Nullable
-  private ContentBlock block;
 
   @Nullable
   private SmartGuideWord[] words;
 
-  private Resources res;
   private float density;
 
   private int removeHighlightDelay;
@@ -107,12 +109,12 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
   private Runnable fadeOutTimerRunnable;
 
   @Nullable
-  private IInputControllerListener smartGuideMoreHandler;
+  private MenuListener moreMenuListener;
 
-  private class SmartGuideWord
+  private static class SmartGuideWord
   {
     private String label;
-    private String[] candidates;
+    private final String[] candidates;
     private boolean modified;
 
     public SmartGuideWord(JiixDefinitions.Word word)
@@ -127,8 +129,8 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
   {
     private SmartGuideWord word;
     private int index;
-    private Handler removeHighlightTimerHandler;
-    private Runnable removeHighlightTimerRunnable;
+    private final Handler removeHighlightTimerHandler;
+    private final Runnable removeHighlightTimerRunnable;
 
     public SmartGuideWordView(Context context)
     {
@@ -147,22 +149,16 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       word = null;
       index = -1;
 
-      removeHighlightTimerHandler = new Handler();
-      removeHighlightTimerRunnable = new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          setTextColor(res.getColor(R.color.word_gray));
-        }
-      };
+      removeHighlightTimerHandler = new Handler(Looper.myLooper());
+      removeHighlightTimerRunnable = () -> setTextColor(ResourcesCompat.getColor(getResources(), R.color.word_gray, context.getTheme()));
     }
 
     private void init(SmartGuideWord word, int index)
     {
       this.word = word;
       this.index = index;
-      float textSizeInPixels = res.getDimension(R.dimen.smart_guide_text_size);
+      Resources resources = getResources();
+      float textSizeInPixels = resources.getDimension(R.dimen.smart_guide_text_size);
       int textSize = (int) (textSizeInPixels / density);
       setTextSize(textSize);
       setText(word.label.equals("\n") ? " " : word.label);
@@ -172,11 +168,17 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
         removeHighlightTimerHandler.postDelayed(removeHighlightTimerRunnable, removeHighlightDelay);
       }
       else
-        setTextColor(res.getColor(R.color.word_gray));
+      {
+        setTextColor(ResourcesCompat.getColor(resources, R.color.word_gray, getContext().getTheme()));
+      }
     }
 
     private boolean updateWord(int index, String label)
     {
+      Editor editor = SmartGuideView.this.editor;
+      if (editor == null) return false;
+      ContentBlock block = getBlock();
+      if (block == null) return false;
       String jiixString = null;
       try
       {
@@ -187,7 +189,6 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
         // no-op
       }
       Gson gson = new Gson();
-      boolean ok = false;
       try
       {
         JsonObject result = gson.fromJson(jiixString, JsonObject.class);
@@ -198,23 +199,14 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
           word.addProperty(JiixDefinitions.Word.LABEL_FIELDNAME, label);
         }
         jiixString = gson.toJson(result);
-        editor.import_(MimeType.JIIX, jiixString, block);
-        ok = true;
+        editor.import_(MimeType.JIIX, jiixString, block, importParams);
+        return true;
       }
-      catch (JsonSyntaxException e)
+      catch (JsonSyntaxException | IndexOutOfBoundsException | IllegalStateException e)
       {
-        Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
-
+        Log.e(TAG, "Failed to edit jiix word candidate", e);
+        return false;
       }
-      catch (IndexOutOfBoundsException e)
-      {
-        Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
-      }
-      catch (IllegalStateException e)
-      {
-        Log.e(TAG, "Failed to edit jiix word candidate: " + e.toString());
-      }
-      return ok;
     }
 
     @Override
@@ -222,7 +214,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
     {
       fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
 
-      if (word.label.equals(" ") || word.label.equals("\n"))
+      if (!TextUtils.isGraphic(word.label))
         return;
 
       String[] candidates;
@@ -246,29 +238,24 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
 
       final int selected = selectedCandidate;
       AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(v.getContext());
-      dialogBuilder.setSingleChoiceItems(candidates, selected, new DialogInterface.OnClickListener()
-      {
-        @Override
-        public void onClick(DialogInterface dialog, int checked)
+      dialogBuilder.setSingleChoiceItems(candidates, selected, (dialog, checked) -> {
+        if (word.candidates != null)
         {
-          if (word.candidates != null)
+          String newLabel = word.candidates[checked];
+          if (checked != selected)
           {
-            String newLabel = word.candidates[checked];
-            if (checked != selected)
+            if (updateWord(index, newLabel))
             {
-              if (updateWord(index, newLabel))
-              {
-                setText(newLabel);
-                word.label = newLabel;
-              }
-              else
-              {
-                update(null, UpdateCause.EDIT);
-              }
+              setText(newLabel);
+              word.label = newLabel;
+            }
+            else
+            {
+              update(null, UpdateCause.EDIT);
             }
           }
-          dialog.dismiss();
         }
+        dialog.dismiss();
       });
       dialogBuilder.show();
     }
@@ -276,47 +263,59 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
 
   public SmartGuideView(Context context)
   {
-    this(context, null, 0);
+    super(context, null, 0);
   }
 
   public SmartGuideView(Context context, @Nullable AttributeSet attrs)
   {
-    this(context, attrs, 0);
+    super(context, attrs, 0);
   }
 
   public SmartGuideView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
-
-    activeBlock = null;
-    words = null;
-    smartGuideMoreHandler = null;
   }
 
-  public void setEditor(@NonNull Editor editor)
+  public void setEditor(@Nullable Editor editor)
   {
+    if (this.editor != null && !this.editor.isClosed())
+    {
+      this.editor.removeListener(this);
+      this.editor.getRenderer().removeListener(this);
+    }
     this.editor = editor;
-    editor.addListener(this);
-    editor.getRenderer().addListener(this);
+    if (editor != null)
+    {
+      editor.addListener(this);
+      editor.getRenderer().addListener(this);
+      Engine engine = editor.getEngine();
 
-    exportParams = editor.getEngine().createParameterSet();
-    exportParams.setBoolean("export.jiix.text.words", true);
-    exportParams.setBoolean("export.jiix.strokes", false);
-    exportParams.setBoolean("export.jiix.bounding-box", false);
-    exportParams.setBoolean("export.jiix.glyphs", false);
-    exportParams.setBoolean("export.jiix.primitives", false);
-    exportParams.setBoolean("export.jiix.chars", false);
+      exportParams = engine.createParameterSet();
+      exportParams.setBoolean("export.jiix.text.words", true);
+      exportParams.setBoolean("export.jiix.strokes", false);
+      exportParams.setBoolean("export.jiix.bounding-box", false);
+      exportParams.setBoolean("export.jiix.glyphs", false);
+      exportParams.setBoolean("export.jiix.primitives", false);
+      exportParams.setBoolean("export.jiix.chars", false);
 
-    Configuration configuration = editor.getEngine().getConfiguration();
-    fadeOutWriteInDiagramDelay = configuration.getNumber("smart-guide.fade-out-delay.write-in-diagram", SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT).intValue();
-    fadeOutWriteDelay = configuration.getNumber("smart-guide.fade-out-delay.write", SMART_GUIDE_FADE_OUT_DELAY_WRITE_DEFAULT).intValue();
-    fadeOutOtherDelay = configuration.getNumber("smart-guide.fade-out-delay.other", SMART_GUIDE_FADE_OUT_DELAY_OTHER_DEFAULT).intValue();
-    removeHighlightDelay = configuration.getNumber("smart-guide.highlight-removal-delay", SMART_GUIDE_HIGHLIGHT_REMOVAL_DELAY_DEFAULT).intValue();
+      importParams = engine.createParameterSet();
+      importParams.setString("diagram.import.jiix.action", "update");
+      importParams.setString("raw-content.import.jiix.action", "update");
+      importParams.setString("text-document.import.jiix.action", "update");
+      importParams.setString("text.import.jiix.action", "update");
+
+      Configuration configuration = engine.getConfiguration();
+      fadeOutWriteInDiagramDelay = configuration.getNumber("smart-guide.fade-out-delay.write-in-diagram", SMART_GUIDE_FADE_OUT_DELAY_WRITE_IN_DIAGRAM_DEFAULT).intValue();
+      fadeOutWriteDelay = configuration.getNumber("smart-guide.fade-out-delay.write", SMART_GUIDE_FADE_OUT_DELAY_WRITE_DEFAULT).intValue();
+      fadeOutOtherDelay = configuration.getNumber("smart-guide.fade-out-delay.other", SMART_GUIDE_FADE_OUT_DELAY_OTHER_DEFAULT).intValue();
+      removeHighlightDelay = configuration.getNumber("smart-guide.highlight-removal-delay", SMART_GUIDE_HIGHLIGHT_REMOVAL_DELAY_DEFAULT).intValue();
+    }
+
   }
 
-  public void setSmartGuideMoreHandler(IInputControllerListener smartGuideMoreHandler)
+  public void setMenuListener(@Nullable MenuListener moreMenuListener)
   {
-    this.smartGuideMoreHandler = smartGuideMoreHandler;
+    this.moreMenuListener = moreMenuListener;
   }
 
   @Override
@@ -324,45 +323,63 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
   {
     super.onAttachedToWindow();
 
-    res = getResources();
-    density = res.getDisplayMetrics().density;
+    density = getResources().getDisplayMetrics().density;
 
-    TextView moreView = findViewById(R.id.more_view);
+    View moreView = findViewById(R.id.smart_guide_more_view);
     moreView.setOnClickListener(this);
-    if (smartGuideMoreHandler == null)
+    if (moreMenuListener == null && !isInEditMode())
       moreView.setVisibility(View.GONE);
 
-    fadeOutTimerHandler = new Handler();
-    fadeOutTimerRunnable = new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        setVisibility(View.INVISIBLE);
-      }
-    };
+    fadeOutTimerHandler = new Handler(Looper.myLooper());
+    fadeOutTimerRunnable = () -> setVisibility(View.INVISIBLE);
   }
 
   @Override
-  public void partChanging(Editor editor, ContentPart oldPart, ContentPart newPart)
+  protected void onDetachedFromWindow()
+  {
+    if (selectedBlock != null)
+    {
+      selectedBlock.close();
+      selectedBlock = null;
+    }
+    if (activeBlock != null)
+    {
+      activeBlock.close();
+      activeBlock = null;
+    }
+    super.onDetachedFromWindow();
+  }
+
+  @Override
+  public void partChanging(@NonNull Editor editor, ContentPart oldPart, ContentPart newPart)
   {
     // no-op
   }
 
   @Override
-  public void partChanged(Editor editor)
+  public void partChanged(@NonNull Editor editor)
   {
-    activeBlock = selectedBlock = null;
+    if (selectedBlock != null)
+    {
+      selectedBlock.close();
+      selectedBlock = null;
+    }
+    if (activeBlock != null)
+    {
+      activeBlock.close();
+      activeBlock = null;
+    }
     update(null, UpdateCause.VISUAL);
   }
 
   @Override
-  public void contentChanged(Editor editor, String[] blockIds)
+  public void contentChanged(@NonNull Editor editor, String[] blockIds)
   {
     // The active block may have been removed then added again in which case
     // the old instance is invalid but can be restored by remapping the identifier
     if (activeBlock != null && !activeBlock.isValid())
     {
+      activeBlock.close();
       activeBlock = editor.getBlockById(activeBlock.getId());
       if (activeBlock == null)
       {
@@ -373,123 +390,137 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
 
     if (activeBlock != null && Arrays.asList(blockIds).contains(activeBlock.getId()))
     {
-      if (block == null)
-        block = activeBlock;
       update(activeBlock, UpdateCause.EDIT);
     }
   }
 
   @Override
-  public void onError(Editor editor, String blockId, EditorError err, String message)
+  public void onError(@NonNull Editor editor, @NonNull String blockId, @NonNull EditorError err, @NonNull String message)
   {
     Log.e(TAG, "Failed to edit block \"" + blockId + "\": " + message);
   }
 
   @Override
-  public void selectionChanged(Editor editor, String[] blockIds)
+  public void selectionChanged(@NonNull Editor editor)
   {
-    selectedBlock = null;
-    for (int i = 0, n = blockIds.length; i < n; ++i)
+    if (selectedBlock != null)
     {
-      ContentBlock block = editor.getBlockById(blockIds[i]);
-      if (block != null && block.getType().equals("Text"))
+      selectedBlock.close();
+    }
+    selectedBlock = null;
+
+    ContentSelectionMode mode = editor.getSelectionMode();
+    if (mode != ContentSelectionMode.NONE && mode != ContentSelectionMode.LASSO)
+    {
+      ContentSelection selection = editor.getSelection();
+
+      String[] blockIds;
+      if (selection.isValid())
+        blockIds = editor.getIntersectingBlocks(selection);
+      else
+        blockIds = new String[]{};
+      selection.close();
+
+      for (String blockId : blockIds)
       {
-        selectedBlock = block;
-        break;
+        ContentBlock block = editor.getBlockById(blockId);
+        if (block != null && block.getType().equals("Text"))
+        {
+          selectedBlock = block;
+          break;
+        }
+        else if (block != null)
+        {
+          block.close();
+        }
       }
     }
+
     update(selectedBlock, UpdateCause.SELECTION);
   }
 
   @Override
-  public void activeBlockChanged(Editor editor, String blockId)
+  public void activeBlockChanged(@NonNull Editor editor, @NonNull String blockId)
   {
+    ContentBlock block = getBlock();
+    if (block != null && blockId.equals(block.getId()))
+    {
+      // selectionChanged already changed the active block
+      return;
+    }
+    if (activeBlock != null)
+    {
+      activeBlock.close();
+    }
     activeBlock = editor.getBlockById(blockId);
-    if (block != null && block.getId().equals(blockId))
-      return; // selectionChanged already changed the active block
 
     update(activeBlock, UpdateCause.EDIT);
   }
 
   @Override
-  public void viewTransformChanged(Renderer renderer)
+  public void viewTransformChanged(@NonNull Renderer renderer)
   {
-    update(block, UpdateCause.VIEW);
+    update(getBlock(), UpdateCause.VIEW);
   }
 
   @Override
   public void onClick(View v)
   {
-    if (v.getId() == R.id.more_view)
+    if (v.getId() == R.id.smart_guide_more_view)
     {
       fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
 
-      if (smartGuideMoreHandler != null)
+      ContentBlock block = getBlock();
+      try
       {
-        final float x = v.getX();
-        final float y = v.getY();
-        smartGuideMoreHandler.onLongPress(x, y, block);
+        if (editor != null && block != null && moreMenuListener != null)
+        {
+          String blockId = block.getId();
+          Rectangle box = block.getBox();
+          Transform transform = editor.getRenderer().getViewTransform();
+          Point center = transform.apply(box.x + (box.width / 2), box.y + (box.height / 2));
+          // Do not move reference to `ContentBlock` outside this object to simplify
+          // ownership of native `AutoCloseable` objects.
+          moreMenuListener.onMoreMenuClicked(center.x, center.y, blockId);
+        }
+      }
+      catch (Exception e)
+      {
+        // targeted block might have been destroyed in the meantime
+        selectedBlock = null;
+        activeBlock = null;
+        update(null, UpdateCause.EDIT);
       }
     }
   }
 
-  private void update(ContentBlock block, final UpdateCause cause)
+  private void update(@Nullable ContentBlock block, final UpdateCause cause)
   {
-    if (block != null && block.getType().equals("Text"))
+    Editor editor = SmartGuideView.this.editor;
+    if (isAttachedToWindow() && editor != null && block != null && block.isValid() && block.getType().equals("Text"))
     {
       Gson gson = new Gson();
       // Update size and position
       Rectangle rectangle = block.getBox();
-      float paddingLeft = 0.0f;
-      float paddingRight = 0.0f;
+      JiixDefinitions.Padding padding = null;
       if (block.getAttributes().length() > 0)
       {
         try
         {
-          JiixDefinitions.Padding padding = gson.fromJson(block.getAttributes(), JiixDefinitions.Padding.class);
-          if (padding != null)
-          {
-            paddingLeft = padding.left;
-            paddingRight = padding.right;
-          }
+          padding = gson.fromJson(block.getAttributes(), JiixDefinitions.Padding.class);
         }
         catch (JsonSyntaxException e)
         {
-          Log.e(TAG, "Failed to parse attributes as json: " + e.toString());
+          Log.e(TAG, "Failed to parse attributes as json", e);
         }
       }
-      Transform transform = editor.getRenderer().getViewTransform();
-      Point left = transform.apply(rectangle.x + paddingLeft, rectangle.y);
-      Point right = transform.apply(rectangle.x + rectangle.width - paddingRight, rectangle.y);
-
-      float x = left.x;
-      float y = left.y;
-      float width = right.x - left.x;
-
-      TextView styleView;
-      final HorizontalScrollView scrollView;
-      TextView moreView;
-      try
-      {
-        styleView = findViewById(R.id.style_view);
-        scrollView = findViewById(R.id.scroll_view);
-        moreView = findViewById(R.id.more_view);
-      }
-      catch(NullPointerException e)
-      {
-        Log.e(TAG, "Failed to access views :" + e.toString());
-        return;
-      }
-
-      final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
-      layoutParams.leftMargin = (int) x;
-      layoutParams.topMargin = (int) y - getHeight();
-      final LinearLayout.LayoutParams scrollViewLayoutParams = (LinearLayout.LayoutParams) scrollView.getLayoutParams();
-      scrollViewLayoutParams.width = (int) width - styleView.getWidth() - moreView.getWidth();
+      final float paddingLeft = padding != null ? padding.left : 0.0f;
+      final float paddingRight = padding != null ? padding.right : 0.0f;
 
       // Update words
       final SmartGuideWord[] updatedWords;
-      boolean isSameActiveBlock = this.block != null && block.getId().equals(this.block.getId());
+      ContentBlock currentBlock = getBlock();
+      boolean isSameActiveBlock = currentBlock != null && currentBlock.getId().equals(block.getId());
       if (cause != UpdateCause.EDIT && isSameActiveBlock)
       {
         // Nothing changed so keep same words
@@ -520,104 +551,116 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
         }
         catch (JsonSyntaxException e)
         {
-          Log.e(TAG, "Failed to parse jiix string as json words: " + e.toString());
+          Log.e(TAG, "Failed to parse jiix string as json words", e);
         }
         updatedWords = new SmartGuideWord[smartGuideWords.size()];
         smartGuideWords.toArray(updatedWords);
 
         // Possibly compute difference with previous state
-        if (isSameActiveBlock)
+        if (isSameActiveBlock && words != null)
         {
           computeModificationOfWords(updatedWords, words);
         }
-        else if (cause == UpdateCause.EDIT && updatedWords != null)
+        else if (cause == UpdateCause.EDIT)
         {
-          for (int i = 0; i < updatedWords.length; ++i)
-            updatedWords[i].modified = true;
+          for (SmartGuideWord updatedWord : updatedWords)
+          {
+            updatedWord.modified = true;
+          }
         }
       }
 
       final boolean updateWords = words != updatedWords;
       final boolean isInDiagram = block.getId().startsWith("diagram/");
 
-      post(new Runnable()
-      {
-        @Override
-        public void run()
+      post(() -> {
+        if (!isAttachedToWindow())
+          return;
+        Editor editor_ = SmartGuideView.this.editor;
+        if (editor_ == null || editor_.isClosed())
+          return;
+        Renderer renderer_ = editor_.getRenderer();
+        if (renderer_ == null || renderer_.isClosed())
+          return;
+
+        Transform transform = renderer_.getViewTransform();
+        Point left = transform.apply(rectangle.x + paddingLeft, rectangle.y);
+        Point right = transform.apply(rectangle.x + rectangle.width - paddingRight, rectangle.y);
+
+        float x = left.x;
+        float y = left.y;
+        float width = right.x - left.x;
+
+        final HorizontalScrollView scrollView= findViewById(R.id.smart_guide_scroll_view);
+        View moreView = findViewById(R.id.smart_guide_more_view);
+        if (scrollView == null || moreView == null)
         {
-          setLayoutParams(layoutParams);
-          scrollView.setLayoutParams(scrollViewLayoutParams);
+          Log.e(TAG, "Failed to access views");
+          return;
+        }
 
-          setTextBlockStyle(TextBlockStyle.NORMAL);
+        final FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
+        layoutParams.leftMargin = (int) x;
+        layoutParams.topMargin = (int) y - getHeight();
+        final LinearLayout.LayoutParams scrollViewLayoutParams = (LinearLayout.LayoutParams) scrollView.getLayoutParams();
+        scrollViewLayoutParams.width = (int) width - moreView.getWidth();
 
-          if (updateWords)
+        setLayoutParams(layoutParams);
+        scrollView.setLayoutParams(scrollViewLayoutParams);
+
+        if (updateWords)
+        {
+          final LinearLayout stackView = findViewById(R.id.smart_guide_stack_view);
+          stackView.removeAllViews();
+          SmartGuideWordView lastModifiedWordView_ = null;
+          for (int i = 0; i < updatedWords.length; ++i)
           {
-            final LinearLayout stackView = findViewById(R.id.stack_view);
-            stackView.removeAllViews();
-            SmartGuideWordView lastModifiedWordView_ = null;
-            for (int i = 0; i < updatedWords.length; ++i)
-            {
-              SmartGuideWordView smartGuideWordView = new SmartGuideWordView(getContext());
-              smartGuideWordView.init(updatedWords[i], i);
-              stackView.addView(smartGuideWordView);
-              if (smartGuideWordView.word.modified)
-                lastModifiedWordView_ = smartGuideWordView;
-            }
-            if (lastModifiedWordView_ != null)
-            {
-              final SmartGuideWordView lastModifiedWordView = lastModifiedWordView_;
-              scrollView.post(new Runnable()
-              {
-                public void run()
-                {
-                  Rect rect = new Rect();
-                  lastModifiedWordView.getHitRect(rect); // coordinates of lastModifiedWordView relative to its parent stackView
-                  scrollView.requestChildRectangleOnScreen(stackView, rect, false);
-                }
-              });
-            }
+            SmartGuideWordView smartGuideWordView = new SmartGuideWordView(getContext());
+            smartGuideWordView.init(updatedWords[i], i);
+            stackView.addView(smartGuideWordView);
+            if (smartGuideWordView.word.modified)
+              lastModifiedWordView_ = smartGuideWordView;
           }
-
-          int delay;
-          if (cause == UpdateCause.EDIT)
+          if (lastModifiedWordView_ != null)
           {
-            if (isInDiagram)
-              delay = fadeOutWriteInDiagramDelay;
-            else
-              delay = fadeOutWriteDelay;
+            final SmartGuideWordView lastModifiedWordView = lastModifiedWordView_;
+            scrollView.post(() -> {
+              Rect rect = new Rect();
+              lastModifiedWordView.getHitRect(rect); // coordinates of lastModifiedWordView relative to its parent stackView
+              scrollView.requestChildRectangleOnScreen(stackView, rect, false);
+            });
           }
+        }
+
+        int delay;
+        if (cause == UpdateCause.EDIT)
+        {
+          if (isInDiagram)
+            delay = fadeOutWriteInDiagramDelay;
           else
-            delay = fadeOutOtherDelay;
+            delay = fadeOutWriteDelay;
+        }
+        else
+          delay = fadeOutOtherDelay;
 
-          if (cause != UpdateCause.VIEW)
-          {
-            fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
+        if (cause != UpdateCause.VIEW)
+        {
+          fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
 
-            if (delay > 0)
-              fadeOutTimerHandler.postDelayed(fadeOutTimerRunnable, delay);
+          if (delay > 0)
+            fadeOutTimerHandler.postDelayed(fadeOutTimerRunnable, delay);
 
-            setVisibility(View.VISIBLE);
-          }
+          setVisibility(View.VISIBLE);
         }
       });
 
-      this.block = block;
       words = updatedWords;
     }
     else
     {
       fadeOutTimerHandler.removeCallbacks(fadeOutTimerRunnable);
 
-      post(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          setVisibility(View.INVISIBLE);
-        }
-      });
-
-      this.block = null;
+      post(() -> setVisibility(View.INVISIBLE));
     }
   }
 
@@ -683,32 +726,13 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
     }
   }
 
-  private void setTextBlockStyle(TextBlockStyle textBlockStyle)
+  /**
+   * Return an alias <b>reference</b> to either activeBlock or selectedBlock, do not <code>close()</code> it.
+   * It must be closed through activeBlock and selectedBlock.
+   */
+  @Nullable
+  private ContentBlock getBlock()
   {
-    TextView styleView = findViewById(R.id.style_view);
-    switch (textBlockStyle)
-    {
-      case H1:
-        styleView.setText(res.getString(R.string.style_view_string_h1));
-        styleView.setTextColor(Color.WHITE);
-        styleView.setBackgroundColor(Color.BLACK);
-        break;
-      case H2:
-        styleView.setText(res.getString(R.string.style_view_string_h2));
-        styleView.setTextColor(Color.WHITE);
-        styleView.setBackgroundColor(res.getColor(R.color.control_gray));
-        break;
-      case H3:
-        styleView.setText(res.getString(R.string.style_view_string_h3));
-        styleView.setTextColor(Color.WHITE);
-        styleView.setBackgroundColor(res.getColor(R.color.control_gray));
-        break;
-      case NORMAL:
-      default:
-        styleView.setText(res.getString(R.string.style_view_string_normal));
-        styleView.setTextColor(res.getColor(R.color.control_gray));
-        styleView.setBackground(res.getDrawable(R.drawable.rectangle_border));
-        break;
-    }
+    return selectedBlock != null ? selectedBlock : activeBlock;
   }
 }

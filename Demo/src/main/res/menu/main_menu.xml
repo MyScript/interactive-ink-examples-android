@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/nav_menu_new_part"
+        android:icon="@drawable/ic_add"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction"
+        android:title="@string/nav_menu_new_part" />
+    <item
+        android:id="@+id/nav_menu_previous_part"
+        android:icon="@drawable/ic_chevron_left"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction"
+        android:title="@string/nav_menu_previous_part"/>
+    <item
+        android:id="@+id/nav_menu_next_part"
+        android:icon="@drawable/ic_chevron_right"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction"
+        android:title="@string/nav_menu_next_part"/>
+    <item
+        android:id="@+id/editor_menu_convert"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_convert"/>
+    <item
+        android:id="@+id/editor_menu_export"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_export"/>
+    <item
+        android:id="@+id/editor_menu_save"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_save"/>
+    <item
+        android:id="@+id/editor_menu_import_file"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_import_file"/>
+    <item
+        android:id="@+id/editor_menu_share_file"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_share_file"/>
+
+</menu>

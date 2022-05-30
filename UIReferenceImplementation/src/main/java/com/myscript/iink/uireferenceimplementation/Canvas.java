@@ -2,7 +2,6 @@
 
 package com.myscript.iink.uireferenceimplementation;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
@@ -12,16 +11,18 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.ColorUtils;
+
 import android.text.TextPaint;
 import android.util.Log;
 
-import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.graphics.Color;
 import com.myscript.iink.graphics.FillRule;
-import com.myscript.iink.graphics.ICanvas2;
+import com.myscript.iink.graphics.ICanvas;
 import com.myscript.iink.graphics.IPath;
 import com.myscript.iink.graphics.LineCap;
 import com.myscript.iink.graphics.LineJoin;
@@ -33,7 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Canvas implements ICanvas2
+public class Canvas implements ICanvas
 {
 
   private static final Style DEFAULT_SVG_STYLE = new Style();
@@ -74,7 +75,6 @@ public class Canvas implements ICanvas2
 
   @Nullable
   private final ImageLoader imageLoader;
-  private final IRenderTarget target;
   private final OfflineSurfaceManager offlineSurfaceManager;
 
   private final Set<String> clips;
@@ -92,12 +92,11 @@ public class Canvas implements ICanvas2
   @NonNull
   private final Matrix pointScaleMatrix;
 
-  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, @Nullable  OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, @Nullable OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
   {
     this.canvas = canvas;
     this.typefaceMap = typefaceMap;
     this.imageLoader = imageLoader;
-    this.target = target;
     this.offlineSurfaceManager = offlineSurfaceManager;
     this.xdpi = xdpi;
     this.ydpi = ydpi;
@@ -136,9 +135,9 @@ public class Canvas implements ICanvas2
     applyStyle(DEFAULT_SVG_STYLE);
   }
 
-  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, IRenderTarget target, float xdpi, float ydpi)
+  public Canvas(@NonNull android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
   {
-    this(canvas, typefaceMap, imageLoader, target, null, xdpi, ydpi);
+    this(canvas, typefaceMap, imageLoader, null, xdpi, ydpi);
   }
 
   private void applyStyle(@NonNull Style style)
@@ -152,6 +151,8 @@ public class Canvas implements ICanvas2
     setStrokeDashOffset(style.getStrokeDashOffset());
     setFillColor(style.getFillColor());
     setFillRule(style.getFillRule());
+
+    setDropShadow(style.getDropShadowXOffset(), style.getDropShadowYOffset(), style.getDropShadowRadius(), style.getDropShadowColor());
 
     setFontProperties(FontMetricsProvider.toPlatformFontFamily(style), style.getFontLineHeight(), style.getFontSize(),
                       style.getFontStyle(), style.getFontVariant(), style.getFontWeight());
@@ -285,10 +286,18 @@ public class Canvas implements ICanvas2
   }
 
   @Override
-  public void setDropShadow(float xOffset, float yOffset, float radius, Color color) { }
+  public void setDropShadow(float xOffset, float yOffset, float radius, @NonNull Color color)
+  {
+    @ColorInt int androidColor = argb(color);
+    boolean isTransparent = color.a() == 0;
+    int opaqueColor = ColorUtils.setAlphaComponent(androidColor, 0xFF);
+    strokePaint.setShadowLayer(radius / 20f, xOffset, yOffset, isTransparent ? android.graphics.Color.TRANSPARENT : opaqueColor);
+    textPaint.setShadowLayer(radius / 10f, xOffset * 2.5f, yOffset * 5f, isTransparent ? android.graphics.Color.TRANSPARENT : opaqueColor);
+    fillPaint.setShadowLayer(radius / 20f, xOffset, yOffset, isTransparent ? android.graphics.Color.TRANSPARENT : opaqueColor);
+  }
 
   @Override
-  public final void setFontProperties(@NonNull String fontFamily, float fontLineHeight, float fontSize, String fontStyle,
+  public final void setFontProperties(@NonNull String fontFamily, float fontLineHeight, float fontSize, @NonNull String fontStyle,
                                       @NonNull String fontVariant, int fontWeight)
   {
     String resolvedFontFamily = FontMetricsProvider.toPlatformFontFamily(fontFamily, fontStyle);
@@ -360,6 +369,7 @@ public class Canvas implements ICanvas2
     // no-op
   }
 
+  @NonNull
   @Override
   public final IPath createPath()
   {
@@ -371,12 +381,12 @@ public class Canvas implements ICanvas2
   {
     Path path = (Path) ipath;
 
-    if (fillPaint.getColor() != android.graphics.Color.TRANSPARENT)
+    if (android.graphics.Color.alpha(fillPaint.getColor()) != 0)
     {
       path.setFillType(fillRule == FillRule.EVENODD ? android.graphics.Path.FillType.EVEN_ODD : android.graphics.Path.FillType.WINDING);
       canvas.drawPath(path, fillPaint);
     }
-    if (strokePaint.getColor() != android.graphics.Color.TRANSPARENT)
+    if (android.graphics.Color.alpha(strokePaint.getColor()) != 0)
     {
       canvas.drawPath(path, strokePaint);
     }
@@ -385,11 +395,11 @@ public class Canvas implements ICanvas2
   @Override
   public void drawRectangle(float x, float y, float width, float height)
   {
-    if (fillPaint.getColor() != android.graphics.Color.TRANSPARENT)
+    if (android.graphics.Color.alpha(fillPaint.getColor()) != 0)
     {
       canvas.drawRect(x, y, x + width, y + height, fillPaint);
     }
-    if (strokePaint.getColor() != android.graphics.Color.TRANSPARENT)
+    if (android.graphics.Color.alpha(strokePaint.getColor()) != 0)
     {
       canvas.drawRect(x, y, x + width, y + height, strokePaint);
     }
@@ -425,7 +435,7 @@ public class Canvas implements ICanvas2
       if (image == null)
       {
         // image is not ready yet...
-        if (fillPaint.getColor() != android.graphics.Color.TRANSPARENT)
+        if (android.graphics.Color.alpha(fillPaint.getColor()) != 0)
         {
           canvas.drawRect(x, y, width, height, fillPaint);
         }
@@ -463,14 +473,15 @@ public class Canvas implements ICanvas2
   public void drawText(@NonNull String label, float x, float y, float xmin, float ymin, float xmax, float ymax)
   {
     // transform the insertion point so that it is not impacted by text scale
-    float[] p = {x, y};
-    pointScaleMatrix.mapPoints(p);
+    pointsCache[0] = x;
+    pointsCache[1] = y;
+    pointScaleMatrix.mapPoints(pointsCache);
 
     // transform the text to account for font size in pixel (not mm)
     canvas.concat(textScaleMatrix);
 
     // draw text
-    canvas.drawText(label, p[0], p[1], textPaint);
+    canvas.drawText(label, pointsCache[0], pointsCache[1], textPaint);
 
     // restore transform
     canvas.setMatrix(transformMatrix);
@@ -488,12 +499,12 @@ public class Canvas implements ICanvas2
       {
         floatRectCache.set(destX, destY, destX + destWidth, destY + destHeight);
         simpleRectCache.set(Math.round(srcX), Math.round(srcY),
-                Math.round(srcX + srcWidth), Math.round(srcY + srcHeight));
+            Math.round(srcX + srcWidth), Math.round(srcY + srcHeight));
         bitmapAlphaPaint.setColor(argb(blendColor));
 
         canvas.drawBitmap(bitmap,
-                simpleRectCache, floatRectCache,
-                bitmapAlphaPaint);
+            simpleRectCache, floatRectCache,
+            bitmapAlphaPaint);
       }
     }
   }

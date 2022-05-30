@@ -1,18 +1,24 @@
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.FileFilterUtils
 
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
+
+    buildFeatures {
+        viewBinding true
+    }
 
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
 
         applicationId 'com.myscript.iink.getstarted'
-        versionCode 1510
-        versionName '1.5.1'
+        versionCode 2010
+        versionName '2.0.1'
 
         vectorDrawables.useSupportLibrary true
     }

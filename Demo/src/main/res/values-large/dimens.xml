@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="editor_vertical_margin">72dp</dimen>
+    <dimen name="editor_horizontal_margin">56dp</dimen>
+
+</resources>
