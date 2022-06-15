@@ -7,15 +7,18 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -82,6 +85,9 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
      */
     VIEW
   }
+
+  @Nullable
+  private Typeface wordViewTypeface;
 
   @Nullable
   private Editor editor;
@@ -274,6 +280,20 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
   public SmartGuideView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
+  }
+
+  public void setTypeface(@Nullable Typeface wordViewTypeface)
+  {
+    this.wordViewTypeface = wordViewTypeface;
+    ViewGroup stackView = (ViewGroup) findViewById(R.id.smart_guide_stack_view);
+    for (int i = 0 ; i < stackView.getChildCount(); ++i)
+    {
+      View child = stackView.getChildAt(i);
+      if (child instanceof TextView)
+      {
+        ((TextView) child).setTypeface(wordViewTypeface);
+      }
+    }
   }
 
   public void setEditor(@Nullable Editor editor)
@@ -616,6 +636,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
           for (int i = 0; i < updatedWords.length; ++i)
           {
             SmartGuideWordView smartGuideWordView = new SmartGuideWordView(getContext());
+            smartGuideWordView.setTypeface(wordViewTypeface);
             smartGuideWordView.init(updatedWords[i], i);
             stackView.addView(smartGuideWordView);
             if (smartGuideWordView.word.modified)

@@ -154,7 +154,7 @@ public class Canvas implements ICanvas
 
     setDropShadow(style.getDropShadowXOffset(), style.getDropShadowYOffset(), style.getDropShadowRadius(), style.getDropShadowColor());
 
-    setFontProperties(FontMetricsProvider.toPlatformFontFamily(style), style.getFontLineHeight(), style.getFontSize(),
+    setFontProperties(style.getFontFamily(), style.getFontLineHeight(), style.getFontSize(),
                       style.getFontStyle(), style.getFontVariant(), style.getFontWeight());
   }
 
@@ -300,10 +300,9 @@ public class Canvas implements ICanvas
   public final void setFontProperties(@NonNull String fontFamily, float fontLineHeight, float fontSize, @NonNull String fontStyle,
                                       @NonNull String fontVariant, int fontWeight)
   {
-    String resolvedFontFamily = FontMetricsProvider.toPlatformFontFamily(fontFamily, fontStyle);
-    Typeface typeface = typefaceMap == null ?
-        FontUtils.getTypeface(resolvedFontFamily, fontStyle, fontVariant, fontWeight) :
-        FontUtils.getTypeface(typefaceMap, resolvedFontFamily, fontStyle, fontVariant, fontWeight);
+    Typeface typeface = typefaceMap == null
+        ? FontUtils.getTypeface(fontFamily, fontStyle, fontVariant, fontWeight)
+        : FontUtils.getTypeface(typefaceMap, fontFamily, fontStyle, fontVariant, fontWeight);
 
     // scale font size to the canvas transform scale, to ensure best font rendering
     // (text size is expressed in pixels, while fontSize is in mm)

@@ -187,6 +187,7 @@ class MainActivity : AppCompatActivity() {
             smartGuideView?.setEditor(editor)
         }
         smartGuideView?.setMenuListener(onSmartGuideMenuAction)
+        smartGuideView?.setTypeface(IInkApplication.DemoModule.defaultTypeface)
 
         with(binding.editorToolbarSheet) {
             toolbarTools.adapter = toolsAdapter

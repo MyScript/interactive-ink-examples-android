@@ -9,4 +9,4 @@
     android:padding="12dp"
     android:background="@drawable/tool_background"
     android:backgroundTint="?attr/colorControlHighlight"
-    tools:src="@sample/tools.json/tools"/>
+    tools:src="@sample/tools.json/tools/image"/>

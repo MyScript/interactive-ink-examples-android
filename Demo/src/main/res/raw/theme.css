@@ -1,0 +1,17 @@
+/*
+ * see https://developer.myscript.com/docs/interactive-ink/latest/reference/styling for styling reference
+ */
+
+glyph {
+  /* Font family must be aligned with the key used to register the corresponding Typeface in typeface map (see DemoModule) */
+  font-family: MyScriptInter;
+}
+
+.math {
+  /* Font family must be aligned with the key used to register the corresponding Typeface in typeface map (see DemoModule) */
+  font-family: STIX;
+}
+
+.math-variable {
+  font-style: italic;
+}

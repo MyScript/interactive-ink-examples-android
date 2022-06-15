@@ -6,12 +6,14 @@ import android.app.Application
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.myscript.certificate.MyCertificate
 import com.myscript.iink.Engine
 import com.myscript.iink.demo.IInkApplication
+import com.myscript.iink.demo.R
 import com.myscript.iink.demo.data.ContentRepository
 import com.myscript.iink.demo.data.ToolRepository
 import com.myscript.iink.demo.domain.PartEditor
@@ -24,12 +26,16 @@ import com.myscript.iink.demo.ui.opaque
 import com.myscript.iink.demo.ui.toFloat
 import com.myscript.iink.uireferenceimplementation.EditorBinding
 import com.myscript.iink.uireferenceimplementation.FontUtils
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 class DemoModule(application: Application) {
 
     val engine: Engine?
     val colorPalette: ColorPalette
+    val defaultTypeface: Typeface
     val editor: PartEditor
     val editorBinding: EditorBinding
 
@@ -42,8 +48,10 @@ class DemoModule(application: Application) {
 
         colorPalette = provideColorPalette()
         val typefaces = provideTypefaces(application)
+        defaultTypeface = provideDefaultTypeface(application)
         val preferences = providePreferences(application)
-        editor = PartEditor(typefaces, providePartRepository(application, engine, preferences), provideToolRepository(preferences, colorPalette))
+        val editorTheme = provideEditorTheme(application)
+        editor = PartEditor(typefaces, editorTheme, providePartRepository(application, engine, preferences), provideToolRepository(preferences, colorPalette))
         editorBinding = EditorBinding(engine, typefaces)
     }
 
@@ -52,7 +60,30 @@ class DemoModule(application: Application) {
     }
 
     private fun provideTypefaces(application: Application): Map<String, Typeface> {
-        return FontUtils.loadFontsFromAssets(application.assets) ?: emptyMap()
+        val typefaces = FontUtils.loadFontsFromAssets(application.assets) ?: mutableMapOf()
+        // Map key must be aligned with the font-family used in theme.css
+        val myscriptInterFont = ResourcesCompat.getFont(application, R.font.myscriptinter)
+        if (myscriptInterFont != null) {
+            typefaces["MyScriptInter"] = myscriptInterFont
+        }
+        val stixFont = ResourcesCompat.getFont(application, R.font.stix)
+        if (stixFont != null) {
+            typefaces["STIX"] = stixFont
+        }
+        return typefaces
+    }
+
+    private fun provideDefaultTypeface(application: Application): Typeface {
+        return ResourcesCompat.getFont(application, R.font.myscriptinter) ?: Typeface.SANS_SERIF
+    }
+
+    private fun provideEditorTheme(application: Application): String {
+        application.resources.openRawResource(R.raw.theme).use { input ->
+            ByteArrayOutputStream().use { output ->
+                input.copyTo(output)
+                return output.toString(StandardCharsets.UTF_8.name())
+            }
+        }
     }
 
     private fun provideEngine(application: Application, certificate: ByteArray): Engine {

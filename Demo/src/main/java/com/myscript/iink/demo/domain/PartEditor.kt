@@ -122,6 +122,7 @@ enum class MenuAction {
 
 class PartEditor(
     private val typefaces: Map<String, Typeface>,
+    private val theme: String,
     private val contentRepository: IContentRepository,
     private val toolRepository: ToolRepository,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
@@ -233,6 +234,7 @@ class PartEditor(
     fun setEditor(editor: Editor?, inputController: InputController?) {
         if (editor != null) {
             editor.addListener(editorListener)
+            editor.theme = theme
             editor.configuration.enableRawContentConversion()
             this.inputController = inputController
             editor.part = currentPart

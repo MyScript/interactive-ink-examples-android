@@ -1,9 +1,9 @@
 {
   "tools": [
-    "@drawable/ic_hand_outlined",
-    "@drawable/ic_pen_outlined",
-    "@drawable/ic_brush_outlined",
-    "@drawable/ic_eraser",
-    "@drawable/ic_lasso"
+    { "image" : "@drawable/ic_hand_outlined" },
+    { "image" : "@drawable/ic_pen_outlined" },
+    { "image" : "@drawable/ic_brush_outlined" },
+    { "image" : "@drawable/ic_eraser" },
+    { "image" : "@drawable/ic_lasso" },
   ]
 }

@@ -184,7 +184,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
     {
       Style style = spans[i].style;
 
-      String fontFamily = toPlatformFontFamily(style);
+      String fontFamily = style.getFontFamily();
 
       int typefaceStyle = FontUtils.getTypefaceStyle(style);
       int fontSize = Math.round(y_mm2px(style.getFontSize()));
@@ -223,7 +223,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
       if (i >= spanEnd)
       {
         ++spanIndex;
-        fontKey = new FontKey(toPlatformFontFamily(spans[spanIndex].style), typefaces[spanIndex].getStyle(), fontSizes[spanIndex]);
+        fontKey = new FontKey(spans[spanIndex].style.getFontFamily(), typefaces[spanIndex].getStyle(), fontSizes[spanIndex]);
         spanEnd = spans[spanIndex].endPosition;
         updatePaint(fontSizes, typefaces, spanIndex);
       }
@@ -271,15 +271,5 @@ public class FontMetricsProvider implements IFontMetricsProvider
     }
 
     return charBoxes;
-  }
-
-  public static String toPlatformFontFamily(Style style)
-  {
-    return toPlatformFontFamily(style.getFontFamily(), style.getFontStyle());
-  }
-
-  public static String toPlatformFontFamily(String fontFamily, String fontStyle)
-  {
-    return "STIX".equals(fontFamily) && "italic".equals(fontStyle) ? "STIX-Italic" : fontFamily;
   }
 }
