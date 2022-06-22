@@ -8,6 +8,8 @@
 
     <string name="app_error_invalid_certificate_title">Invalid certificate</string>
     <string name="app_error_invalid_certificate_message">Please check certificate data provided at Engine creation.</string>
+    <string name="app_error_unsupported_file_type_title">Unsupported file type</string>
+    <string name="app_error_unsupported_file_type_message">%s not supported (only images and iink content).</string>
     <string name="app_error_notification">[%1$s] %2$s</string>
 
     <string name="nav_menu_new_part">New part…</string>

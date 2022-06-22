@@ -108,7 +108,7 @@ class ContentRepository(
 
     override fun importContent(file: File): List<String> {
         val engine = checkNotNull(engine) { "Can't import content without valid engine" }
-        if (!file.exists()) return emptyList()
+        require(file.exists()) { "File '$file' does not exist" }
         val ids = mutableListOf<String>()
         engine.openPackage(file).use { sourcePackage ->
             for (partIndex in 0 until sourcePackage.partCount) {

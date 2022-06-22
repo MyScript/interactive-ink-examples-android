@@ -253,7 +253,7 @@ class EditorViewModel(
         val partTypes = partEditor.getPartTypes()
         if (partTypes.isNotEmpty()) {
             val defaultPartType = partEditor.lastChosenPartType() ?: partTypes.first()
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.Main) {
                 _partCreationRequest.value = NewPartRequest(partTypes, defaultPartType)
             }
         }
@@ -264,7 +264,7 @@ class EditorViewModel(
     }
 
     fun createPart(partType: PartType) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _partCreationRequest.value = null
         }
         partEditor.saveCurrentPart()
@@ -273,7 +273,20 @@ class EditorViewModel(
     }
 
     fun importContent(file: File) {
-        partEditor.importContent(file)
+        viewModelScope.launch(Dispatchers.Main) {
+            partEditor.importContent(file, ::onContentImportResult)
+        }
+    }
+
+    private fun onContentImportResult(file: File, partIds: List<String>, exception: Exception?) {
+        viewModelScope.launch(Dispatchers.Main) {
+            val firstPartId = partIds.firstOrNull()
+            when {
+                exception != null -> notifyError(Error(Error.Severity.ERROR, "Content import error", "Error while importing ${file.name}", exception))
+                firstPartId == null -> notifyError(Error(Error.Severity.WARNING, "Content import issue", "Nothing to import in ${file.name}"))
+                else -> partEditor.openPart(firstPartId)
+            }
+        }
     }
 
     fun nextPart() {
@@ -288,7 +301,7 @@ class EditorViewModel(
 
     fun exportCurrentPart(mimeType: MimeType, outputDir: File, callback: (File?) -> Unit) {
         val partId = partState.value?.partId
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             val resultFile = withContext(Dispatchers.Default) {
                 val resultFile = File(outputDir, "$partId${mimeType.primaryFileExtension}")
                 try {
@@ -303,7 +316,7 @@ class EditorViewModel(
     }
 
     fun extractPart(partId: String, outputDir: File, callback: (File?) -> Unit) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             val resultFile = withContext(Dispatchers.Default) {
                 try {
                     partEditor.copyPart(partId, outputDir)
@@ -382,7 +395,7 @@ class EditorViewModel(
 
     fun expandColorPalette(expanded: Boolean) {
         if (_toolSheetExpansionState.value == expanded) return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _toolSheetExpansionState.value = expanded
         }
     }

@@ -575,17 +575,18 @@ class PartEditor(
         return partType.availableTools(ToolType.values().toList(), enableActivePen)
     }
 
-    fun importContent(file: File) {
-        scope.launch {
-            val ids = withContext(Dispatchers.IO) {
-                val ids = contentRepository.importContent(file)
-                allParts = contentRepository.allParts
-                ids
+    fun importContent(file: File, onResult: (file: File, partIds: List<String>, exception: Exception?) -> Unit) {
+        scope.launch(mainDispatcher) {
+            val (partIds, exception) = withContext(Dispatchers.IO) {
+                try {
+                    val ids = contentRepository.importContent(file)
+                    allParts = contentRepository.allParts
+                    ids to null
+                } catch (e: Exception) {
+                    emptyList<String>() to e
+                }
             }
-            val firstPartId = ids.firstOrNull()
-            if (firstPartId != null) {
-                openPart(firstPartId)
-            }
+            onResult(file, partIds, exception)
         }
     }
 }

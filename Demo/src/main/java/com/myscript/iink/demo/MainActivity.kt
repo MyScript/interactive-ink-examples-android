@@ -154,6 +154,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            else -> onError(Error(
+                Error.Severity.WARNING,
+                getString(R.string.app_error_unsupported_file_type_title),
+                getString(R.string.app_error_unsupported_file_type_message, mimeType)
+            ))
         }
     }
 
