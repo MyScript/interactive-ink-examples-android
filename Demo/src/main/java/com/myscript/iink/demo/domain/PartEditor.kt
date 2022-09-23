@@ -151,7 +151,6 @@ class PartEditor(
     @VisibleForTesting
     var editor by autoCloseable<Editor>(null) { oldEditor ->
         if (oldEditor != null) {
-            oldEditor.setFontMetricsProvider(null)
             oldEditor.removeListener(editorListener)
             oldEditor.part = null
             oldEditor.renderer.close()
