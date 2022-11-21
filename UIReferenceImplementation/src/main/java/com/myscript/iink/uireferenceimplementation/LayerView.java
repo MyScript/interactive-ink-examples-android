@@ -3,13 +3,11 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -22,11 +20,12 @@ import com.myscript.iink.Renderer;
 import java.util.EnumSet;
 import java.util.Map;
 
-public class LayerView extends View implements IRenderView
-{
-  private final LayerType type;
-  private IRenderTarget renderTarget;
+import androidx.annotation.Nullable;
 
+public class LayerView extends View
+{
+  private final static int MODEL = 0;
+  private final static int CAPTURE = 1;
   private ImageLoader imageLoader;
 
   @Nullable
@@ -38,11 +37,11 @@ public class LayerView extends View implements IRenderView
   @Nullable
   private Rect updateArea;
   @Nullable
-  private Bitmap bitmap;
+  private Bitmap[] bitmap;
   @Nullable
-  private android.graphics.Canvas sysCanvas;
+  private android.graphics.Canvas[] sysCanvas;
   @Nullable
-  private Canvas iinkCanvas;
+  private Canvas[] iinkCanvas;
   @Nullable
   private OfflineSurfaceManager offlineSurfaceManager = null;
   @Nullable
@@ -69,35 +68,11 @@ public class LayerView extends View implements IRenderView
     super(context, attrs, defStyleAttr);
 
     updateArea = null;
-
-    TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.LayerView, defStyleAttr, 0);
-    try
-    {
-      int typeOrdinal = typedArray.getInteger(R.styleable.LayerView_layerType, 0);
-      type = LayerType.values()[typeOrdinal];
-    }
-    finally
-    {
-      typedArray.recycle();
-    }
   }
 
-  @Override
-  public boolean isSingleLayerView()
-  {
-    return true;
-  }
-
-  @Override
-  public LayerType getType()
-  {
-    return type;
-  }
-
-  @Override
   public void setRenderTarget(IRenderTarget renderTarget)
   {
-    this.renderTarget = renderTarget;
+    // do not need the renderTarget
   }
 
   public void setOfflineSurfaceManager(@Nullable OfflineSurfaceManager offlineSurfaceManager)
@@ -105,13 +80,11 @@ public class LayerView extends View implements IRenderView
     this.offlineSurfaceManager = offlineSurfaceManager;
   }
 
-  @Override
   public void setEditor(Editor editor)
   {
     // do not need the editor
   }
 
-  @Override
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
@@ -139,29 +112,29 @@ public class LayerView extends View implements IRenderView
 
     if (localUpdateArea != null)
     {
-
-      prepare(sysCanvas, localUpdateArea);
+      prepare(sysCanvas[MODEL], localUpdateArea);
       try
       {
-        switch (type)
-        {
-          case MODEL:
-            renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
-            break;
-          case CAPTURE:
-            renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
-            break;
-          default:
-            break;
-        }
+        renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas[MODEL]);
       }
       finally
       {
-        restore(sysCanvas);
+        restore(sysCanvas[MODEL]);
+      }
+
+      prepare(sysCanvas[CAPTURE], localUpdateArea);
+      try
+      {
+        renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas[CAPTURE]);
+      }
+      finally
+      {
+        restore(sysCanvas[CAPTURE]);
       }
     }
 
-    canvas.drawBitmap(bitmap, 0, 0, null);
+    canvas.drawBitmap(bitmap[MODEL], 0, 0, null);
+    canvas.drawBitmap(bitmap[CAPTURE], 0, 0, null);
   }
 
   @Override
@@ -169,12 +142,20 @@ public class LayerView extends View implements IRenderView
   {
     if (bitmap != null)
     {
-      bitmap.recycle();
+      bitmap[MODEL].recycle();
+      bitmap[CAPTURE].recycle();
     }
-    bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
-    sysCanvas = new android.graphics.Canvas(bitmap);
     DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
-    iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+
+    bitmap = new Bitmap[2];
+    bitmap[MODEL] = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+    bitmap[CAPTURE] = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+    sysCanvas = new android.graphics.Canvas[2];
+    sysCanvas[MODEL] = new android.graphics.Canvas(bitmap[MODEL]);
+    sysCanvas[CAPTURE] = new android.graphics.Canvas(bitmap[CAPTURE]);
+    iinkCanvas = new Canvas[2];
+    iinkCanvas[MODEL] = new Canvas(sysCanvas[MODEL], typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+    iinkCanvas[CAPTURE] = new Canvas(sysCanvas[CAPTURE], typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }
@@ -191,7 +172,6 @@ public class LayerView extends View implements IRenderView
     canvas.restore();
   }
 
-  @Override
   public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
     boolean emptyArea;
@@ -203,12 +183,19 @@ public class LayerView extends View implements IRenderView
         updateArea = new Rect(x, y, x + width, y + height);
 
       if (bitmap != null)
-        updateArea.intersect(new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()));
+      {
+        if (bitmap[MODEL] != null)
+          updateArea.intersect(new Rect(0, 0, bitmap[MODEL].getWidth(), bitmap[MODEL].getHeight()));
+        if (bitmap[CAPTURE] != null)
+          updateArea.intersect(new Rect(0, 0, bitmap[CAPTURE].getWidth(), bitmap[CAPTURE].getHeight()));
+      }
       emptyArea = updateArea.isEmpty();
       lastRenderer = renderer;
     }
     if (!emptyArea)
+    {
       postInvalidate(x, y, x + width, y + height);
+    }
   }
 
   public void setScrollbar(Renderer renderer, int viewWidthPx, int pageWidthtPx, int xMin, int viewHeightPx, int pageHeightPx, int yMin)

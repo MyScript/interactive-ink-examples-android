@@ -9,25 +9,14 @@
         android:visibility="invisible">
 
         <com.myscript.iink.uireferenceimplementation.LayerView
-            android:id="@+id/layer_model"
+            android:id="@+id/layer_iink"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="0dp"
             android:layout_marginLeft="0dp"
             android:layout_marginBottom="0dp"
             android:layout_marginRight="0dp"
-            custom:layerType="MODEL"
             android:scrollbars="horizontal|vertical"/>
-
-        <com.myscript.iink.uireferenceimplementation.LayerView
-            android:id="@+id/layer_capture"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="0dp"
-            android:layout_marginLeft="0dp"
-            android:layout_marginBottom="0dp"
-            android:layout_marginRight="0dp"
-            custom:layerType="CAPTURE" />
 
     </com.myscript.iink.uireferenceimplementation.EditorView>
 

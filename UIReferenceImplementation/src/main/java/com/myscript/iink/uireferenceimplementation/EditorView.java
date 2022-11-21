@@ -37,9 +37,7 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
   @NonNull
   private final OfflineSurfaceManager offlineSurfaceManager;
   @Nullable
-  private IRenderView renderView;
-  @Nullable
-  private IRenderView[] layerViews;
+  private LayerView layerView;
 
   private Map<String, Typeface> typefaceMap = new HashMap<>();
 
@@ -70,46 +68,22 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     for (int i = 0, count = getChildCount(); i < count; ++i)
     {
       View view = getChildAt(i);
-      if (view instanceof IRenderView)
+      if (view instanceof LayerView)
       {
-        IRenderView renderView = (IRenderView) view;
-        if (renderView.isSingleLayerView())
-        {
-          if (layerViews == null)
-            layerViews = new IRenderView[2];
-          if (renderView.getType() == LayerType.MODEL)
-            layerViews[0] = renderView;
-          else if (renderView.getType() == LayerType.CAPTURE)
-          {
-            layerViews[1] = renderView;
-          }
-          else
-          {
-            throw new RuntimeException("Unknown layer view type");
-          }
-        }
-        else
-        {
-          this.renderView = renderView;
-        }
+        layerView = (LayerView) view;
 
-        renderView.setRenderTarget(this);
+        layerView.setRenderTarget(this);
         if (editor != null)
         {
-          renderView.setEditor(editor);
+          layerView.setEditor(editor);
         }
         if (imageLoader != null)
         {
-          renderView.setImageLoader(imageLoader);
+          layerView.setImageLoader(imageLoader);
         }
 
-        renderView.setCustomTypefaces(typefaceMap);
-
-        if (view instanceof LayerView)
-        {
-          LayerView layerView = (LayerView) view;
-          layerView.setOfflineSurfaceManager(offlineSurfaceManager);
-        }
+        layerView.setCustomTypefaces(typefaceMap);
+        layerView.setOfflineSurfaceManager(offlineSurfaceManager);
       }
     }
   }
@@ -125,19 +99,9 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     if (editor != null)
     {
       renderer = editor.getRenderer();
-      if (renderView != null)
+      if (layerView != null)
       {
-        renderView.setEditor(editor);
-      }
-      else if (layerViews != null)
-      {
-        for (IRenderView layerView : layerViews)
-        {
-          if (layerView != null)
-          {
-            layerView.setEditor(editor);
-          }
-        }
+        layerView.setEditor(editor);
       }
       if (viewWidth > 0 && viewHeight > 0)
       {
@@ -168,17 +132,9 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     this.imageLoader = imageLoader;
 
     // transfer image loader to render views
-    if (renderView != null)
+    if (layerView != null)
     {
-      renderView.setImageLoader(imageLoader);
-    }
-    else if (layerViews != null)
-    {
-      for (IRenderView layerView : layerViews)
-      {
-        if (layerView != null)
-          layerView.setImageLoader(imageLoader);
-      }
+      layerView.setImageLoader(imageLoader);
     }
   }
 
@@ -193,10 +149,10 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     for (int i = 0, count = getChildCount(); i < count; ++i)
     {
       View view = getChildAt(i);
-      if (view instanceof IRenderView)
+      if (view instanceof LayerView)
       {
-        IRenderView renderView = (IRenderView) view;
-        renderView.setCustomTypefaces(typefaceMap);
+        LayerView layerView = (LayerView) view;
+        layerView.setCustomTypefaces(typefaceMap);
       }
     }
   }
@@ -239,19 +195,9 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     if (width <= 0 || height <= 0)
       return;
 
-    if (renderView != null)
+    if (layerView != null)
     {
-      renderView.update(renderer, x, y, width, height, layers);
-    }
-    else if (layerViews != null)
-    {
-      for (LayerType type : layers)
-      {
-        int layerID = (type == LayerType.MODEL) ? 0 : 1;
-        IRenderView layerView = layerViews[layerID];
-        if (layerView != null)
-          layerView.update(renderer, x, y, width, height, layers);
-      }
+      layerView.update(renderer, x, y, width, height, layers);
     }
   }
 
@@ -331,10 +277,6 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     editor.clampViewOffset(bottomRightPx);
     float pageHeightPx = bottomRightPx.y - topLeftPx.y + viewHeightPx;
     float pageWidthPx = bottomRightPx.x - topLeftPx.x + viewWidthPx;
-    for (IRenderView layerView : layerViews)
-    {
-      if (layerView instanceof LayerView && layerView.getType() == LayerType.MODEL)
-        ((LayerView) layerView).setScrollbar(renderer, viewWidthPx, (int) pageWidthPx, (int) topLeftPx.x, viewHeightPx, (int) pageHeightPx, (int) topLeftPx.y);
-    }
+    layerView.setScrollbar(renderer, viewWidthPx, (int) pageWidthPx, (int) topLeftPx.x, viewHeightPx, (int) pageHeightPx, (int) topLeftPx.y);
   }
 }
