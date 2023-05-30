@@ -399,11 +399,15 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
     // the old instance is invalid but can be restored by remapping the identifier
     if (activeBlock != null && !activeBlock.isValid())
     {
-      activeBlock.close();
-      activeBlock = editor.getBlockById(activeBlock.getId());
-      if (activeBlock == null)
+      String activeBlockId = activeBlock.getId();
+      ContentBlock newActiveBlock = editor.getBlockById(activeBlockId);
+      if (newActiveBlock != null)
       {
-        update(null, UpdateCause.EDIT);
+        activeBlock.close();
+        activeBlock = newActiveBlock;
+      }
+      else
+      {
         return;
       }
     }
@@ -423,12 +427,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
   @Override
   public void selectionChanged(@NonNull Editor editor)
   {
-    if (selectedBlock != null)
-    {
-      selectedBlock.close();
-    }
-    selectedBlock = null;
-
+    ContentBlock newSelectionBlock = null;
     ContentSelectionMode mode = editor.getSelectionMode();
     if (mode != ContentSelectionMode.NONE && mode != ContentSelectionMode.LASSO)
     {
@@ -446,7 +445,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
         ContentBlock block = editor.getBlockById(blockId);
         if (block != null && block.getType().equals("Text"))
         {
-          selectedBlock = block;
+          newSelectionBlock = block;
           break;
         }
         else if (block != null)
@@ -456,7 +455,13 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       }
     }
 
-    update(selectedBlock, UpdateCause.SELECTION);
+    update(newSelectionBlock, UpdateCause.SELECTION);
+
+    if (selectedBlock != null)
+    {
+      selectedBlock.close();
+    }
+    selectedBlock = newSelectionBlock;
   }
 
   @Override
@@ -468,13 +473,15 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       // selectionChanged already changed the active block
       return;
     }
+
+    ContentBlock newActiveBlock = editor.getBlockById(blockId);
+    update(newActiveBlock, UpdateCause.EDIT);
+
     if (activeBlock != null)
     {
       activeBlock.close();
     }
-    activeBlock = editor.getBlockById(blockId);
-
-    update(activeBlock, UpdateCause.EDIT);
+    activeBlock = newActiveBlock;
   }
 
   @Override
