@@ -117,7 +117,10 @@ enum class MenuAction {
     FORMAT_TEXT,
     FORMAT_TEXT_H1,
     FORMAT_TEXT_H2,
-    FORMAT_TEXT_PARAGRAPH
+    FORMAT_TEXT_PARAGRAPH,
+    FORMAT_TEXT_LIST_BULLET,
+    FORMAT_TEXT_LIST_CHECKBOX,
+    FORMAT_TEXT_LIST_NUMBERED
 }
 
 class PartEditor(
@@ -500,6 +503,9 @@ class PartEditor(
                 MenuAction.FORMAT_TEXT_H1 -> if (content != null) editor.setTextFormat(content, TextFormat.H1)
                 MenuAction.FORMAT_TEXT_H2 -> if (content != null) editor.setTextFormat(content, TextFormat.H2)
                 MenuAction.FORMAT_TEXT_PARAGRAPH -> if (content != null) editor.setTextFormat(content, TextFormat.PARAGRAPH)
+                MenuAction.FORMAT_TEXT_LIST_BULLET -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_BULLET)
+                MenuAction.FORMAT_TEXT_LIST_CHECKBOX -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_CHECKBOX)
+                MenuAction.FORMAT_TEXT_LIST_NUMBERED -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_NUMBERED)
             }
         } catch (e: Exception) {
             listener?.actionError(e, (content as? ContentBlock)?.id)
@@ -594,6 +600,9 @@ private fun TextFormat.toMenuAction(): MenuAction = when (this) {
     TextFormat.H1 -> MenuAction.FORMAT_TEXT_H1
     TextFormat.H2 -> MenuAction.FORMAT_TEXT_H2
     TextFormat.PARAGRAPH -> MenuAction.FORMAT_TEXT_PARAGRAPH
+    TextFormat.LIST_BULLET -> MenuAction.FORMAT_TEXT_LIST_BULLET
+    TextFormat.LIST_CHECKBOX -> MenuAction.FORMAT_TEXT_LIST_CHECKBOX
+    TextFormat.LIST_NUMBERED -> MenuAction.FORMAT_TEXT_LIST_NUMBERED
 }
 
 private fun ContextualActions.toMenuAction(): MenuAction = when (this) {

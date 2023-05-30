@@ -88,6 +88,9 @@ private val MenuAction.stringRes: Int
         MenuAction.FORMAT_TEXT_H1 -> R.string.editor_action_format_text_as_heading1
         MenuAction.FORMAT_TEXT_H2 -> R.string.editor_action_format_text_as_heading2
         MenuAction.FORMAT_TEXT_PARAGRAPH -> R.string.editor_action_format_text_as_paragraph
+        MenuAction.FORMAT_TEXT_LIST_BULLET -> R.string.editor_action_format_text_as_list_bullet
+        MenuAction.FORMAT_TEXT_LIST_CHECKBOX -> R.string.editor_action_format_text_as_list_checkbox
+        MenuAction.FORMAT_TEXT_LIST_NUMBERED -> R.string.editor_action_format_text_as_list_numbered
     }
 
 class MainActivity : AppCompatActivity() {
