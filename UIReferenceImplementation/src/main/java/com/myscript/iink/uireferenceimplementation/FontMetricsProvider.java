@@ -167,7 +167,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
   }
 
   @Override
-  public GlyphMetrics[] getGlyphMetrics(Text text, TextSpan[] spans)
+  public synchronized GlyphMetrics[] getGlyphMetrics(Text text, TextSpan[] spans)
   {
     final String label = text.getLabel();
 
