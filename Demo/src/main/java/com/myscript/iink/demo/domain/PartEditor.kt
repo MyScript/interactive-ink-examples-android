@@ -7,7 +7,6 @@ import androidx.annotation.VisibleForTesting
 import com.myscript.iink.ContentBlock
 import com.myscript.iink.ContentPart
 import com.myscript.iink.ContentSelection
-import com.myscript.iink.ContextualActions
 import com.myscript.iink.Editor
 import com.myscript.iink.EditorError
 import com.myscript.iink.IEditorListener
@@ -21,6 +20,7 @@ import com.myscript.iink.demo.ui.androidColor
 import com.myscript.iink.demo.ui.iinkColor
 import com.myscript.iink.demo.util.autoCloseable
 import com.myscript.iink.graphics.Point
+import com.myscript.iink.uireferenceimplementation.ContextualActions
 import com.myscript.iink.uireferenceimplementation.ContextualActionsHelper
 import com.myscript.iink.uireferenceimplementation.ImagePainter
 import com.myscript.iink.uireferenceimplementation.ImageLoader

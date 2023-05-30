@@ -5,7 +5,6 @@ package com.myscript.iink.uireferenceimplementation;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
 import com.myscript.iink.ContentSelection;
-import com.myscript.iink.ContextualActions;
 import com.myscript.iink.Editor;
 
 import java.util.EnumSet;
