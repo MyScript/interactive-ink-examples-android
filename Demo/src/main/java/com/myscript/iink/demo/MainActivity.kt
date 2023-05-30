@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
     }
 
-    private val importContentRequest = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    private val importIInkFileRequest = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri == null) return@registerForActivityResult
         val mimeType = DocumentFile.fromSingleUri(this@MainActivity, uri)?.type ?: contentResolver.getType(uri)
         when (mimeType) {
@@ -144,6 +144,18 @@ class MainActivity : AppCompatActivity() {
                     viewModel.importContent(file)
                 }
             }
+            else -> onError(Error(
+                Error.Severity.WARNING,
+                getString(R.string.app_error_unsupported_file_type_title),
+                getString(R.string.app_error_unsupported_iink_file_type_message, mimeType)
+            ))
+        }
+    }
+
+    private val importImageRequest = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri == null) return@registerForActivityResult
+        val mimeType = DocumentFile.fromSingleUri(this@MainActivity, uri)?.type ?: contentResolver.getType(uri)
+        when (mimeType) {
             "image/png",
             "image/jpeg" -> lifecycle.coroutineScope.launch {
                 val extension = MimeType.fromTypeName(mimeType).primaryFileExtension
@@ -160,7 +172,7 @@ class MainActivity : AppCompatActivity() {
             else -> onError(Error(
                 Error.Severity.WARNING,
                 getString(R.string.app_error_unsupported_file_type_title),
-                getString(R.string.app_error_unsupported_file_type_message, mimeType)
+                getString(R.string.app_error_unsupported_image_type_message, mimeType)
             ))
         }
     }
@@ -241,7 +253,7 @@ class MainActivity : AppCompatActivity() {
                     when (val blockType = blockTypes[selected]) {
                         BlockType.Image -> {
                             addImagePosition = PointF(actionState.x, actionState.y)
-                            importContentRequest.launch("image/*")
+                            importImageRequest.launch("image/*")
                         }
                         BlockType.Text -> {
                             // Ensure bottom sheet is collapsed to avoid weird state when IME is dismissed.
@@ -402,7 +414,7 @@ class MainActivity : AppCompatActivity() {
             R.id.editor_menu_export -> onExport(viewModel.getExportMimeTypes())
             R.id.editor_menu_save -> (partState as? PartState.Loaded)?.let { viewModel.save() }
             // Note: ideally we could restrict to `application/*` but some file managers use `binary/octet-stream`
-            R.id.editor_menu_import_file -> importContentRequest.launch("*/*")
+            R.id.editor_menu_import_file -> importIInkFileRequest.launch("*/*")
             R.id.editor_menu_share_file -> (partState as? PartState.Loaded)?.let { onShareFile(it.partId) }
             else -> return super.onOptionsItemSelected(item)
         }
