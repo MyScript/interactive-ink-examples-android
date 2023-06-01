@@ -6,6 +6,8 @@ plugins {
 }
 
 android {
+    namespace 'com.myscript.iink.getstarted'
+
     compileSdkVersion project.ext.compileSdkVersion
 
     buildFeatures {

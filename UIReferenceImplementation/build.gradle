@@ -3,6 +3,8 @@ plugins {
 }
 
 android {
+    namespace 'com.myscript.iink.uireferenceimplementation'
+
     compileSdkVersion project.ext.compileSdkVersion
 
     defaultConfig {
