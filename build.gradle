@@ -41,9 +41,9 @@ allprojects {
         // configure versions used by dependencies to harmonize and update easily across all components
 
         // Android SDK
-        compileSdkVersion = 31
-        minSdkVersion = 21
-        targetSdkVersion = 31
+        compileSdk = 31
+        minSdk = 21
+        targetSdk = 31
 
         // Android libraries
         appcompatVersion = '1.4.1'

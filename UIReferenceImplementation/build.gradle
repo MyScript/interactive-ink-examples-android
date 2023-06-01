@@ -5,11 +5,11 @@ plugins {
 android {
     namespace 'com.myscript.iink.uireferenceimplementation'
 
-    compileSdkVersion project.ext.compileSdkVersion
+    compileSdk project.ext.compileSdk
 
     defaultConfig {
-        minSdkVersion project.ext.minSdkVersion
-        targetSdkVersion project.ext.targetSdkVersion
+        minSdk project.ext.minSdk
+        targetSdk project.ext.targetSdk
         versionCode 2100
         versionName '2.1.0'
 

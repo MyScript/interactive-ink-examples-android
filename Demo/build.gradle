@@ -9,7 +9,7 @@ plugins {
 android {
     namespace 'com.myscript.iink.demo'
 
-    compileSdkVersion project.ext.compileSdkVersion
+    compileSdk project.ext.compileSdk
 
     buildFeatures {
         viewBinding true
@@ -17,8 +17,8 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion project.ext.minSdkVersion
-        targetSdkVersion project.ext.targetSdkVersion
+        minSdk project.ext.minSdk
+        targetSdk project.ext.targetSdk
 
         applicationId 'com.myscript.iink.demo'
         versionCode 2100
