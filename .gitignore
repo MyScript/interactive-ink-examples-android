@@ -7,9 +7,9 @@ build/
 .idea
 local.properties
 
-/Demo/src/main/assets/conf
-/Demo/src/main/assets/resources
-/GetStarted/src/main/assets/conf
-/GetStarted/src/main/assets/resources
+/Demo/src/main/assets
+/Demo/tmp-assets
+/GetStarted/src/main/assets
+/GetStarted/tmp-assets
 
 .DS_Store
