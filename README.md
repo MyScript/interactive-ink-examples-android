@@ -8,7 +8,7 @@ This repository contains a "get started" example, a complete example and a refer
 
 ### Prerequisites
 
-This getting started section has been tested with Android Studio 2021.1+ and supports Android SDK version 21+.
+This getting started section has been tested with Android Studio 2022.2+ and supports Android SDK version 21+.
 
 ### Installation
 
