@@ -180,8 +180,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        editorView = findViewById(R.id.editor_view)
-        smartGuideView = findViewById(R.id.smart_guide_view)
+        editorView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.editor_view)
+        smartGuideView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.smart_guide_view)
 
         setSupportActionBar(binding.toolbar)
 

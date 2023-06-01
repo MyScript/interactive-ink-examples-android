@@ -72,8 +72,8 @@ public class MainActivity extends AppCompatActivity
     binding = MainActivityBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
-    editorView = findViewById(R.id.editor_view);
-    smartGuideView = findViewById(R.id.smart_guide_view);
+    editorView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.editor_view);
+    smartGuideView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.smart_guide_view);
 
     // load fonts
     AssetManager assetManager = getApplicationContext().getAssets();
