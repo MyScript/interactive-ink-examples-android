@@ -46,7 +46,7 @@ allprojects {
         targetSdk = 33
 
         // Android libraries
-        appcompatVersion = '1.4.1'
+        appcompatVersion = '1.6.1'
     }
 }
 
