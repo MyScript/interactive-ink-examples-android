@@ -3,9 +3,6 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -35,23 +32,19 @@ public class LayerView extends View
   private Renderer lastRenderer = null;
 
   @Nullable
-  private Rect updateArea;
-  @Nullable
-  private Bitmap[] bitmap;
-  @Nullable
-  private android.graphics.Canvas[] sysCanvas;
-  @Nullable
-  private Canvas[] iinkCanvas;
-  @Nullable
   private OfflineSurfaceManager offlineSurfaceManager = null;
   @Nullable
   private Renderer renderer = null;
-  private int pageHeight = 0;
-  private int viewHeight = 0;
-  private int viewWidth = 0;
+  @Nullable
+  private Canvas iinkCanvas = null;
   private int pageWidth = 0;
-  private int yMin = 0;
+  private int pageHeight = 0;
+  private int viewWidth = 0;
+  private int viewHeight = 0;
+  private int canvasWidth = 0;
+  private int canvasHeight = 0;
   private int xMin = 0;
+  private int yMin = 0;
 
   public LayerView(Context context)
   {
@@ -66,8 +59,6 @@ public class LayerView extends View
   public LayerView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
   {
     super(context, attrs, defStyleAttr);
-
-    updateArea = null;
   }
 
   public void setRenderTarget(IRenderTarget renderTarget)
@@ -98,64 +89,42 @@ public class LayerView extends View
   @Override
   protected final void onDraw(android.graphics.Canvas canvas)
   {
-    Rect localUpdateArea;
-    Renderer renderer;
+    super.onDraw(canvas);
 
+    Rect updateArea;
+    Renderer renderer;
     synchronized (this)
     {
-      localUpdateArea = this.updateArea;
-
-      this.updateArea = null;
+      updateArea = new Rect(0, 0, canvasWidth, canvasHeight);
       renderer = lastRenderer;
-      lastRenderer = null;
     }
 
-    if (localUpdateArea != null)
+    iinkCanvas.setCanvas(canvas);
+    prepare(canvas, updateArea);
+
+    try
     {
-      prepare(sysCanvas[MODEL], localUpdateArea);
-      try
-      {
-        renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas[MODEL]);
-      }
-      finally
-      {
-        restore(sysCanvas[MODEL]);
-      }
-
-      prepare(sysCanvas[CAPTURE], localUpdateArea);
-      try
-      {
-        renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas[CAPTURE]);
-      }
-      finally
-      {
-        restore(sysCanvas[CAPTURE]);
-      }
+      renderer.drawModel(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+      renderer.drawCaptureStrokes(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
     }
-
-    canvas.drawBitmap(bitmap[MODEL], 0, 0, null);
-    canvas.drawBitmap(bitmap[CAPTURE], 0, 0, null);
+    finally
+    {
+      restore(canvas);
+    }
   }
 
   @Override
   protected void onSizeChanged(int newWidth, int newHeight, int oldWidth, int oldHeight)
   {
-    if (bitmap != null)
-    {
-      bitmap[MODEL].recycle();
-      bitmap[CAPTURE].recycle();
-    }
     DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
 
-    bitmap = new Bitmap[2];
-    bitmap[MODEL] = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
-    bitmap[CAPTURE] = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
-    sysCanvas = new android.graphics.Canvas[2];
-    sysCanvas[MODEL] = new android.graphics.Canvas(bitmap[MODEL]);
-    sysCanvas[CAPTURE] = new android.graphics.Canvas(bitmap[CAPTURE]);
-    iinkCanvas = new Canvas[2];
-    iinkCanvas[MODEL] = new Canvas(sysCanvas[MODEL], typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
-    iinkCanvas[CAPTURE] = new Canvas(sysCanvas[CAPTURE], typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+    synchronized (this)
+    {
+      iinkCanvas = new Canvas(null, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+      iinkCanvas.setClearOnStartDraw(false);
+      canvasWidth = newWidth;
+      canvasHeight = newHeight;
+    }
 
     super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
   }
@@ -164,7 +133,6 @@ public class LayerView extends View
   {
     canvas.save();
     canvas.clipRect(clipRect);
-    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
   }
 
   private void restore(android.graphics.Canvas canvas)
@@ -175,20 +143,12 @@ public class LayerView extends View
   public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
     boolean emptyArea;
+    Rect updateArea = new Rect(x, y, x + width, y + height);
     synchronized (this)
     {
-      if (updateArea != null)
-        updateArea.union(x, y, x + width, y + height);
-      else
-        updateArea = new Rect(x, y, x + width, y + height);
+      if (canvasWidth > 0 && canvasHeight > 0)
+        updateArea.intersect(new Rect(0, 0, canvasWidth, canvasHeight));
 
-      if (bitmap != null)
-      {
-        if (bitmap[MODEL] != null)
-          updateArea.intersect(new Rect(0, 0, bitmap[MODEL].getWidth(), bitmap[MODEL].getHeight()));
-        if (bitmap[CAPTURE] != null)
-          updateArea.intersect(new Rect(0, 0, bitmap[CAPTURE].getWidth(), bitmap[CAPTURE].getHeight()));
-      }
       emptyArea = updateArea.isEmpty();
       lastRenderer = renderer;
     }
@@ -198,10 +158,10 @@ public class LayerView extends View
     }
   }
 
-  public void setScrollbar(Renderer renderer, int viewWidthPx, int pageWidthtPx, int xMin, int viewHeightPx, int pageHeightPx, int yMin)
+  public void setScrollbar(Renderer renderer, int viewWidthPx, int pageWidthPx, int xMin, int viewHeightPx, int pageHeightPx, int yMin)
   {
     this.viewWidth = viewWidthPx;
-    this.pageWidth = pageWidthtPx;
+    this.pageWidth = pageWidthPx;
     this.renderer = renderer;
     this.pageHeight = pageHeightPx;
     this.viewHeight = viewHeightPx;

@@ -37,7 +37,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public static final int INPUT_MODE_AUTO = 2;
   public static final int INPUT_MODE_ERASER = 3;
 
-  private final IRenderTarget renderTarget;
+  private final EditorView editorView;
   private final Editor editor;
   private int _inputMode;
   private final GestureDetectorCompat gestureDetector;
@@ -47,9 +47,9 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public PointerType iinkPointerType;
   private ViewListener _viewListener;
 
-  public InputController(Context context, IRenderTarget renderTarget, Editor editor)
+  public InputController(Context context, EditorView editorView, Editor editor)
   {
-    this.renderTarget = renderTarget;
+    this.editorView = editorView;
     this.editor = editor;
     _listener = null;
     _inputMode = INPUT_MODE_AUTO;
@@ -135,6 +135,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     {
       case MotionEvent.ACTION_POINTER_DOWN:
       case MotionEvent.ACTION_DOWN:
+        editorView.requestUnbufferedDispatch(event);
         editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         return true;
 
@@ -264,7 +265,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
       editor.clampViewOffset(newOffset);
       editor.getRenderer().setViewOffset(Math.round(newOffset.x), Math.round(newOffset.y));
-      renderTarget.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
+      editorView.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
       if(_viewListener != null)
       {
         _viewListener.showScrollbars();
