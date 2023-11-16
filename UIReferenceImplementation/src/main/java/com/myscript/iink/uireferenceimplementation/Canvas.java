@@ -438,16 +438,14 @@ public class Canvas implements ICanvas
       return;
 
     Objects.requireNonNull(canvas);
-    Point screenMin = new Point(x, y);
-    transform.apply(screenMin);
-    Point screenMax = new Point(x + width, y + height);
-    transform.apply(screenMax);
+    RectF pixelSize = new RectF(x,y,x + width, y + height);
+    pointScaleMatrix.mapRect(pixelSize);
 
     final Rect targetRect = new Rect(
-        (int) Math.floor(screenMin.x),
-        (int) Math.floor(screenMin.y),
-        (int) (Math.ceil(screenMax.x) - x),
-        (int) (Math.ceil(screenMax.y) - y));
+        (int) Math.floor(pixelSize.left),
+        (int) Math.floor(pixelSize.top),
+        (int) Math.ceil(pixelSize.left + pixelSize.width()),
+        (int) Math.ceil(pixelSize.top + pixelSize.height()));
 
     synchronized (imageLoader)
     {
