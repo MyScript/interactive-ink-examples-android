@@ -237,6 +237,9 @@ class PartEditor(
 
     fun setEditor(editor: Editor?, inputController: InputController?) {
         if (editor != null) {
+            // configure multithreading for text recognition
+            editor.configuration.setNumber("max-recognition-thread-count", 1)
+
             editor.addListener(editorListener)
             editor.theme = theme
             // full interactivity mode in Raw Content is enabled by several features:
