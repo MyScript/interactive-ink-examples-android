@@ -27,6 +27,7 @@ import androidx.lifecycle.coroutineScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.myscript.iink.Editor
+import com.myscript.iink.Engine
 import com.myscript.iink.MimeType
 import com.myscript.iink.demo.databinding.MainActivityBinding
 import com.myscript.iink.demo.di.EditorViewModelFactory
@@ -51,8 +52,10 @@ import com.myscript.iink.demo.util.launchActionChoiceDialog
 import com.myscript.iink.demo.util.launchSingleChoiceDialog
 import com.myscript.iink.demo.util.launchTextBlockInputDialog
 import com.myscript.iink.uireferenceimplementation.EditorView
+import com.myscript.iink.uireferenceimplementation.FrameTimeEstimator
 import com.myscript.iink.uireferenceimplementation.IInputControllerListener
 import com.myscript.iink.uireferenceimplementation.SmartGuideView
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -108,6 +111,10 @@ class MainActivity : AppCompatActivity() {
     private var colorsAdapter = ColorsAdapter { viewModel.changeColor(it) }
     private var thicknessesAdapter = ThicknessesAdapter { viewModel.changeThickness(it) }
     private var addImagePosition: PointF? = null
+
+    private companion object {
+        const val MinPredictionDurationMs: Int = 16 // 1 frame @60Hz, 2 frames @120Hz
+    }
 
     private val onEditorLongPress = IInputControllerListener { x, y, _ ->
         val actionState = viewModel.requestContentBlockActions(x, y)
@@ -204,6 +211,9 @@ class MainActivity : AppCompatActivity() {
         editorData.editor?.let { editor ->
             viewModel.setEditor(editorData)
             setMargins(editor, R.dimen.editor_horizontal_margin, R.dimen.editor_vertical_margin)
+            editorView?.let {
+                enableCaptureStrokePrediction(editor.engine, editorView!!.context)
+            }
             smartGuideView?.setEditor(editor)
         }
         smartGuideView?.setMenuListener(onSmartGuideMenuAction)
@@ -242,6 +252,15 @@ class MainActivity : AppCompatActivity() {
             setNumber("math.margin.bottom", verticalMarginMM)
             setNumber("math.margin.left", horizontalMarginMM)
             setNumber("math.margin.right", horizontalMarginMM)
+        }
+    }
+
+    private fun enableCaptureStrokePrediction(engine: Engine, context: Context) {
+        val durationMs = FrameTimeEstimator.getFrameTime(context).roundToInt()
+            .coerceAtLeast(MinPredictionDurationMs)
+        with(engine.configuration) {
+            setNumber("renderer.prediction.duration", durationMs)
+            setBoolean("renderer.prediction.enable", true)
         }
     }
 
