@@ -21,7 +21,7 @@ public class ImagePainter implements IImagePainter
   private ImageLoader imageLoader = null;
   private Map<String, Typeface> typefaceMap = null;
   private Bitmap bitmap = null;
-  private android.graphics.Canvas canvas = null;
+  protected android.graphics.Canvas canvas = null;
   private float dpi = 96;
 
   @ColorInt
