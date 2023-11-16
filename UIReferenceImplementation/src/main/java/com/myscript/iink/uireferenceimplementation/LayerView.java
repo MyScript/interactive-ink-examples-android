@@ -3,6 +3,9 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -32,11 +35,17 @@ public class LayerView extends View
   private Renderer lastRenderer = null;
 
   @Nullable
+  private Rect updateArea = null;
+  @Nullable
+  private Bitmap bitmap = null;
+  @Nullable
+  private android.graphics.Canvas sysCanvas = null;
+  @Nullable
+  private Canvas iinkCanvas = null;
+  @Nullable
   private OfflineSurfaceManager offlineSurfaceManager = null;
   @Nullable
   private Renderer renderer = null;
-  @Nullable
-  private Canvas iinkCanvas = null;
   private int pageWidth = 0;
   private int pageHeight = 0;
   private int viewWidth = 0;
@@ -91,26 +100,32 @@ public class LayerView extends View
   {
     super.onDraw(canvas);
 
-    Rect updateArea;
+    Rect localUpdateArea;
     Renderer renderer;
     synchronized (this)
     {
-      updateArea = new Rect(0, 0, canvasWidth, canvasHeight);
+      localUpdateArea = this.updateArea;
+      this.updateArea = null;
+
       renderer = lastRenderer;
+      lastRenderer = null;
     }
 
-    iinkCanvas.setCanvas(canvas);
-    prepare(canvas, updateArea);
+    if (localUpdateArea != null)
+    {
+      prepare(sysCanvas, localUpdateArea);
+      try
+      {
+        renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+        renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+      }
+      finally
+      {
+        restore(sysCanvas);
+      }
+    }
 
-    try
-    {
-      renderer.drawModel(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
-      renderer.drawCaptureStrokes(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
-    }
-    finally
-    {
-      restore(canvas);
-    }
+    canvas.drawBitmap(bitmap, 0, 0, null);
   }
 
   @Override
@@ -120,8 +135,14 @@ public class LayerView extends View
 
     synchronized (this)
     {
-      iinkCanvas = new Canvas(null, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+      if (bitmap != null)
+        bitmap.recycle();
+
+      bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+      sysCanvas = new android.graphics.Canvas(bitmap);
+      iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
       iinkCanvas.setClearOnStartDraw(false);
+
       canvasWidth = newWidth;
       canvasHeight = newHeight;
     }
@@ -133,6 +154,7 @@ public class LayerView extends View
   {
     canvas.save();
     canvas.clipRect(clipRect);
+    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
   }
 
   private void restore(android.graphics.Canvas canvas)
@@ -143,9 +165,13 @@ public class LayerView extends View
   public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
     boolean emptyArea;
-    Rect updateArea = new Rect(x, y, x + width, y + height);
     synchronized (this)
     {
+      if (updateArea != null)
+        updateArea.union(x, y, x + width, y + height);
+      else
+        updateArea = new Rect(x, y, x + width, y + height);
+
       if (canvasWidth > 0 && canvasHeight > 0)
         updateArea.intersect(new Rect(0, 0, canvasWidth, canvasHeight));
 
