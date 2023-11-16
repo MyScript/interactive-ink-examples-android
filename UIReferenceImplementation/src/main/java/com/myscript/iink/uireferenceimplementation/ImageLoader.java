@@ -21,13 +21,14 @@ public class ImageLoader
   @NonNull
   private final Editor editor;
   LruCache<String, Bitmap> cache;
+  static final float CACHE_MAX_MEMORY_RATIO = 1.f / 8; // in ]0, 1[
 
   public ImageLoader(@NonNull Editor editor)
   {
     this.editor = editor;
 
-    // Use a part of the maximum available memory to define the cache's size
-    int cacheSize = (int) (Runtime.getRuntime().maxMemory() / 8);
+    // Use a part of the maximum available memory to define the cache's size (in Bytes)
+    int cacheSize = (int) (Runtime.getRuntime().maxMemory() * CACHE_MAX_MEMORY_RATIO);
 
     this.cache = new LruCache<String, Bitmap>(cacheSize)
     {
@@ -59,12 +60,22 @@ public class ImageLoader
   {
     Bitmap image = cache.get(url);
     if (image != null)
-      return image;
+      return image; // found
 
     Pair<Bitmap, Boolean> newImage = renderObject(url, mimeType, dstWidth, dstHeight);
 
     if (newImage.second) // Not dummy
+    {
+      int imageSize = newImage.first.getByteCount();
+      if (imageSize > cache.maxSize())
+      {
+        Log.w("ImageLoader", "Image too big for cache: resizing cache ("
+            + imageSize / (1024.f * 1024.f) + "MB > " + cache.maxSize() / (1024.f * 1024.f) + "MB)");
+        cache.resize(imageSize);
+      }
+
       cache.put(url, newImage.first);
+    }
 
     return newImage.first;
   }
@@ -87,11 +98,17 @@ public class ImageLoader
 
             if (scaledImage != null)
               return Pair.create(scaledImage, true);
+            else
+              Log.e("ImageLoader", "Unable to scale image: using placeholder image");
           }
           else
           {
             return Pair.create(image, true);
           }
+        }
+        else
+        {
+          Log.e("ImageLoader", "Unable to decode file: using placeholder image");
         }
       }
       catch (Exception e)
@@ -102,7 +119,7 @@ public class ImageLoader
       catch (OutOfMemoryError e)
       {
         // Error: use fallback bitmap
-        Log.w("ImageLoader", "Out of memory: unable to load image, using placeholder instead", e);
+        Log.w("ImageLoader", "Out of memory: unable to load image: using placeholder instead", e);
       }
     }
 
@@ -110,6 +127,9 @@ public class ImageLoader
     Bitmap image = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565);
     if (image != null)
       image.eraseColor(Color.WHITE);
+    else
+      Log.e("ImageLoader", "Unable to render image nor placeholder");
+
     return Pair.create(image, false);
   }
 }
