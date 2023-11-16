@@ -20,8 +20,8 @@ android {
         targetSdk project.ext.targetSdk
 
         applicationId 'com.myscript.iink.getstarted'
-        versionCode 2110
-        versionName '2.1.1'
+        versionCode 2200
+        versionName '2.2.0'
 
         vectorDrawables.useSupportLibrary true
     }
