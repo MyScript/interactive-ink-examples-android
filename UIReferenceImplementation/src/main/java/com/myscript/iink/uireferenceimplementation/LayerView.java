@@ -3,8 +3,12 @@
 package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -17,6 +21,7 @@ import com.myscript.iink.Renderer;
 import java.util.EnumSet;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class LayerView extends View
@@ -35,6 +40,14 @@ public class LayerView extends View
   private OfflineSurfaceManager offlineSurfaceManager = null;
   @Nullable
   private Renderer renderer = null;
+  @NonNull
+  private Rect updateArea = new Rect(0, 0, 0, 0);
+  @NonNull
+  private Rect localUpdateArea = new Rect(0, 0, 0, 0);
+  @Nullable
+  private Bitmap bitmap = null; // for API < 28
+  @Nullable
+  private android.graphics.Canvas sysCanvas = null; // for API < 28
   @Nullable
   private Canvas iinkCanvas = null;
   private int pageWidth = 0;
@@ -91,25 +104,56 @@ public class LayerView extends View
   {
     super.onDraw(canvas);
 
-    Rect updateArea;
-    Renderer renderer;
-    synchronized (this)
+    // Draw directly in hardware-accelerated Canvas if scaling is supported (since API 28)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
     {
-      updateArea = new Rect(0, 0, canvasWidth, canvasHeight);
-      renderer = lastRenderer;
-    }
+      Renderer renderer;
+      synchronized (this)
+      {
+        localUpdateArea.set(0, 0, canvasWidth, canvasHeight);
+        renderer = lastRenderer;
+      }
 
-    iinkCanvas.setCanvas(canvas);
-    prepare(canvas, updateArea);
+      iinkCanvas.setCanvas(canvas);
+      prepare(canvas, localUpdateArea);
 
-    try
-    {
-      renderer.drawModel(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
-      renderer.drawCaptureStrokes(updateArea.left, updateArea.top, updateArea.width(), updateArea.height(), iinkCanvas);
+      try
+      {
+        renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+        renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+      }
+      finally
+      {
+        restore(canvas);
+      }
     }
-    finally
+    else // Draw in intermediate bitmap
     {
-      restore(canvas);
+      Renderer renderer;
+      synchronized (this)
+      {
+        localUpdateArea.set(this.updateArea);
+        this.updateArea.setEmpty();
+
+        renderer = lastRenderer;
+        lastRenderer = null;
+      }
+
+      if (!localUpdateArea.isEmpty())
+      {
+        prepare(sysCanvas, localUpdateArea);
+        try
+        {
+          renderer.drawModel(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+          renderer.drawCaptureStrokes(localUpdateArea.left, localUpdateArea.top, localUpdateArea.width(), localUpdateArea.height(), iinkCanvas);
+        }
+        finally
+        {
+          restore(sysCanvas);
+        }
+      }
+
+      canvas.drawBitmap(bitmap, 0, 0, null);
     }
   }
 
@@ -120,7 +164,21 @@ public class LayerView extends View
 
     synchronized (this)
     {
-      iinkCanvas = new Canvas(null, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+      // Direct draw
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+      {
+        iinkCanvas = new Canvas(null, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+      }
+      else // Bitmap draw
+      {
+        if (bitmap != null)
+          bitmap.recycle();
+
+        bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+        sysCanvas = new android.graphics.Canvas(bitmap);
+        iinkCanvas = new Canvas(sysCanvas, typefaceMap, imageLoader, offlineSurfaceManager, metrics.xdpi, metrics.ydpi);
+      }
+
       iinkCanvas.setClearOnStartDraw(false);
       canvasWidth = newWidth;
       canvasHeight = newHeight;
@@ -133,6 +191,8 @@ public class LayerView extends View
   {
     canvas.save();
     canvas.clipRect(clipRect);
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+      canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
   }
 
   private void restore(android.graphics.Canvas canvas)
@@ -143,15 +203,33 @@ public class LayerView extends View
   public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
   {
     boolean emptyArea;
-    Rect updateArea = new Rect(x, y, x + width, y + height);
-    synchronized (this)
-    {
-      if (canvasWidth > 0 && canvasHeight > 0)
-        updateArea.intersect(new Rect(0, 0, canvasWidth, canvasHeight));
 
-      emptyArea = updateArea.isEmpty();
-      lastRenderer = renderer;
+    // Direct draw
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+    {
+      Rect updatedArea = new Rect(x, y, x + width, y + height);
+      synchronized (this)
+      {
+        if (canvasWidth > 0 && canvasHeight > 0)
+          updatedArea.intersect(new Rect(0, 0, canvasWidth, canvasHeight));
+
+        emptyArea = updatedArea.isEmpty();
+        lastRenderer = renderer;
+      }
     }
+    else // Bitmap draw
+    {
+      synchronized (this)
+      {
+        updateArea.union(x, y, x + width, y + height);
+        if (canvasWidth > 0 && canvasHeight > 0)
+          updateArea.intersect(new Rect(0, 0, canvasWidth, canvasHeight));
+
+        emptyArea = updateArea.isEmpty();
+        lastRenderer = renderer;
+      }
+    }
+
     if (!emptyArea)
     {
       postInvalidate(x, y, x + width, y + height);
