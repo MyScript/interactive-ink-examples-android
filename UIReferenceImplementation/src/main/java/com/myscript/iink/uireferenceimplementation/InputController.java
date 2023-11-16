@@ -4,9 +4,10 @@ package com.myscript.iink.uireferenceimplementation;
 
 import android.content.Context;
 import android.os.SystemClock;
-import android.view.GestureDetector;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.myscript.iink.ContentBlock;
@@ -16,6 +17,7 @@ import com.myscript.iink.PointerEvent;
 import com.myscript.iink.PointerEventType;
 import com.myscript.iink.PointerTool;
 import com.myscript.iink.PointerType;
+import com.myscript.iink.Renderer;
 import com.myscript.iink.ToolController;
 import com.myscript.iink.graphics.Point;
 
@@ -25,7 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.view.GestureDetectorCompat;
 
-public class InputController implements View.OnTouchListener, GestureDetector.OnGestureListener
+public class InputController implements View.OnTouchListener, GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener
 {
 
   public interface ViewListener
@@ -39,15 +41,26 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public static final int INPUT_MODE_AUTO = 2;
   public static final int INPUT_MODE_ERASER = 3;
 
+  private static final float SCALING_SENSIBILITY = 1.5f;
+  private static final float SCALING_THRESHOLD = 0.02f;
+
   private final EditorView editorView;
   private final Editor editor;
   private int _inputMode;
   private final GestureDetectorCompat gestureDetector;
+  private final ScaleGestureDetector scaleGestureDetector;
   private IInputControllerListener _listener;
   private final long eventTimeOffset;
   @VisibleForTesting
   public PointerType iinkPointerType;
   private ViewListener _viewListener;
+
+  private boolean isScalingEnabled = false;
+  private float getPreviousScalingSpan;
+  private float previousScalingFocusX;
+  private float previousScalingFocusY;
+  private boolean isMultiFingerTouch = false;
+  private int previousPointerId;
 
   public InputController(Context context, EditorView editorView, Editor editor)
   {
@@ -55,6 +68,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     this.editor = editor;
     _listener = null;
     _inputMode = INPUT_MODE_AUTO;
+    scaleGestureDetector = new ScaleGestureDetector(context, this);
     gestureDetector = new GestureDetectorCompat(context, this);
 
     long rel_t = SystemClock.uptimeMillis();
@@ -80,6 +94,11 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public final synchronized void setListener(IInputControllerListener listener)
   {
     this._listener = listener;
+  }
+
+  public final synchronized void setScalingEnabled(boolean enabled)
+  {
+    isScalingEnabled = enabled;
   }
 
   public final synchronized IInputControllerListener getListener()
@@ -126,6 +145,11 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       }
     }
 
+    if (isScalingEnabled)
+    {
+      scaleGestureDetector.onTouchEvent(event);
+    }
+
     if (iinkPointerType == PointerType.TOUCH)
     {
       gestureDetector.onTouchEvent(event);
@@ -135,8 +159,19 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
 
     switch (actionMask)
     {
+      // ACTION_POINTER_DOWN is "A non-primary pointer has gone down", this is called only when a pointer is already on the touch.
       case MotionEvent.ACTION_POINTER_DOWN:
+        isMultiFingerTouch = true;
+        if (previousPointerId != -1)
+        {
+          editor.pointerCancel(previousPointerId);
+          previousPointerId = -1;
+        }
+        return true;
+
       case MotionEvent.ACTION_DOWN:
+        previousPointerId = pointerId;
+        isMultiFingerTouch = false;
         // Request unbuffered events for tools that require low capture latency
         ToolController toolController = editor.getToolController();
         PointerTool tool = toolController.getToolForType(iinkPointerType);
@@ -146,6 +181,9 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         return true;
 
       case MotionEvent.ACTION_MOVE:
+        if (isMultiFingerTouch)
+          return true;
+
         if (historySize > 0)
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
@@ -160,8 +198,16 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         }
         return true;
 
+      // ACTION_POINTER_UP is "A non-primary pointer has gone up", at least one finger is still on the touch.
       case MotionEvent.ACTION_POINTER_UP:
+        return true;
+
       case MotionEvent.ACTION_UP:
+        if (isMultiFingerTouch)
+        {
+          isMultiFingerTouch = false;
+          return true;
+        }
         if (historySize > 0)
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize];
@@ -285,5 +331,66 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
   {
     return false;
+  }
+
+  @Override
+  public boolean onScale(ScaleGestureDetector scaleGestureDetector)
+  {
+    Renderer renderer = editorView.getRenderer();
+
+    // Store the current focus of the scaleGestureDetector
+    float currentScalingFocusX = scaleGestureDetector.getFocusX();
+    float currentScalingFocusY = scaleGestureDetector.getFocusY();
+    float currentSpan = scaleGestureDetector.getCurrentSpan();
+
+    // Measure the delta of the currentFocus to the previous
+    float distanceX = previousScalingFocusX - currentScalingFocusX;
+    float distanceY = previousScalingFocusY - currentScalingFocusY;
+
+    previousScalingFocusX = currentScalingFocusX;
+    previousScalingFocusY = currentScalingFocusY;
+
+    Point oldOffset = renderer.getViewOffset();
+    Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
+
+    // Apply the translation of the scaling focus to the editor
+    editor.clampViewOffset(newOffset);
+    // Apply the translation of the scaling focus to the render
+    renderer.setViewOffset(Math.round(newOffset.x), Math.round(newOffset.y));
+
+    float deltaSpan = getPreviousScalingSpan / currentSpan;
+    // Apply a ratio in order to avoid the scaling to move too fast
+    deltaSpan = 1.0f + ((1.0f - deltaSpan) / SCALING_SENSIBILITY);
+
+    // Do not move if the scaling is too small
+    if (deltaSpan > (1 + SCALING_THRESHOLD) || deltaSpan < (1 - SCALING_THRESHOLD))
+    {
+      renderer.zoomAt(new Point(currentScalingFocusX, currentScalingFocusY), deltaSpan);
+    }
+
+    // Store the span for next time
+    getPreviousScalingSpan = currentSpan;
+    editorView.invalidate(renderer, EnumSet.allOf(IRenderTarget.LayerType.class));
+
+    if(_viewListener != null)
+    {
+      _viewListener.showScrollbars();
+    }
+    return true;
+  }
+
+  @Override
+  public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector)
+  {
+    getPreviousScalingSpan = scaleGestureDetector.getCurrentSpan();
+    previousScalingFocusX = scaleGestureDetector.getFocusX();
+    previousScalingFocusY = scaleGestureDetector.getFocusY();
+    return true;
+  }
+
+  @Override
+  public void onScaleEnd(ScaleGestureDetector scaleGestureDetector)
+  {
+    // no-op
   }
 }
