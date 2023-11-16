@@ -438,14 +438,15 @@ public class Canvas implements ICanvas
       return;
 
     Objects.requireNonNull(canvas);
+
     RectF pixelSize = new RectF(x,y,x + width, y + height);
     pointScaleMatrix.mapRect(pixelSize);
 
     final Rect targetRect = new Rect(
         (int) Math.floor(pixelSize.left),
         (int) Math.floor(pixelSize.top),
-        (int) Math.ceil(pixelSize.left + pixelSize.width()),
-        (int) Math.ceil(pixelSize.top + pixelSize.height()));
+        (int) (Math.ceil(pixelSize.right)),
+        (int) (Math.ceil(pixelSize.bottom)));
 
     synchronized (imageLoader)
     {
@@ -461,22 +462,6 @@ public class Canvas implements ICanvas
       }
       else
       {
-        // adjust rectangle so that the image gets fit into original rectangle
-        float fx = width / image.getWidth();
-        float fy = height / image.getHeight();
-        if (fx > fy)
-        {
-          float w = image.getWidth() * fy;
-          x += (width - w) / 2;
-          width = w;
-        }
-        else
-        {
-          float h = image.getHeight() * fx;
-          y += (height - h) / 2;
-          height = h;
-        }
-
         // draw the image
         Rect srcRect = new Rect(0, 0, image.getWidth(), image.getHeight());
         RectF dstRect = new RectF(x, y, x + width, y + height);
