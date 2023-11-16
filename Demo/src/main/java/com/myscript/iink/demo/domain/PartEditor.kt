@@ -22,8 +22,8 @@ import com.myscript.iink.demo.util.autoCloseable
 import com.myscript.iink.graphics.Point
 import com.myscript.iink.uireferenceimplementation.ContextualActions
 import com.myscript.iink.uireferenceimplementation.ContextualActionsHelper
-import com.myscript.iink.uireferenceimplementation.ImagePainter
 import com.myscript.iink.uireferenceimplementation.ImageLoader
+import com.myscript.iink.uireferenceimplementation.ImagePainter
 import com.myscript.iink.uireferenceimplementation.InputController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.*
+import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
 
@@ -122,6 +122,8 @@ enum class MenuAction {
     FORMAT_TEXT_LIST_CHECKBOX,
     FORMAT_TEXT_LIST_NUMBERED
 }
+
+data class PredictionSettings(val enabled: Boolean = false, val durationMs: Int = 0)
 
 class PartEditor(
     private val typefaces: Map<String, Typeface>,
@@ -597,6 +599,21 @@ class PartEditor(
                 }
             }
             onResult(file, partIds, exception)
+        }
+    }
+
+    fun getPredictionSettings(): PredictionSettings {
+        return editor?.let { editor ->
+            val enabled = editor.engine.configuration.getBoolean("renderer.prediction.enable", false)
+            val durationMs = editor.engine.configuration.getNumber("renderer.prediction.duration", 0)
+            PredictionSettings(enabled, durationMs.toInt())
+        } ?: PredictionSettings()
+    }
+
+    fun changePredictionSettings(enable: Boolean, durationMs: Int) {
+        editor?.let { editor ->
+            editor.engine.configuration.setBoolean("renderer.prediction.enable", enable)
+            editor.engine.configuration.setNumber("renderer.prediction.duration", durationMs)
         }
     }
 }

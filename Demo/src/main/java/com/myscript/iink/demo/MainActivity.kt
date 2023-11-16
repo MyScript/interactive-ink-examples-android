@@ -40,7 +40,6 @@ import com.myscript.iink.demo.ui.ContextualActionState
 import com.myscript.iink.demo.ui.EditorViewModel
 import com.myscript.iink.demo.ui.Error
 import com.myscript.iink.demo.ui.NewPartRequest
-import com.myscript.iink.demo.ui.NewPredictionRequest
 import com.myscript.iink.demo.ui.PartHistoryState
 import com.myscript.iink.demo.ui.PartNavigationState
 import com.myscript.iink.demo.ui.PartState
@@ -57,11 +56,11 @@ import com.myscript.iink.uireferenceimplementation.EditorView
 import com.myscript.iink.uireferenceimplementation.FrameTimeEstimator
 import com.myscript.iink.uireferenceimplementation.IInputControllerListener
 import com.myscript.iink.uireferenceimplementation.SmartGuideView
-import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.math.roundToInt
 
 suspend fun Context.processUriFile(uri: Uri, file: File, logic: (File) -> Unit) {
     withContext(Dispatchers.IO) {
@@ -204,7 +203,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.availableColors.observe(this, this::onAvailableColorsUpdate)
         viewModel.availableThicknesses.observe(this, this::onAvailableThicknessesUpdate)
         viewModel.partCreationRequest.observe(this, this::onPartCreationRequest)
-        viewModel.predictionSettingsRequest.observe(this, this::onPredictionSettingsRequest)
         viewModel.partState.observe(this, this::onPartStateUpdate)
         viewModel.partHistoryState.observe(this, this::onPartHistoryUpdate)
         viewModel.partNavigationState.observe(this, this::onPartNavigationStateUpdate)
@@ -400,12 +398,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun onAvailableColorsUpdate(colorStates: List<ColorState>) {
         colorsAdapter.submitList(colorStates)
-        binding.editorToolbarSheet.toolbarColors.isVisible = !colorStates.isNullOrEmpty()
+        binding.editorToolbarSheet.toolbarColors.isVisible = colorStates.isNotEmpty()
     }
 
     private fun onAvailableThicknessesUpdate(thicknessStates: List<ThicknessState>) {
         thicknessesAdapter.submitList(thicknessStates)
-        binding.editorToolbarSheet.toolbarThicknesses.isVisible = !thicknessStates.isNullOrEmpty()
+        binding.editorToolbarSheet.toolbarThicknesses.isVisible = thicknessStates.isNotEmpty()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -435,7 +433,7 @@ class MainActivity : AppCompatActivity() {
             R.id.nav_menu_previous_part -> viewModel.previousPart()
             R.id.nav_menu_next_part -> viewModel.nextPart()
             R.id.editor_menu_convert -> viewModel.convertContent()
-            R.id.editor_menu_prediction -> viewModel.requestPredictionSettings()
+            R.id.editor_menu_prediction -> showPredictionSettingsDialog()
             R.id.editor_menu_export -> onExport(viewModel.getExportMimeTypes())
             R.id.editor_menu_save -> (partState as? PartState.Loaded)?.let { viewModel.save() }
             // Note: ideally we could restrict to `application/*` but some file managers use `binary/octet-stream`
@@ -537,11 +535,10 @@ class MainActivity : AppCompatActivity() {
         invalidateOptionsMenu()
     }
 
-    private fun onPredictionSettingsRequest(request: NewPredictionRequest?) {
-        if (request != null) {
-            launchPredictionDialog(request.enabled, request.durationMs) { enable: Boolean, durationMs: Int ->
-                viewModel.applyPredictionSettings(enable, durationMs)
-            }
+    private fun showPredictionSettingsDialog() {
+        val currentSettings = viewModel.predictionSettings
+        launchPredictionDialog(currentSettings.enabled, currentSettings.durationMs) { enabled, durationMs ->
+            viewModel.changePredictionSettings(enabled, durationMs)
         }
     }
 }

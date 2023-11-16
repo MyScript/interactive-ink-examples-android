@@ -14,13 +14,14 @@ import com.myscript.iink.demo.domain.BlockType
 import com.myscript.iink.demo.domain.MenuAction
 import com.myscript.iink.demo.domain.PartEditor
 import com.myscript.iink.demo.domain.PartType
+import com.myscript.iink.demo.domain.PredictionSettings
 import com.myscript.iink.demo.domain.ToolType
 import com.myscript.iink.uireferenceimplementation.EditorData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.*
+import java.util.UUID
 import com.myscript.iink.graphics.Color as IInkColor
 
 val MimeType.primaryFileExtension: String
@@ -72,8 +73,6 @@ class ColorPalette(
 
 // You could add any further data place holder here (like default name, last chosen recognition language, ...)
 data class NewPartRequest(val availablePartTypes: List<PartType>, val defaultPartType: PartType? = null)
-
-data class NewPredictionRequest(val enabled: Boolean, val durationMs: Int)
 
 data class Error(
     val severity: Severity,
@@ -132,9 +131,8 @@ class EditorViewModel(
     val toolSheetExpansionState: LiveData<Boolean>
         get() = _toolSheetExpansionState.distinctUntilChanged()
 
-    private var _predictionSettingsRequest = MutableLiveData<NewPredictionRequest?>(null)
-    val predictionSettingsRequest: LiveData<NewPredictionRequest?>
-        get() = _predictionSettingsRequest
+    val predictionSettings: PredictionSettings
+        get() = partEditor.getPredictionSettings()
 
     private val partEditorListener: PartEditor.Listener =
         object : PartEditor.Listener {
@@ -440,24 +438,8 @@ class EditorViewModel(
         partEditor.convertContent()
     }
 
-    fun requestPredictionSettings() {
-        partEditor.editor?.let {
-            val enabled = it.engine.configuration.getBoolean("renderer.prediction.enable", false)
-            val durationMs = it.engine.configuration.getNumber("renderer.prediction.duration", 0)
-            viewModelScope.launch(Dispatchers.Main) {
-                _predictionSettingsRequest.value = NewPredictionRequest(enabled, durationMs.toInt())
-            }
-        }
-    }
-
-    fun applyPredictionSettings(enable: Boolean, durationMs: Int) {
-        viewModelScope.launch(Dispatchers.Main) {
-            _predictionSettingsRequest.value = null
-        }
-        partEditor.editor?.let {
-            it.engine.configuration.setBoolean("renderer.prediction.enable", enable)
-            it.engine.configuration.setNumber("renderer.prediction.duration", durationMs)
-        }
+    fun changePredictionSettings(enable: Boolean, durationMs: Int) {
+        partEditor.changePredictionSettings(enable, durationMs)
     }
 
     fun actionMenu(x: Float, y: Float, menuAction: MenuAction, selectedBlockId: String? = null) {
