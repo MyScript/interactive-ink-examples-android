@@ -262,15 +262,20 @@ class PartEditor(
         return editor?.getSupportedExportMimeTypes(null)?.toList() ?: emptyList()
     }
 
-    fun exportCurrentPart(mimeType: MimeType, outputFile: File) {
+    fun exportContent(mimeType: MimeType, x: Float?, y: Float?, selectedBlockId: String?, outputFile: File) {
         editor?.let { editor ->
+            val content = when {
+                selectedBlockId != null -> editor.getBlockById(selectedBlockId)
+                x != null && y != null -> editor.hitBlock(x, y)
+                else -> null
+            }
             val imagePainter = ImagePainter().apply {
                 setImageLoader(ImageLoader(editor))
                 setTypefaceMap(typefaces)
             }
             editor.waitForIdle()
             outputFile.parentFile?.mkdirs()
-            editor.export_(null, outputFile.absolutePath, mimeType, imagePainter)
+            editor.export_(content, outputFile.absolutePath, mimeType, imagePainter)
         }
     }
 

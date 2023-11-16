@@ -286,7 +286,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            is ContextualActionState.Export -> onExport(actionState.items)
+            is ContextualActionState.Export -> onExport(actionState.items, actionState.x, actionState.y, selectedBlockId)
         }
     }
 
@@ -433,7 +433,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onExport(mimeTypes: List<MimeType>) {
+    private fun onExport(mimeTypes: List<MimeType>, x: Float? = null, y: Float? = null, selectedBlockId: String? = null) {
         if (mimeTypes.isNotEmpty()) {
             val label = mimeTypes.map { mimeType ->
                 val extension = mimeType.primaryFileExtension
@@ -442,7 +442,7 @@ class MainActivity : AppCompatActivity() {
             }
             launchSingleChoiceDialog(R.string.editor_menu_export, label, 0) {
                 val mimeType = mimeTypes[it]
-                viewModel.exportCurrentPart(mimeType, exportsDir) { file ->
+                viewModel.exportContent(mimeType, x, y, selectedBlockId, exportsDir) { file ->
                     if (file != null) {
                         val uri = FileProvider.getUriForFile(this, "${BuildConfig.APPLICATION_ID}.export", file)
                         if (mimeType == MimeType.HTML || mimeType.isImage) {

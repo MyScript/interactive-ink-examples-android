@@ -299,13 +299,13 @@ class EditorViewModel(
         partEditor.previousPart()
     }
 
-    fun exportCurrentPart(mimeType: MimeType, outputDir: File, callback: (File?) -> Unit) {
+    fun exportContent(mimeType: MimeType, x: Float?, y: Float?, selectedBlockId: String?, outputDir: File, callback: (File?) -> Unit) {
         val partId = partState.value?.partId
         viewModelScope.launch(Dispatchers.Main) {
             val resultFile = withContext(Dispatchers.Default) {
                 val resultFile = File(outputDir, "$partId${mimeType.primaryFileExtension}")
                 try {
-                    partEditor.exportCurrentPart(mimeType, resultFile)
+                    partEditor.exportContent(mimeType, x, y, selectedBlockId, resultFile)
                     resultFile
                 } catch (e: Exception) {
                     null
