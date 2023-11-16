@@ -440,7 +440,7 @@ public class Canvas implements ICanvas
     Objects.requireNonNull(canvas);
 
     RectF pixelSize = new RectF(x,y,x + width, y + height);
-    pointScaleMatrix.mapRect(pixelSize);
+    transformMatrix.mapRect(pixelSize);
 
     final Rect targetRect = new Rect(
         (int) Math.floor(pixelSize.left),
