@@ -14,7 +14,9 @@ import com.myscript.iink.Editor;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.PointerEvent;
 import com.myscript.iink.PointerEventType;
+import com.myscript.iink.PointerTool;
 import com.myscript.iink.PointerType;
+import com.myscript.iink.ToolController;
 import com.myscript.iink.graphics.Point;
 
 import java.util.EnumSet;
@@ -135,7 +137,11 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     {
       case MotionEvent.ACTION_POINTER_DOWN:
       case MotionEvent.ACTION_DOWN:
-        editorView.requestUnbufferedDispatch(event);
+        // Request unbuffered events for tools that require low capture latency
+        ToolController toolController = editor.getToolController();
+        PointerTool tool = toolController.getToolForType(iinkPointerType);
+        if (tool == PointerTool.PEN || tool == PointerTool.HIGHLIGHTER)
+          editorView.requestUnbufferedDispatch(event);
         editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         return true;
 
