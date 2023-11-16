@@ -10,8 +10,8 @@ android {
     defaultConfig {
         minSdk project.ext.minSdk
         targetSdk project.ext.targetSdk
-        versionCode 2300
-        versionName '2.3.0'
+        versionCode 2310
+        versionName '2.3.1'
 
         vectorDrawables.useSupportLibrary true
     }
@@ -20,5 +20,5 @@ android {
 dependencies {
     implementation "androidx.appcompat:appcompat:${project.ext.appcompatVersion}"
     implementation "com.google.code.gson:gson:2.10.1"
-    api "com.myscript:iink:2.1.1"
+    api "com.myscript:iink:2.3.1"
 }
