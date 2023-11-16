@@ -54,7 +54,7 @@
     <string name="editor_dialog_insert_text_title">Add text block</string>
     <string name="editor_dialog_insert_text_action">Insert</string>
     <string name="editor_dialog_prediction_title">Prediction settings</string>
-    <string name="editor_dialog_prediction_enable">Enable:</string>
-    <string name="editor_dialog_prediction_duration">Duration (ms):</string>
+    <string name="editor_dialog_prediction_enable">Enable</string>
+    <string name="editor_dialog_prediction_duration">Duration (%d ms)</string>
 
 </resources>
