@@ -177,7 +177,15 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         PointerTool tool = toolController.getToolForType(iinkPointerType);
         if (tool == PointerTool.PEN || tool == PointerTool.HIGHLIGHTER)
           editorView.requestUnbufferedDispatch(event);
-        editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+        try
+        {
+          editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+        }
+        catch(UnsupportedOperationException e) {
+          // Special case: pointerDown already called, discard previous and retry
+          editor.pointerCancel(pointerId);
+          editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+        }
         return true;
 
       case MotionEvent.ACTION_MOVE:
