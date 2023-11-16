@@ -212,7 +212,9 @@ class MainActivity : AppCompatActivity() {
         editorData.editor?.let { editor ->
             viewModel.setEditor(editorData)
             setMargins(editor, R.dimen.editor_horizontal_margin, R.dimen.editor_vertical_margin)
-            configureDefaultCaptureStrokePrediction(editorView?.context ?: this)
+            if (savedInstanceState == null) {
+                configureDefaultCaptureStrokePrediction(editorView?.context ?: this)
+            }
             smartGuideView?.setEditor(editor)
         }
         smartGuideView?.setMenuListener(onSmartGuideMenuAction)
