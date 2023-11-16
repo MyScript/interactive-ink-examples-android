@@ -33,4 +33,7 @@ fun Configuration.enableRawContentInteractivity() {
 
     // Allow gesture detection
     setStringArray("raw-content.pen.gestures", arrayOf("underline", "scratch-out", "strike-through"))
+
+    // Allow shape & image rotation
+    setStringArray("raw-content.rotation", arrayOf("shape", "image"))
 }

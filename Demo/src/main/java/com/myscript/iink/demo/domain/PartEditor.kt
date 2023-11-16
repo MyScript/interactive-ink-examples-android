@@ -239,7 +239,11 @@ class PartEditor(
         if (editor != null) {
             editor.addListener(editorListener)
             editor.theme = theme
+            // full interactivity mode in Raw Content is enabled by several features:
+            // gestures, conversion, smart eraser, shape & image rotation etc.
             editor.configuration.enableRawContentInteractivity()
+            // also allow shape rotation in diagram parts
+            editor.configuration.setStringArray("diagram.rotation", arrayOf("shape"))
             this.inputController = inputController
             editor.part = currentPart
         }
