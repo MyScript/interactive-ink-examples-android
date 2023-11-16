@@ -73,6 +73,8 @@ class ColorPalette(
 // You could add any further data place holder here (like default name, last chosen recognition language, ...)
 data class NewPartRequest(val availablePartTypes: List<PartType>, val defaultPartType: PartType? = null)
 
+data class NewPredictionRequest(val enabled: Boolean, val durationMs: Int)
+
 data class Error(
     val severity: Severity,
     val title: String,
@@ -129,6 +131,10 @@ class EditorViewModel(
     private val _toolSheetExpansionState = MutableLiveData(false)
     val toolSheetExpansionState: LiveData<Boolean>
         get() = _toolSheetExpansionState.distinctUntilChanged()
+
+    private var _predictionSettingsRequest = MutableLiveData<NewPredictionRequest?>(null)
+    val predictionSettingsRequest: LiveData<NewPredictionRequest?>
+        get() = _predictionSettingsRequest
 
     private val partEditorListener: PartEditor.Listener =
         object : PartEditor.Listener {
@@ -432,6 +438,26 @@ class EditorViewModel(
 
     fun convertContent() {
         partEditor.convertContent()
+    }
+
+    fun requestPredictionSettings() {
+        partEditor.editor?.let {
+            val enabled = it.engine.configuration.getBoolean("renderer.prediction.enable", false)
+            val durationMs = it.engine.configuration.getNumber("renderer.prediction.duration", 0)
+            viewModelScope.launch(Dispatchers.Main) {
+                _predictionSettingsRequest.value = NewPredictionRequest(enabled, durationMs.toInt())
+            }
+        }
+    }
+
+    fun applyPredictionSettings(enable: Boolean, durationMs: Int) {
+        viewModelScope.launch(Dispatchers.Main) {
+            _predictionSettingsRequest.value = null
+        }
+        partEditor.editor?.let {
+            it.engine.configuration.setBoolean("renderer.prediction.enable", enable)
+            it.engine.configuration.setNumber("renderer.prediction.duration", durationMs)
+        }
     }
 
     fun actionMenu(x: Float, y: Float, menuAction: MenuAction, selectedBlockId: String? = null) {

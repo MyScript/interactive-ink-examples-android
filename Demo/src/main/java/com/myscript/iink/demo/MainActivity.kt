@@ -40,6 +40,7 @@ import com.myscript.iink.demo.ui.ContextualActionState
 import com.myscript.iink.demo.ui.EditorViewModel
 import com.myscript.iink.demo.ui.Error
 import com.myscript.iink.demo.ui.NewPartRequest
+import com.myscript.iink.demo.ui.NewPredictionRequest
 import com.myscript.iink.demo.ui.PartHistoryState
 import com.myscript.iink.demo.ui.PartNavigationState
 import com.myscript.iink.demo.ui.PartState
@@ -49,6 +50,7 @@ import com.myscript.iink.demo.ui.ToolState
 import com.myscript.iink.demo.ui.ToolsAdapter
 import com.myscript.iink.demo.ui.primaryFileExtension
 import com.myscript.iink.demo.util.launchActionChoiceDialog
+import com.myscript.iink.demo.util.launchPredictionDialog
 import com.myscript.iink.demo.util.launchSingleChoiceDialog
 import com.myscript.iink.demo.util.launchTextBlockInputDialog
 import com.myscript.iink.uireferenceimplementation.EditorView
@@ -113,6 +115,7 @@ class MainActivity : AppCompatActivity() {
     private var addImagePosition: PointF? = null
 
     private companion object {
+        const val EnableCapturePrediction: Boolean = true
         const val MinPredictionDurationMs: Int = 16 // 1 frame @60Hz, 2 frames @120Hz
     }
 
@@ -201,6 +204,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.availableColors.observe(this, this::onAvailableColorsUpdate)
         viewModel.availableThicknesses.observe(this, this::onAvailableThicknessesUpdate)
         viewModel.partCreationRequest.observe(this, this::onPartCreationRequest)
+        viewModel.predictionSettingsRequest.observe(this, this::onPredictionSettingsRequest)
         viewModel.partState.observe(this, this::onPartStateUpdate)
         viewModel.partHistoryState.observe(this, this::onPartHistoryUpdate)
         viewModel.partNavigationState.observe(this, this::onPartNavigationStateUpdate)
@@ -260,7 +264,7 @@ class MainActivity : AppCompatActivity() {
             .coerceAtLeast(MinPredictionDurationMs)
         with(engine.configuration) {
             setNumber("renderer.prediction.duration", durationMs)
-            setBoolean("renderer.prediction.enable", true)
+            setBoolean("renderer.prediction.enable", EnableCapturePrediction)
         }
     }
 
@@ -416,6 +420,7 @@ class MainActivity : AppCompatActivity() {
             it.findItem(R.id.nav_menu_previous_part).isEnabled = navigationState.hasPrevious
             it.findItem(R.id.nav_menu_next_part).isEnabled = navigationState.hasNext
             it.findItem(R.id.editor_menu_convert).isEnabled = partState.isReady
+            it.findItem(R.id.editor_menu_prediction).isEnabled = true
             it.findItem(R.id.editor_menu_export).isEnabled = partState.isReady
             it.findItem(R.id.editor_menu_save).isEnabled = partState.isReady
             it.findItem(R.id.editor_menu_import_file).isEnabled = true
@@ -430,6 +435,7 @@ class MainActivity : AppCompatActivity() {
             R.id.nav_menu_previous_part -> viewModel.previousPart()
             R.id.nav_menu_next_part -> viewModel.nextPart()
             R.id.editor_menu_convert -> viewModel.convertContent()
+            R.id.editor_menu_prediction -> viewModel.requestPredictionSettings()
             R.id.editor_menu_export -> onExport(viewModel.getExportMimeTypes())
             R.id.editor_menu_save -> (partState as? PartState.Loaded)?.let { viewModel.save() }
             // Note: ideally we could restrict to `application/*` but some file managers use `binary/octet-stream`
@@ -529,5 +535,13 @@ class MainActivity : AppCompatActivity() {
     private fun onPartNavigationStateUpdate(state: PartNavigationState) {
         navigationState = state
         invalidateOptionsMenu()
+    }
+
+    private fun onPredictionSettingsRequest(request: NewPredictionRequest?) {
+        if (request != null) {
+            launchPredictionDialog(request.enabled, request.durationMs) { enable: Boolean, durationMs: Int ->
+                viewModel.applyPredictionSettings(enable, durationMs)
+            }
+        }
     }
 }

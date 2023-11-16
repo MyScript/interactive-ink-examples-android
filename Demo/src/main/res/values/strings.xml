@@ -19,6 +19,7 @@
     <string name="nav_menu_next_part">Next part</string>
 
     <string name="editor_menu_convert">Convert</string>
+    <string name="editor_menu_prediction">Prediction…</string>
     <string name="editor_menu_export">Export…</string>
     <string name="editor_export_type_label">%1$s (%2$s)</string>
     <string name="editor_export_failed">Export error</string>
@@ -52,5 +53,8 @@
     <string name="editor_dialog_color_picker_title">Choose a color</string>
     <string name="editor_dialog_insert_text_title">Add text block</string>
     <string name="editor_dialog_insert_text_action">Insert</string>
+    <string name="editor_dialog_prediction_title">Prediction settings</string>
+    <string name="editor_dialog_prediction_enable">Enable:</string>
+    <string name="editor_dialog_prediction_duration">Duration (ms):</string>
 
 </resources>

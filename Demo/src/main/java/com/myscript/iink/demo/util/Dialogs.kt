@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.widget.Switch
 import androidx.annotation.StringRes
 import com.myscript.iink.demo.R
 
@@ -62,4 +63,28 @@ fun Context.launchTextBlockInputDialog(onInputDone: (text: String) -> Unit) {
             .create()
     editText.requestFocus()
     builder.show()
+}
+
+fun Context.launchPredictionDialog(
+        enabled: Boolean,
+        durationMs: Int,
+        onInputDone: (Boolean, Int) -> Unit
+) {
+    val editPredictionLayout = LayoutInflater.from(this).inflate(R.layout.editor_prediction_layout, null)
+    val switchEnable = editPredictionLayout.findViewById<Switch>(R.id.switch_enable)
+    val numberDuration = editPredictionLayout.findViewById<EditText>(R.id.number_duration)
+
+    switchEnable.isChecked = enabled
+    numberDuration.setText(durationMs.toString())
+
+    AlertDialog.Builder(this)
+            .setView(editPredictionLayout)
+            .setTitle(R.string.editor_dialog_prediction_title)
+            .setPositiveButton(R.string.dialog_ok) { _, _ ->
+                val durationString = numberDuration.text.toString()
+                if (durationString.isNotEmpty())
+                    onInputDone(switchEnable.isChecked, durationString.toInt())
+            }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
 }

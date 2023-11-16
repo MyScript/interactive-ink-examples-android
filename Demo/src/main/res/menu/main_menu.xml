@@ -26,6 +26,10 @@
         app:showAsAction="never"
         android:title="@string/editor_menu_convert"/>
     <item
+        android:id="@+id/editor_menu_prediction"
+        app:showAsAction="never"
+        android:title="@string/editor_menu_prediction"/>
+    <item
         android:id="@+id/editor_menu_export"
         app:showAsAction="never"
         android:title="@string/editor_menu_export"/>
