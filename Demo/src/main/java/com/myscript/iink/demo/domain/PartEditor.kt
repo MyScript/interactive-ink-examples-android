@@ -239,7 +239,7 @@ class PartEditor(
         if (editor != null) {
             editor.addListener(editorListener)
             editor.theme = theme
-            editor.configuration.enableRawContentConversion()
+            editor.configuration.enableRawContentInteractivity()
             this.inputController = inputController
             editor.part = currentPart
         }

@@ -4,7 +4,7 @@ package com.myscript.iink.demo.domain
 
 import com.myscript.iink.Configuration
 
-fun Configuration.enableRawContentConversion() {
+fun Configuration.enableRawContentInteractivity() {
     // Display grid background
     setString("raw-content.line-pattern", "grid")
 
