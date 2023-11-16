@@ -27,7 +27,6 @@ import androidx.lifecycle.coroutineScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.myscript.iink.Editor
-import com.myscript.iink.Engine
 import com.myscript.iink.MimeType
 import com.myscript.iink.demo.databinding.MainActivityBinding
 import com.myscript.iink.demo.di.EditorViewModelFactory
@@ -114,8 +113,8 @@ class MainActivity : AppCompatActivity() {
     private var addImagePosition: PointF? = null
 
     private companion object {
-        const val EnableCapturePrediction: Boolean = true
-        const val MinPredictionDurationMs: Int = 16 // 1 frame @60Hz, 2 frames @120Hz
+        const val EnableCapturePredictionByDefault: Boolean = true
+        const val DefaultMinimumPredictionDurationMs: Int = 16 // 1 frame @60Hz, 2 frames @120Hz
     }
 
     private val onEditorLongPress = IInputControllerListener { x, y, _ ->
@@ -213,9 +212,7 @@ class MainActivity : AppCompatActivity() {
         editorData.editor?.let { editor ->
             viewModel.setEditor(editorData)
             setMargins(editor, R.dimen.editor_horizontal_margin, R.dimen.editor_vertical_margin)
-            editorView?.let {
-                enableCaptureStrokePrediction(editor.engine, editorView!!.context)
-            }
+            configureDefaultCaptureStrokePrediction(editorView?.context ?: this)
             smartGuideView?.setEditor(editor)
         }
         smartGuideView?.setMenuListener(onSmartGuideMenuAction)
@@ -257,13 +254,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun enableCaptureStrokePrediction(engine: Engine, context: Context) {
-        val durationMs = FrameTimeEstimator.getFrameTime(context).roundToInt()
-            .coerceAtLeast(MinPredictionDurationMs)
-        with(engine.configuration) {
-            setNumber("renderer.prediction.duration", durationMs)
-            setBoolean("renderer.prediction.enable", EnableCapturePrediction)
-        }
+    private fun configureDefaultCaptureStrokePrediction(context: Context) {
+        val durationMs = FrameTimeEstimator.getFrameTime(context)
+            .roundToInt()
+            .coerceAtLeast(DefaultMinimumPredictionDurationMs)
+        viewModel.changePredictionSettings(EnableCapturePredictionByDefault, durationMs)
     }
 
     private fun showContextualActionDialog(actionState: ContextualActionState, selectedBlockId: String? = null) {
