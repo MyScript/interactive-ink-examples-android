@@ -30,10 +30,10 @@ import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Style;
 import com.myscript.iink.graphics.Transform;
 
-import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class Canvas implements ICanvas
 {
@@ -80,7 +80,7 @@ public class Canvas implements ICanvas
 
   private boolean clearOnStartDraw = true;
 
-  private final Set<String> clips;
+  private final List<String> clips;
 
   private final Map<String, Typeface> typefaceMap;
 
@@ -104,7 +104,7 @@ public class Canvas implements ICanvas
     this.xdpi = xdpi;
     this.ydpi = ydpi;
 
-    clips = new HashSet<>();
+    clips = new ArrayList<String>();
 
     strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     strokePaint.setStyle(Paint.Style.STROKE);
@@ -367,10 +367,12 @@ public class Canvas implements ICanvas
   @Override
   public void endGroup(@NonNull String id)
   {
-    if (clips.remove(id))
+    int index = clips.lastIndexOf(id);
+    if (index != -1)
     {
       Objects.requireNonNull(canvas);
       canvas.restore();
+      clips.remove(index);
     }
   }
 
