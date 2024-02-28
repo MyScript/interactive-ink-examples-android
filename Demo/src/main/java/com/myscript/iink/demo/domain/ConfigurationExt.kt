@@ -26,6 +26,7 @@ fun Configuration.enableRawContentInteractivity() {
     setBoolean("raw-content.eraser.erase-precisely", false)
     setBoolean("raw-content.eraser.dynamic-radius", true)
     setBoolean("raw-content.auto-connection", true)
+    setStringArray("raw-content.edge.policy", arrayOf("default-with-drag"))
 
     // Show alignment guides and snap to them
     setBoolean("raw-content.guides.enable", true)
