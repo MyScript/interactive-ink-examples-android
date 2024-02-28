@@ -19,6 +19,7 @@ import android.text.TextPaint;
 import android.text.style.MetricAffectingSpan;
 import android.text.style.TextAppearanceSpan;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.collection.LruCache;
@@ -88,11 +89,6 @@ public class FontMetricsProvider implements IFontMetricsProvider
     this.typefaceMap = typefaceMap;
   }
 
-  private float x_mm2px(float mm)
-  {
-    return (mm / 25.4f) * displayMetrics.xdpi;
-  }
-
   private float y_mm2px(float mm)
   {
     return (mm / 25.4f) * displayMetrics.ydpi;
@@ -127,7 +123,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
   @Override
   public float getFontSizePx(Style style)
   {
-    return style.getFontSize() * displayMetrics.scaledDensity;
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, style.getFontSize(), displayMetrics);
   }
 
   @Override
