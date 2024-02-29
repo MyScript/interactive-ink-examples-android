@@ -4,7 +4,7 @@
   <font
       app:fontStyle="normal"
       app:fontWeight="400"
-      app:font="@font/stix_general" />
+      app:font="@font/stix_regular" />
   <font
       app:fontStyle="italic"
       app:fontWeight="400"
