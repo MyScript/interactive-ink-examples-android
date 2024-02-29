@@ -20,6 +20,9 @@ fun Configuration.enableRawContentInteractivity() {
     // Allow converting shapes by holding the pen in position
     setBoolean("raw-content.convert.shape-on-hold", true)
 
+    // Configure shapes axis snapping
+    setStringArray("raw-content.shape.snap-axis", arrayOf("triangle", "rectangle", "rhombus", "parallelogram", "ellipse"))
+
     // Configure interactions
     setString("raw-content.interactive-items", "converted-or-mixed")
     setBoolean("raw-content.tap-interactions", true)
