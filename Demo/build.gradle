@@ -46,10 +46,10 @@ dependencies {
 }
 
 task DownloadAndExtractAssets(type: Copy) {
-    def sourceUrls = ['https://download.myscript.com/iink/recognitionAssets_iink_2.3/myscript-iink-recognition-diagram.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_2.3/myscript-iink-recognition-raw-content.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_2.3/myscript-iink-recognition-math.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_2.3/myscript-iink-recognition-text-en_US.zip']
+    def sourceUrls = ['https://download.myscript.com/iink/recognitionAssets_iink_3.0/myscript-iink-recognition-diagram.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_3.0/myscript-iink-recognition-raw-content.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_3.0/myscript-iink-recognition-math.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_3.0/myscript-iink-recognition-text-en_US.zip']
     def targetDir = new File(projectDir, "src/main/assets/")
     def diagramConf = new File(targetDir, "conf/diagram.conf")
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
