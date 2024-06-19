@@ -93,7 +93,7 @@ public class Canvas implements ICanvas
   private final Map<String, Typeface> typefaceMap;
 
   private float[] dashArray;
-  private int dashOffset = 0;
+  private float dashOffset = 0;
 
   private final float xdpi;
   private final float ydpi;
@@ -333,6 +333,7 @@ public class Canvas implements ICanvas
   @Override
   public void setStrokeDashOffset(float strokeDashOffset)
   {
+    dashOffset = strokeDashOffset;
     if (dashArray != null)
       strokePaint.setPathEffect(new DashPathEffect(dashArray, dashOffset));
     else
