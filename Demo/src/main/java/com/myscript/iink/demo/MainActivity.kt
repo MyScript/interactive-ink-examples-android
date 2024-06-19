@@ -106,6 +106,7 @@ private val PenBrush.label: Int
         PenBrush.FELT_PEN -> R.string.pen_brush_felt_pen
         PenBrush.FOUNTAIN_PEN -> R.string.pen_brush_fountain_pen
         PenBrush.CALLIGRAPHIC_BRUSH -> R.string.pen_brush_calligraphic_brush
+        PenBrush.PENCIL -> R.string.pen_brush_pencil_brush
     }
 
 class MainActivity : AppCompatActivity() {
@@ -132,6 +133,7 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.pen_brush_felt_pen) -> PenBrush.FELT_PEN
                 getString(R.string.pen_brush_fountain_pen) -> PenBrush.FOUNTAIN_PEN
                 getString(R.string.pen_brush_calligraphic_brush) -> PenBrush.CALLIGRAPHIC_BRUSH
+                getString(R.string.pen_brush_pencil_brush) -> PenBrush.PENCIL
                 else -> null
             }
             if (penBrush != null) {

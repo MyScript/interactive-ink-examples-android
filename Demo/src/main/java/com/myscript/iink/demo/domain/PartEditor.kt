@@ -82,13 +82,14 @@ val ToolType.storageKey: String
     }
 
 enum class PenBrush {
-    FELT_PEN, FOUNTAIN_PEN, CALLIGRAPHIC_BRUSH;
+    FELT_PEN, FOUNTAIN_PEN, CALLIGRAPHIC_BRUSH, PENCIL;
 
     val styleValue: String
         get() = when (this) {
             FELT_PEN -> "FeltPen"
             FOUNTAIN_PEN -> "FountainPen"
             CALLIGRAPHIC_BRUSH -> "CalligraphicBrush"
+            PENCIL -> "Extra-Pencil"
         }
 
     companion object {
@@ -97,6 +98,7 @@ enum class PenBrush {
                 "FeltPen" -> FELT_PEN
                 "FountainPen" -> FOUNTAIN_PEN
                 "CalligraphicBrush" -> CALLIGRAPHIC_BRUSH
+                "Extra-Pencil" -> PENCIL
                 else -> null
             }
         }

@@ -67,5 +67,6 @@
     <string name="pen_brush_felt_pen">Felt Pen</string>
     <string name="pen_brush_fountain_pen">Fountain Pen</string>
     <string name="pen_brush_calligraphic_brush">Calligraphic Brush</string>
+    <string name="pen_brush_pencil_brush">Pencil Brush</string>
 
 </resources>

@@ -62,6 +62,9 @@ public final class EditorBinding
       return;
     }
 
+    //Note: all extra brushes names must start with this prefix
+    final String ExtraBrushPrefix = "Extra-";
+
     extraBrushConfigs = new ArrayList<>();
     BitmapFactory.Options opt = new BitmapFactory.Options();
     opt.inScaled = false;
@@ -84,7 +87,7 @@ public final class EditorBinding
       config.setNumber("point-min-opacity", 0.5);
       config.setNumber("background-forced-opacity", 0.67);
 
-      extraBrushConfigs.add(new Canvas.ExtraBrushConfig("[Extra] Pencil", stampBitmap, backgroundBitmap, config));
+      extraBrushConfigs.add(new Canvas.ExtraBrushConfig(ExtraBrushPrefix + "Pencil", stampBitmap, backgroundBitmap, config));
     }
   }
 
