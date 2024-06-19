@@ -190,10 +190,9 @@ class DemoModule(application: Application) {
             setNumber("scale-min-pressure", 0.75)
             setNumber("scale-max-pressure", 1.2)
             setNumber("opacity-min-pressure", 0.1)
-            setNumber("opacity-max-pressure", 1.0)
+            setNumber("opacity-max-pressure", 0.5)
             setNumber("amortized-pressure-factor", 1.5)
             setNumber("point-min-opacity", 0.5)
-            setNumber("background-forced-opacity", 0.67)
         }
         val pencilBrushConfig = Canvas.ExtraBrushConfig(
             "${EXTRA_BRUSH_PREFIX}Pencil",
