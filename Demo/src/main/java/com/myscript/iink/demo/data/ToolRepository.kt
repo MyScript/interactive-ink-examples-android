@@ -29,4 +29,14 @@ class ToolRepository(private val preferences: SharedPreferences) {
             putFloat("$toolKey-thickness", thickness)
         }
     }
+
+    fun getPenBrush(toolKey: String): String? {
+        return preferences.getString("$toolKey-pen-brush", null)
+    }
+
+    fun savePenBrush(toolKey: String, brush: String) {
+        preferences.edit {
+            putString("$toolKey-pen-brush", brush)
+        }
+    }
 }

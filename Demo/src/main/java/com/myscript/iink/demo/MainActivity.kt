@@ -12,6 +12,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -33,6 +35,7 @@ import com.myscript.iink.demo.di.EditorViewModelFactory
 import com.myscript.iink.demo.domain.BlockType
 import com.myscript.iink.demo.domain.MenuAction
 import com.myscript.iink.demo.domain.PartType
+import com.myscript.iink.demo.domain.PenBrush
 import com.myscript.iink.demo.ui.ColorState
 import com.myscript.iink.demo.ui.ColorsAdapter
 import com.myscript.iink.demo.ui.ContextualActionState
@@ -42,6 +45,7 @@ import com.myscript.iink.demo.ui.NewPartRequest
 import com.myscript.iink.demo.ui.PartHistoryState
 import com.myscript.iink.demo.ui.PartNavigationState
 import com.myscript.iink.demo.ui.PartState
+import com.myscript.iink.demo.ui.PenBrushState
 import com.myscript.iink.demo.ui.ThicknessState
 import com.myscript.iink.demo.ui.ThicknessesAdapter
 import com.myscript.iink.demo.ui.ToolState
@@ -96,6 +100,14 @@ private val MenuAction.stringRes: Int
         MenuAction.FORMAT_TEXT_LIST_NUMBERED -> R.string.editor_action_format_text_as_list_numbered
     }
 
+@get:StringRes
+private val PenBrush.label: Int
+    get() = when (this) {
+        PenBrush.FELT_PEN -> R.string.pen_brush_felt_pen
+        PenBrush.FOUNTAIN_PEN -> R.string.pen_brush_fountain_pen
+        PenBrush.CALLIGRAPHIC_BRUSH -> R.string.pen_brush_calligraphic_brush
+    }
+
 class MainActivity : AppCompatActivity() {
 
     private val exportsDir: File
@@ -110,6 +122,25 @@ class MainActivity : AppCompatActivity() {
     private var toolsAdapter = ToolsAdapter { viewModel.changeTool(it) }
     private var colorsAdapter = ColorsAdapter { viewModel.changeColor(it) }
     private var thicknessesAdapter = ThicknessesAdapter { viewModel.changeThickness(it) }
+    private val penBrushesAdapter by lazy {
+        ArrayAdapter<String>(this, R.layout.toolbar_pen_brush_row, R.id.toolbar_pen_brush_row_label)
+    }
+    private val penBrushSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            val penBrushLabel = penBrushesAdapter.getItem(position) ?: return
+            val penBrush = when (penBrushLabel) {
+                getString(R.string.pen_brush_felt_pen) -> PenBrush.FELT_PEN
+                getString(R.string.pen_brush_fountain_pen) -> PenBrush.FOUNTAIN_PEN
+                getString(R.string.pen_brush_calligraphic_brush) -> PenBrush.CALLIGRAPHIC_BRUSH
+                else -> null
+            }
+            if (penBrush != null) {
+                viewModel.changePenBrush(PenBrushState(penBrush, true))
+            }
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+    }
     private var addImagePosition: PointF? = null
 
     private companion object {
@@ -201,6 +232,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.availableTools.observe(this, this::onAvailableToolsUpdate)
         viewModel.availableColors.observe(this, this::onAvailableColorsUpdate)
         viewModel.availableThicknesses.observe(this, this::onAvailableThicknessesUpdate)
+        viewModel.availablePenBrushes.observe(this, this::onAvailablePenBrushesUpdate)
         viewModel.partCreationRequest.observe(this, this::onPartCreationRequest)
         viewModel.partState.observe(this, this::onPartStateUpdate)
         viewModel.partHistoryState.observe(this, this::onPartHistoryUpdate)
@@ -225,6 +257,8 @@ class MainActivity : AppCompatActivity() {
             toolbarColors.itemAnimator = null
             toolbarColors.adapter = colorsAdapter
             toolbarThicknesses.adapter = thicknessesAdapter
+            penBrushDropdown.adapter = penBrushesAdapter
+            penBrushDropdown.onItemSelectedListener = penBrushSelectedListener
         }
 
         // Note: could be managed by domain layer and handled through observable error channel
@@ -401,6 +435,16 @@ class MainActivity : AppCompatActivity() {
     private fun onAvailableThicknessesUpdate(thicknessStates: List<ThicknessState>) {
         thicknessesAdapter.submitList(thicknessStates)
         binding.editorToolbarSheet.toolbarThicknesses.isVisible = thicknessStates.isNotEmpty()
+    }
+
+    private fun onAvailablePenBrushesUpdate(penBrushStates: List<PenBrushState>) {
+        penBrushesAdapter.clear()
+        if (!penBrushStates.isNullOrEmpty()) {
+            penBrushesAdapter.addAll(penBrushStates.map { getString(it.penBrush.label) })
+            binding.editorToolbarSheet.penBrushDropdown.setSelection(penBrushStates.indexOfFirst(PenBrushState::isSelected))
+        }
+        penBrushesAdapter.notifyDataSetChanged()
+        binding.editorToolbarSheet.penBrushDropdown.isVisible = !penBrushStates.isNullOrEmpty()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

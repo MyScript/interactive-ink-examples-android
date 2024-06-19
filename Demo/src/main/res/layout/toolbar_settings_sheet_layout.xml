@@ -10,6 +10,7 @@
     android:layout_gravity="center_horizontal"
     style="?attr/bottomSheetStyle"
     android:background="?android:attr/colorBackground"
+    android:paddingHorizontal="?attr/dialogPreferredPadding"
     android:elevation="16dp"
     app:behavior_hideable="false"
     app:behavior_saveFlags="all"
@@ -23,7 +24,7 @@
         app:tint="?attr/colorControlNormal"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="16dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/toolbar_tools"
@@ -43,7 +44,9 @@
         android:orientation="horizontal"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/toolbar_color_cell"
-        tools:itemCount="4" />
+        tools:itemCount="4"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/toolbar_thicknesses"
@@ -53,6 +56,25 @@
         android:orientation="horizontal"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/toolbar_thickness_cell"
-        tools:itemCount="3" />
+        tools:itemCount="3"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/tool_configuration_pen_brush_section_title" />
+
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:layout_gravity="start"
+        android:id="@+id/pen_brush_dropdown"
+        android:layout_width="match_parent"
+        tools:minWidth="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        tools:minHeight="?attr/listPreferredItemHeightSmall"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:listitem="@layout/toolbar_pen_brush_row" />
 </LinearLayout>

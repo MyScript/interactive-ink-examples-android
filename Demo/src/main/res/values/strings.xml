@@ -63,4 +63,9 @@
     <string name="tool_lasso">Lasso</string>
     <string name="tool_eraser">Eraser</string>
 
+    <string name="tool_configuration_pen_brush_section_title">Brush</string>
+    <string name="pen_brush_felt_pen">Felt Pen</string>
+    <string name="pen_brush_fountain_pen">Fountain Pen</string>
+    <string name="pen_brush_calligraphic_brush">Calligraphic Brush</string>
+
 </resources>

@@ -14,6 +14,7 @@ import com.myscript.iink.demo.domain.BlockType
 import com.myscript.iink.demo.domain.MenuAction
 import com.myscript.iink.demo.domain.PartEditor
 import com.myscript.iink.demo.domain.PartType
+import com.myscript.iink.demo.domain.PenBrush
 import com.myscript.iink.demo.domain.PredictionSettings
 import com.myscript.iink.demo.domain.ToolType
 import com.myscript.iink.uireferenceimplementation.EditorData
@@ -61,6 +62,7 @@ enum class Thickness {
 
 data class ColorState(@ColorInt val color: Int, val isSelected: Boolean)
 data class ThicknessState(val thickness: Thickness, val isSelected: Boolean)
+data class PenBrushState(val penBrush: PenBrush, val isSelected: Boolean)
 
 class ColorPalette(
         private val colors: Map<ToolType, List<Int>>
@@ -102,6 +104,10 @@ class EditorViewModel(
     private val _availableThicknesses = MutableLiveData<List<ThicknessState>>(emptyList())
     val availableThicknesses: LiveData<List<ThicknessState>>
         get() = _availableThicknesses
+
+    private val _availablePenBrushes = MutableLiveData<List<PenBrushState>>(emptyList())
+    val availablePenBrushes: LiveData<List<PenBrushState>>
+        get() = _availablePenBrushes
 
     private val _enableActivePen = MutableLiveData(partEditor.isActivePenEnabled)
     val enableActivePen: LiveData<Boolean>
@@ -145,13 +151,14 @@ class EditorViewModel(
                 _partNavigationState.value = PartNavigationState(hasPrevious, hasNext)
             }
 
-            override fun toolChanged(toolType: ToolType?, iinkColor: IInkColor, thickness: Float) {
+            override fun toolChanged(toolType: ToolType?, iinkColor: IInkColor, thickness: Float, penBrush: PenBrush?) {
                 val tools: List<ToolState> = _availableTools.value?.map { toolState ->
                     ToolState(toolState.type, toolState.type == toolType, toolState.isEnabled)
                 } ?: emptyList()
                 _availableTools.value = tools
                 _availableColors.value = colorsByTools(toolType, iinkColor)
                 _availableThicknesses.value = thicknessesByTools(toolType, thickness)
+                _availablePenBrushes.value = penBrushesByTools(toolType, penBrush)
             }
 
             override fun colorChanged(toolType: ToolType, iinkColor: IInkColor?) {
@@ -161,10 +168,17 @@ class EditorViewModel(
             }
 
             override fun thicknessChanged(toolType: ToolType, thickness: Float?) {
-                val thick = _availableThicknesses.value?.map { thicknessState ->
-                    ThicknessState(thicknessState.thickness, thickness == thicknessState.thickness.toFloat(toolType))
+                val thicknesses = _availableThicknesses.value?.map { thicknessState ->
+                    ThicknessState(thicknessState.thickness, thicknessState.thickness.toFloat(toolType) == thickness)
                 }
-                _availableThicknesses.value = thick?.toList()
+                _availableThicknesses.value = thicknesses?.toList()
+            }
+
+            override fun penBrushChanged(toolType: ToolType, penBrush: PenBrush) {
+                val thick = _availablePenBrushes.value?.map { state ->
+                    PenBrushState(state.penBrush, penBrush == state.penBrush)
+                }
+                _availablePenBrushes.value = thick?.toList()
             }
 
             override fun partLoaded(partId: String, partType: PartType) {
@@ -200,6 +214,14 @@ class EditorViewModel(
     private fun thicknessesByTools(toolType: ToolType?, selectedThickness: Float): List<ThicknessState> {
         return if (toolType == ToolType.HIGHLIGHTER || toolType == ToolType.PEN) {
             Thickness.values().map { ThicknessState(it, it == selectedThickness.toThickness(toolType)) }
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun penBrushesByTools(toolType: ToolType?, selectedPenBrush: PenBrush?): List<PenBrushState> {
+        return if (toolType == ToolType.PEN) {
+            PenBrush.values().map { PenBrushState(it, it == selectedPenBrush) }
         } else {
             emptyList()
         }
@@ -423,6 +445,10 @@ class EditorViewModel(
 
     fun changeThickness(thicknessState: ThicknessState) {
         partEditor.selectedTool?.let { partEditor.changeThickness(thicknessState.thickness.toFloat(it)) }
+    }
+
+    fun changePenBrush(penBrushState: PenBrushState) {
+        partEditor.changePenBrush(penBrushState.penBrush)
     }
 
     fun enableActivePen(enableActivePen: Boolean) {

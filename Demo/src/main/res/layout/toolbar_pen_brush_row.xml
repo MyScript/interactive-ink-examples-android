@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="@layout/toolbar_settings_sheet_layout"
+    android:id="@+id/toolbar_pen_brush_row_label"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/listPreferredItemHeightSmall"
+    android:textAppearance="?attr/textAppearanceListItem"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:gravity="center_vertical"
+    tools:text="@sample/pen_brushes" />

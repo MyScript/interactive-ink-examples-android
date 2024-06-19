@@ -78,6 +78,28 @@ val ToolType.storageKey: String
         ToolType.LASSO -> "lasso"
     }
 
+enum class PenBrush {
+    FELT_PEN, FOUNTAIN_PEN, CALLIGRAPHIC_BRUSH;
+
+    val styleValue: String
+        get() = when (this) {
+            FELT_PEN -> "FeltPen"
+            FOUNTAIN_PEN -> "FountainPen"
+            CALLIGRAPHIC_BRUSH -> "CalligraphicBrush"
+        }
+
+    companion object {
+        fun fromStyleValue(value: String): PenBrush? {
+            return when (value) {
+                "FeltPen" -> FELT_PEN
+                "FountainPen" -> FOUNTAIN_PEN
+                "CalligraphicBrush" -> CALLIGRAPHIC_BRUSH
+                else -> null
+            }
+        }
+    }
+}
+
 enum class BlockType {
     Diagram, Math, Drawing, RawContent, Text, Image;
 
@@ -140,9 +162,10 @@ class PartEditor(
         fun partLoading(partId: String)
         fun partLoadingError(partId: String, exception: Exception)
         fun editorError(blockId: String, error: EditorError, message: String)
-        fun toolChanged(toolType: ToolType?, iinkColor: IInkColor, thickness: Float)
+        fun toolChanged(toolType: ToolType?, iinkColor: IInkColor, thickness: Float, penBrush: PenBrush?)
         fun colorChanged(toolType: ToolType, iinkColor: IInkColor?)
         fun thicknessChanged(toolType: ToolType, thickness: Float?)
+        fun penBrushChanged(toolType: ToolType, penBrush: PenBrush)
         fun updateToolState(partType: PartType, toolType: ToolType, enableActivePen: Boolean)
         fun actionError(exception: Exception, blockId: String?)
     }
@@ -380,9 +403,14 @@ class PartEditor(
         return toolRepository.getToolThickness(toolType?.storageKey ?: "")
     }
 
+    private fun getPenBrush(toolType: ToolType?): PenBrush? {
+        val style = toolRepository.getPenBrush(toolType?.storageKey ?: "")
+        return style?.let(PenBrush.Companion::fromStyleValue)
+    }
+
     fun changeColor(iinkColor: IInkColor) {
         val tool = selectedTool ?: return
-        if (setToolStyle(tool, iinkColor, getToolThickness(tool))) {
+        if (setToolStyle(tool, iinkColor, getToolThickness(tool), getPenBrush(tool))) {
             toolRepository.saveToolColor(tool.storageKey, iinkColor.androidColor)
             scope.launch(mainDispatcher) {
                 listener?.colorChanged(tool, iinkColor)
@@ -392,7 +420,7 @@ class PartEditor(
 
     fun changeThickness(thickness: Float) {
         val tool = selectedTool ?: return
-        if (setToolStyle(tool, getToolColor(tool), thickness)) {
+        if (setToolStyle(tool, getToolColor(tool), thickness, getPenBrush(tool))) {
             toolRepository.saveToolThickness(tool.storageKey, thickness)
             scope.launch(mainDispatcher) {
                 listener?.thicknessChanged(tool, thickness)
@@ -403,20 +431,37 @@ class PartEditor(
     fun changeTool(tool: ToolType) {
         val iinkColor = getToolColor(tool)
         val thickness = getToolThickness(tool)
-        if (setToolStyle(tool, iinkColor, thickness)) {
+        val brush = getPenBrush(tool)
+        if (setToolStyle(tool, iinkColor, thickness, brush)) {
             selectedTool = tool
             scope.launch(mainDispatcher) {
-                listener?.toolChanged(tool, iinkColor, thickness)
+                listener?.toolChanged(tool, iinkColor, thickness, brush)
             }
         }
     }
 
-    private fun setToolStyle(toolType: ToolType, iinkColor: IInkColor, thickness: Float): Boolean {
+    fun changePenBrush(penBrush: PenBrush) {
+        val tool = selectedTool ?: return
+        if (tool != ToolType.PEN) return
+
+        if (setToolStyle(tool, getToolColor(tool), getToolThickness(tool), penBrush)) {
+            toolRepository.savePenBrush(tool.storageKey, penBrush.styleValue)
+            scope.launch(mainDispatcher) {
+                listener?.penBrushChanged(tool, penBrush)
+            }
+        }
+    }
+
+    private fun setToolStyle(toolType: ToolType, iinkColor: IInkColor, thickness: Float, penBrush: PenBrush?): Boolean {
         val editor = editor ?: return true
 
-        val colorValue = String.format("#%08X", 0xFFFFFFFF and iinkColor.rgba.toLong())
+        val colorValue = "#%08X".format(0xFFFFFFFF and iinkColor.rgba.toLong())
         // force Locale.US to ensure dotted float formatting (`1.88` instead of `1,88`) whatever the device's locale setup
-        val style = String.format(Locale.US, "color: $colorValue; -myscript-pen-width: %.2f", thickness)
+        val thicknessValue = "%.2f".format(Locale.US, thickness)
+        var style = "color: $colorValue; -myscript-pen-width: $thicknessValue;"
+        if (penBrush != null) {
+            style += "-myscript-pen-brush: ${penBrush.styleValue};"
+        }
 
         val pointerTool = toolType.toPointerTool()
         val pointerType = pointerType(pointerTool)
