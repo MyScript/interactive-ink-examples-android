@@ -39,31 +39,19 @@ import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
 
-enum class PartType {
-    Diagram, Math, Drawing, RawContent, Text, TextDocument;
+enum class PartType(private val stringValue: String) {
+    Diagram("Diagram"),
+    Math("Math"),
+    Drawing("Drawing"),
+    RawContent("Raw Content"),
+    Text("Text"),
+    TextDocument("Text Document");
 
-    override fun toString(): String {
-        return when (this) {
-            Diagram -> "Diagram"
-            Math -> "Math"
-            Drawing -> "Drawing"
-            RawContent -> "Raw Content"
-            Text -> "Text"
-            TextDocument -> "Text Document"
-        }
-    }
+    override fun toString(): String = stringValue
 
     companion object {
         fun fromString(value: String): PartType? {
-            return when (value) {
-                "Diagram" -> Diagram
-                "Math" -> Math
-                "Drawing" -> Drawing
-                "Raw Content" -> RawContent
-                "Text" -> Text
-                "Text Document" -> TextDocument
-                else -> null
-            }
+            return values().firstOrNull { it.stringValue == value }
         }
     }
 }
@@ -81,26 +69,15 @@ val ToolType.storageKey: String
         ToolType.LASSO -> "lasso"
     }
 
-enum class PenBrush {
-    FELT_PEN, FOUNTAIN_PEN, CALLIGRAPHIC_BRUSH, PENCIL;
-
-    val styleValue: String
-        get() = when (this) {
-            FELT_PEN -> "FeltPen"
-            FOUNTAIN_PEN -> "FountainPen"
-            CALLIGRAPHIC_BRUSH -> "CalligraphicBrush"
-            PENCIL -> "Extra-Pencil"
-        }
+enum class PenBrush(val styleValue: String) {
+    FELT_PEN("FeltPen"),
+    FOUNTAIN_PEN("FountainPen"),
+    CALLIGRAPHIC_BRUSH("CalligraphicBrush"),
+    PENCIL("Extra-Pencil");
 
     companion object {
         fun fromStyleValue(value: String): PenBrush? {
-            return when (value) {
-                "FeltPen" -> FELT_PEN
-                "FountainPen" -> FOUNTAIN_PEN
-                "CalligraphicBrush" -> CALLIGRAPHIC_BRUSH
-                "Extra-Pencil" -> PENCIL
-                else -> null
-            }
+            return values().firstOrNull { it.styleValue == value }
         }
     }
 }
