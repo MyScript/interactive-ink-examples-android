@@ -60,21 +60,28 @@
         android:visibility="gone"
         tools:visibility="visible"/>
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/toolbar_pen_brush_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="@string/tool_configuration_pen_brush_section_title" />
-
-    <androidx.appcompat.widget.AppCompatSpinner
-        android:layout_gravity="start"
-        android:id="@+id/pen_brush_dropdown"
-        android:layout_width="match_parent"
-        tools:minWidth="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        tools:minHeight="?attr/listPreferredItemHeightSmall"
         android:visibility="gone"
         tools:visibility="visible"
-        tools:listitem="@layout/toolbar_pen_brush_row" />
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="@string/tool_configuration_pen_brush_section_title" />
+
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:layout_gravity="start"
+            android:id="@+id/pen_brush_dropdown"
+            android:layout_width="match_parent"
+            tools:minWidth="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:minHeight="?attr/listPreferredItemHeightSmall"
+            tools:listitem="@layout/toolbar_pen_brush_row" />
+    </LinearLayout>
 </LinearLayout>

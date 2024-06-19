@@ -446,7 +446,7 @@ class MainActivity : AppCompatActivity() {
             binding.editorToolbarSheet.penBrushDropdown.setSelection(penBrushStates.indexOfFirst(PenBrushState::isSelected))
         }
         penBrushesAdapter.notifyDataSetChanged()
-        binding.editorToolbarSheet.penBrushDropdown.isVisible = !penBrushStates.isNullOrEmpty()
+        binding.editorToolbarSheet.toolbarPenBrushSection.isVisible = !penBrushStates.isNullOrEmpty()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
