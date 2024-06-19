@@ -29,12 +29,12 @@ fun ToolType.toToolState(isSelected: Boolean, isEnable: Boolean) = ToolState(thi
 
 fun Thickness.toFloat(toolType: ToolType) = when (toolType) {
     ToolType.PEN -> when (this) {
-        Thickness.THIN -> .208f
-        Thickness.MEDIUM -> .625f
-        Thickness.LARGE -> 1.875f
+        Thickness.THIN -> .25f
+        Thickness.MEDIUM -> .65f
+        Thickness.LARGE -> 1.65f
     }
     ToolType.HIGHLIGHTER -> when (this) {
-        Thickness.THIN -> 1.666f
+        Thickness.THIN -> 1.67f
         Thickness.MEDIUM -> 5f
         Thickness.LARGE -> 15f
     }
@@ -43,13 +43,13 @@ fun Thickness.toFloat(toolType: ToolType) = when (toolType) {
 
 fun Float.toThickness(toolType: ToolType?) = when (toolType) {
     ToolType.PEN -> when {
-        this <= .208f -> Thickness.THIN
-        this == .625f -> Thickness.MEDIUM
-        this >= 1.875f -> Thickness.LARGE
+        this <= .25f -> Thickness.THIN
+        this == .65f -> Thickness.MEDIUM
+        this >= 1.65f -> Thickness.LARGE
         else -> Thickness.THIN
     }
     ToolType.HIGHLIGHTER -> when {
-        this <= 1.666f -> Thickness.THIN
+        this <= 1.67f -> Thickness.THIN
         this == 5f -> Thickness.MEDIUM
         this >= 15f -> Thickness.LARGE
         else -> null
