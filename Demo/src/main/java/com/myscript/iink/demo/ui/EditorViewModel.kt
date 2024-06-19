@@ -272,7 +272,7 @@ class EditorViewModel(
     }
 
     fun setEditor(editorData: EditorData?) {
-        partEditor.setEditor(editorData?.editor, editorData?.inputController)
+        partEditor.setEditor(editorData?.editor, editorData?.inputController, editorData?.extraBrushConfigs)
     }
 
     fun requestNewPart() {

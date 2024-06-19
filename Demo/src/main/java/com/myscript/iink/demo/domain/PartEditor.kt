@@ -2,6 +2,7 @@
 
 package com.myscript.iink.demo.domain
 
+import android.app.Application
 import android.graphics.Typeface
 import androidx.annotation.VisibleForTesting
 import com.myscript.iink.ContentBlock
@@ -20,6 +21,7 @@ import com.myscript.iink.demo.ui.androidColor
 import com.myscript.iink.demo.ui.iinkColor
 import com.myscript.iink.demo.util.autoCloseable
 import com.myscript.iink.graphics.Point
+import com.myscript.iink.uireferenceimplementation.Canvas
 import com.myscript.iink.uireferenceimplementation.ContextualActions
 import com.myscript.iink.uireferenceimplementation.ContextualActionsHelper
 import com.myscript.iink.uireferenceimplementation.ImageLoader
@@ -32,6 +34,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.ArrayList
 import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
@@ -148,6 +151,7 @@ enum class MenuAction {
 data class PredictionSettings(val enabled: Boolean = false, val durationMs: Int = 0)
 
 class PartEditor(
+    application: Application,
     private val typefaces: Map<String, Typeface>,
     private val theme: String,
     private val contentRepository: IContentRepository,
@@ -192,6 +196,7 @@ class PartEditor(
     private var allParts: List<String> = emptyList()
     var isActivePenEnabled: Boolean = true
     var inputController: InputController? = null
+    var extraBrushConfigs: ArrayList<Canvas.ExtraBrushConfig>? = null
         private set
 
     private val editorListener: IEditorListener = object : IEditorListener {
@@ -258,7 +263,11 @@ class PartEditor(
         this.listener = stateListener
     }
 
-    fun setEditor(editor: Editor?, inputController: InputController?) {
+    fun setEditor(
+        editor: Editor?,
+        inputController: InputController?,
+        extraBrushConfigs: ArrayList<Canvas.ExtraBrushConfig>?
+    ) {
         if (editor != null) {
             // configure multithreading for text recognition
             editor.configuration.setNumber("max-recognition-thread-count", 1)
@@ -271,6 +280,7 @@ class PartEditor(
             // also allow shape rotation in diagram parts
             editor.configuration.setStringArray("diagram.rotation", arrayOf("shape"))
             this.inputController = inputController
+            this.extraBrushConfigs = extraBrushConfigs
             editor.part = currentPart
         }
         this.editor = editor
@@ -301,7 +311,7 @@ class PartEditor(
                 x != null && y != null -> editor.hitBlock(x, y)
                 else -> null
             }
-            val imagePainter = ImagePainter().apply {
+            val imagePainter = ImagePainter(extraBrushConfigs).apply {
                 setImageLoader(ImageLoader(editor))
                 setTypefaceMap(typefaces)
             }

@@ -19,6 +19,7 @@ import com.myscript.iink.Renderer;
 import com.myscript.iink.graphics.ICanvas;
 import com.myscript.iink.graphics.Point;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,17 +41,17 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
   private LayerView layerView;
 
   private Map<String, Typeface> typefaceMap = new HashMap<>();
+  @Nullable
+  private ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs;
 
   public EditorView(Context context)
   {
-    super(context);
-    offlineSurfaceManager = new OfflineSurfaceManager();
+    this(context, null, 0);
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs)
   {
-    super(context, attrs);
-    offlineSurfaceManager = new OfflineSurfaceManager();
+    this(context, attrs, 0);
   }
 
   public EditorView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
@@ -127,6 +128,25 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     return renderer;
   }
 
+  public void setExtraBrushConfigs(@Nullable ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs)
+  {
+    if (editor != null)
+    {
+      throw new IllegalStateException("Please set the extra brush configs of the EditorView before binding the editor (through EditorView.setEngine() or EditorView.setEditor())");
+    }
+
+    this.extraBrushConfigs = extraBrushConfigs;
+    for (int i = 0, count = getChildCount(); i < count; ++i)
+    {
+      View view = getChildAt(i);
+      if (view instanceof LayerView)
+      {
+        LayerView layerView = (LayerView) view;
+        layerView.setExtraBrushConfigs(extraBrushConfigs);
+      }
+    }
+  }
+
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
@@ -166,6 +186,12 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
   public ImageLoader getImageLoader()
   {
     return imageLoader;
+  }
+
+  @Nullable
+  public ArrayList<Canvas.ExtraBrushConfig> getExtraBrushConfigs()
+  {
+    return extraBrushConfigs;
   }
 
   @Override
@@ -263,7 +289,7 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     if (offlineBitmap == null)
       return null;
     android.graphics.Canvas canvas = new android.graphics.Canvas(offlineBitmap);
-    return new Canvas(canvas, typefaceMap, imageLoader, offlineSurfaceManager, renderer.getDpiX(), renderer.getDpiY());
+    return new Canvas(canvas, extraBrushConfigs, typefaceMap, imageLoader, offlineSurfaceManager, renderer.getDpiX(), renderer.getDpiY());
   }
 
   @Override

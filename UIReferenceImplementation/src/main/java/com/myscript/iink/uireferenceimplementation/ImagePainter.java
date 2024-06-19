@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.myscript.iink.IImagePainter;
 import com.myscript.iink.graphics.ICanvas;
@@ -14,18 +15,29 @@ import com.myscript.iink.graphics.ICanvas;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class ImagePainter implements IImagePainter
 {
   private ImageLoader imageLoader = null;
   private Map<String, Typeface> typefaceMap = null;
-  private Bitmap bitmap = null;
   protected android.graphics.Canvas canvas = null;
-  private float dpi = 96;
-
+  private Bitmap bitmap = null;
+  @Nullable
+  private ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs;
+  private float dpi = 96.f;
   @ColorInt
   private int backgroundColor = Color.WHITE;
+
+  public ImagePainter()
+  {
+    this(null);
+  }
+  public ImagePainter(@Nullable ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs)
+  {
+    this.extraBrushConfigs = extraBrushConfigs;
+  }
 
   public void setImageLoader(ImageLoader imageLoader)
   {
@@ -45,7 +57,7 @@ public class ImagePainter implements IImagePainter
   @Override
   public ICanvas createCanvas()
   {
-    return new Canvas(canvas, typefaceMap, imageLoader, null, dpi, dpi);
+    return new Canvas(canvas, extraBrushConfigs, typefaceMap, imageLoader, dpi, dpi);
   }
 
   @Override

@@ -28,7 +28,6 @@ import com.myscript.iink.uireferenceimplementation.EditorBinding
 import com.myscript.iink.uireferenceimplementation.FontUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 class DemoModule(application: Application) {
@@ -51,7 +50,7 @@ class DemoModule(application: Application) {
         defaultTypeface = provideDefaultTypeface(application)
         val preferences = providePreferences(application)
         val editorTheme = provideEditorTheme(application)
-        editor = PartEditor(typefaces, editorTheme, providePartRepository(application, engine, preferences), provideToolRepository(preferences, colorPalette))
+        editor = PartEditor(application, typefaces, editorTheme, providePartRepository(application, engine, preferences), provideToolRepository(preferences, colorPalette))
         editorBinding = EditorBinding(engine, typefaces)
     }
 

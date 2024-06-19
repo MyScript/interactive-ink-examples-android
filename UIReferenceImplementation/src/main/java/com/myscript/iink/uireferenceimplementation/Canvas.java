@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
@@ -17,16 +18,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
+import android.graphics.Xfermode;
 import android.text.TextPaint;
 import android.util.Log;
 
+import com.myscript.iink.GLRenderer;
+import com.myscript.iink.ParameterSet;
 import com.myscript.iink.graphics.Color;
 import com.myscript.iink.graphics.FillRule;
 import com.myscript.iink.graphics.ICanvas;
 import com.myscript.iink.graphics.IPath;
+import com.myscript.iink.graphics.InkPoints;
 import com.myscript.iink.graphics.LineCap;
 import com.myscript.iink.graphics.LineJoin;
-import com.myscript.iink.graphics.Point;
 import com.myscript.iink.graphics.Style;
 import com.myscript.iink.graphics.Transform;
 
@@ -39,6 +43,7 @@ public class Canvas implements ICanvas
 {
 
   private static final Style DEFAULT_SVG_STYLE = new Style();
+  private static final PorterDuffXfermode xferModeSrcOver = new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER);
 
   @Nullable
   private android.graphics.Canvas canvas;
@@ -77,6 +82,9 @@ public class Canvas implements ICanvas
   @Nullable
   private final ImageLoader imageLoader;
   private final OfflineSurfaceManager offlineSurfaceManager;
+  @Nullable
+  private GLRenderer glRenderer;
+  private boolean keepGLRenderer = false;
 
   private boolean clearOnStartDraw = true;
 
@@ -95,7 +103,37 @@ public class Canvas implements ICanvas
   @NonNull
   private final Matrix pointScaleMatrix;
 
-  public Canvas(@Nullable android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, @Nullable OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
+  public static class ExtraBrushConfig
+  {
+    @NonNull
+    public final String baseName;
+    @NonNull
+    public final Bitmap stampBitmap;
+    @Nullable
+    public final Bitmap backgroundBitmap;
+    @NonNull
+    public final ParameterSet config;
+
+    ExtraBrushConfig(@NonNull String baseName, @NonNull Bitmap stampBitmap, @Nullable Bitmap backgroundBitmap, @NonNull ParameterSet config)
+    {
+      this.baseName = baseName;
+      this.stampBitmap = stampBitmap;
+      this.backgroundBitmap = backgroundBitmap;
+      this.config = config;
+    }
+  }
+
+  public Canvas(@Nullable android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
+  {
+    this(canvas, null, typefaceMap, imageLoader, null, xdpi, ydpi);
+  }
+
+  public Canvas(@Nullable android.graphics.Canvas canvas, @Nullable ArrayList<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
+  {
+    this(canvas, extraBrushConfigs, typefaceMap, imageLoader, null, xdpi, ydpi);
+  }
+
+  public Canvas(@Nullable android.graphics.Canvas canvas, @Nullable ArrayList<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, @Nullable OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
   {
     this.canvas = canvas;
     this.typefaceMap = typefaceMap;
@@ -103,6 +141,13 @@ public class Canvas implements ICanvas
     this.offlineSurfaceManager = offlineSurfaceManager;
     this.xdpi = xdpi;
     this.ydpi = ydpi;
+
+    if (extraBrushConfigs != null)
+    {
+      glRenderer = new GLRenderer();
+      for (ExtraBrushConfig config : extraBrushConfigs)
+        glRenderer.configureBrush(config.baseName, config.stampBitmap, config.backgroundBitmap, config.config);
+    }
 
     clips = new ArrayList<String>();
 
@@ -138,9 +183,13 @@ public class Canvas implements ICanvas
     applyStyle(DEFAULT_SVG_STYLE);
   }
 
-  public Canvas(@Nullable android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
+  public void destroy()
   {
-    this(canvas, typefaceMap, imageLoader, null, xdpi, ydpi);
+    if (glRenderer != null)
+    {
+      glRenderer.destroy();
+      glRenderer = null;
+    }
   }
 
   public void setCanvas(@NonNull android.graphics.Canvas canvas)
@@ -151,6 +200,11 @@ public class Canvas implements ICanvas
   public void setClearOnStartDraw(boolean clearOnStartDraw)
   {
     this.clearOnStartDraw = clearOnStartDraw;
+  }
+
+  public void setKeepGLRenderer(boolean keepGLRenderer)
+  {
+    this.keepGLRenderer = keepGLRenderer;
   }
 
   private void applyStyle(@NonNull Style style)
@@ -347,6 +401,12 @@ public class Canvas implements ICanvas
   @Override
   public void endDraw()
   {
+    if (!keepGLRenderer && glRenderer != null)
+    {
+      glRenderer.destroy();
+      glRenderer = null;
+    }
+
     Objects.requireNonNull(canvas);
     canvas.restore();
   }
@@ -409,6 +469,61 @@ public class Canvas implements ICanvas
     if (android.graphics.Color.alpha(strokePaint.getColor()) != 0)
     {
       canvas.drawPath(path, strokePaint);
+    }
+  }
+
+  @Override
+  public boolean isExtraBrushSupported(@NonNull String brushName)
+  {
+    return glRenderer != null && glRenderer.isBrushSupported(brushName);
+  }
+
+  @Override
+  public void drawStrokeWithExtraBrush(@NonNull InkPoints inkPoints, int temporaryPoints,
+                                       float strokeWidth, @NonNull String brushName, boolean fullStroke, long id)
+  {
+    Objects.requireNonNull(canvas);
+
+    if (!isExtraBrushSupported(brushName))
+      return;
+
+    if (inkPoints.x.length == 0 || strokeWidth <= 0.f || android.graphics.Color.alpha(fillPaint.getColor()) == 0)
+      return;
+
+    if (!glRenderer.isInitialized())
+    {
+      glRenderer.initialize(keepGLRenderer, canvas.getWidth(), canvas.getHeight(), xdpi, ydpi);
+    }
+
+    Xfermode xfm = fillPaint.getXfermode();
+
+    try
+    {
+      canvas.setMatrix(null); // GLRenderer works with pixels
+      fillPaint.setXfermode(xferModeSrcOver);
+
+      PointF strokeOrigin = glRenderer.drawStroke(inkPoints, temporaryPoints, transformValues, brushName, fullStroke, id, strokeWidth, fillPaint);
+      Bitmap strokeBitmap = glRenderer.saveStroke();
+      if (strokeBitmap != null)
+        canvas.drawBitmap(strokeBitmap, strokeOrigin.x, strokeOrigin.y, fillPaint);
+
+      if (temporaryPoints > 0)
+      {
+        PointF temporaryOrigin = glRenderer.drawTemporary(inkPoints, temporaryPoints, transformValues, brushName, strokeWidth, fillPaint);
+        Bitmap temporaryBitmap = glRenderer.saveTemporary();
+        if (temporaryBitmap != null)
+          canvas.drawBitmap(temporaryBitmap, temporaryOrigin.x, temporaryOrigin.y, fillPaint);
+      }
+    }
+    catch (Exception e)
+    {
+      Log.e("Canvas", "Error trying to draw stroke with extra brush: " + e.getMessage(), e);
+    }
+    finally
+    {
+      // restore
+      fillPaint.setXfermode(xfm);
+      canvas.setMatrix(transformMatrix);
     }
   }
 
