@@ -2,7 +2,6 @@
 
 package com.myscript.iink.demo.domain
 
-import android.app.Application
 import android.graphics.Typeface
 import androidx.annotation.VisibleForTesting
 import com.myscript.iink.ContentBlock
@@ -129,11 +128,11 @@ enum class MenuAction {
 data class PredictionSettings(val enabled: Boolean = false, val durationMs: Int = 0)
 
 class PartEditor(
-    application: Application,
     private val typefaces: Map<String, Typeface>,
     private val theme: String,
     private val contentRepository: IContentRepository,
     private val toolRepository: ToolRepository,
+    private var extraBrushConfigs: List<Canvas.ExtraBrushConfig> = emptyList(),
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     private val workDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
@@ -174,8 +173,6 @@ class PartEditor(
     private var allParts: List<String> = emptyList()
     var isActivePenEnabled: Boolean = true
     var inputController: InputController? = null
-    var extraBrushConfigs: ArrayList<Canvas.ExtraBrushConfig>? = null
-        private set
 
     private val editorListener: IEditorListener = object : IEditorListener {
         override fun partChanging(editor: Editor, oldPart: ContentPart?, newPart: ContentPart?) = Unit
@@ -241,11 +238,7 @@ class PartEditor(
         this.listener = stateListener
     }
 
-    fun setEditor(
-        editor: Editor?,
-        inputController: InputController?,
-        extraBrushConfigs: ArrayList<Canvas.ExtraBrushConfig>?
-    ) {
+    fun setEditor(editor: Editor?, inputController: InputController?) {
         if (editor != null) {
             // configure multithreading for text recognition
             editor.configuration.setNumber("max-recognition-thread-count", 1)
@@ -258,7 +251,6 @@ class PartEditor(
             // also allow shape rotation in diagram parts
             editor.configuration.setStringArray("diagram.rotation", arrayOf("shape"))
             this.inputController = inputController
-            this.extraBrushConfigs = extraBrushConfigs
             editor.part = currentPart
         }
         this.editor = editor

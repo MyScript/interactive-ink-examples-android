@@ -12,12 +12,6 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.graphics.ColorUtils;
-
 import android.graphics.Xfermode;
 import android.text.TextPaint;
 import android.util.Log;
@@ -34,10 +28,16 @@ import com.myscript.iink.graphics.LineJoin;
 import com.myscript.iink.graphics.Style;
 import com.myscript.iink.graphics.Transform;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.graphics.ColorUtils;
 
 public class Canvas implements ICanvas
 {
@@ -114,7 +114,7 @@ public class Canvas implements ICanvas
     @NonNull
     public final ParameterSet config;
 
-    ExtraBrushConfig(@NonNull String baseName, @NonNull Bitmap stampBitmap, @Nullable Bitmap backgroundBitmap, @NonNull ParameterSet config)
+    public ExtraBrushConfig(@NonNull String baseName, @NonNull Bitmap stampBitmap, @Nullable Bitmap backgroundBitmap, @NonNull ParameterSet config)
     {
       this.baseName = baseName;
       this.stampBitmap = stampBitmap;
@@ -125,15 +125,15 @@ public class Canvas implements ICanvas
 
   public Canvas(@Nullable android.graphics.Canvas canvas, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
   {
-    this(canvas, null, typefaceMap, imageLoader, null, xdpi, ydpi);
+    this(canvas, Collections.emptyList(), typefaceMap, imageLoader, null, xdpi, ydpi);
   }
 
-  public Canvas(@Nullable android.graphics.Canvas canvas, @Nullable ArrayList<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
+  public Canvas(@Nullable android.graphics.Canvas canvas, @NonNull List<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, float xdpi, float ydpi)
   {
     this(canvas, extraBrushConfigs, typefaceMap, imageLoader, null, xdpi, ydpi);
   }
 
-  public Canvas(@Nullable android.graphics.Canvas canvas, @Nullable ArrayList<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, @Nullable OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
+  public Canvas(@Nullable android.graphics.Canvas canvas, @NonNull List<ExtraBrushConfig> extraBrushConfigs, Map<String, Typeface> typefaceMap, ImageLoader imageLoader, @Nullable OfflineSurfaceManager offlineSurfaceManager, float xdpi, float ydpi)
   {
     this.canvas = canvas;
     this.typefaceMap = typefaceMap;
@@ -142,14 +142,14 @@ public class Canvas implements ICanvas
     this.xdpi = xdpi;
     this.ydpi = ydpi;
 
-    if (extraBrushConfigs != null)
+    if (!extraBrushConfigs.isEmpty())
     {
       glRenderer = new GLRenderer();
       for (ExtraBrushConfig config : extraBrushConfigs)
         glRenderer.configureBrush(config.baseName, config.stampBitmap, config.backgroundBitmap, config.config);
     }
 
-    clips = new ArrayList<String>();
+    clips = new ArrayList<>();
 
     strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     strokePaint.setStyle(Paint.Style.STROKE);

@@ -5,9 +5,6 @@ package com.myscript.iink.uireferenceimplementation;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.myscript.iink.IImagePainter;
 import com.myscript.iink.graphics.ICanvas;
@@ -15,8 +12,12 @@ import com.myscript.iink.graphics.ICanvas;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 public class ImagePainter implements IImagePainter
 {
@@ -24,17 +25,18 @@ public class ImagePainter implements IImagePainter
   private Map<String, Typeface> typefaceMap = null;
   protected android.graphics.Canvas canvas = null;
   private Bitmap bitmap = null;
-  @Nullable
-  private ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs;
+  @NonNull
+  private final List<Canvas.ExtraBrushConfig> extraBrushConfigs;
   private float dpi = 96.f;
   @ColorInt
   private int backgroundColor = Color.WHITE;
 
   public ImagePainter()
   {
-    this(null);
+    this(Collections.emptyList());
   }
-  public ImagePainter(@Nullable ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs)
+
+  public ImagePainter(@NonNull List<Canvas.ExtraBrushConfig> extraBrushConfigs)
   {
     this.extraBrushConfigs = extraBrushConfigs;
   }

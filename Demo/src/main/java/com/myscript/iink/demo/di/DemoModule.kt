@@ -4,6 +4,7 @@ package com.myscript.iink.demo.di
 
 import android.app.Application
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.core.content.res.ResourcesCompat
@@ -24,6 +25,7 @@ import com.myscript.iink.demo.ui.EditorViewModel
 import com.myscript.iink.demo.ui.Thickness
 import com.myscript.iink.demo.ui.opaque
 import com.myscript.iink.demo.ui.toFloat
+import com.myscript.iink.uireferenceimplementation.Canvas
 import com.myscript.iink.uireferenceimplementation.EditorBinding
 import com.myscript.iink.uireferenceimplementation.FontUtils
 import java.io.ByteArrayOutputStream
@@ -35,6 +37,7 @@ class DemoModule(application: Application) {
     val engine: Engine?
     val colorPalette: ColorPalette
     val defaultTypeface: Typeface
+    val extraBrushes: List<Canvas.ExtraBrushConfig>
     val editor: PartEditor
     val editorBinding: EditorBinding
 
@@ -48,9 +51,16 @@ class DemoModule(application: Application) {
         colorPalette = provideColorPalette()
         val typefaces = provideTypefaces(application)
         defaultTypeface = provideDefaultTypeface(application)
+        extraBrushes = provideExtraBrushConfigurations(application, engine)
         val preferences = providePreferences(application)
         val editorTheme = provideEditorTheme(application)
-        editor = PartEditor(application, typefaces, editorTheme, providePartRepository(application, engine, preferences), provideToolRepository(preferences, colorPalette))
+        editor = PartEditor(
+            typefaces,
+            editorTheme,
+            providePartRepository(application, engine, preferences),
+            provideToolRepository(preferences, colorPalette),
+            extraBrushes
+        )
         editorBinding = EditorBinding(engine, typefaces)
     }
 
@@ -151,8 +161,56 @@ class DemoModule(application: Application) {
         ))
     }
 
+    private fun provideExtraBrushConfigurations(
+        application: Application,
+        engine: Engine?
+    ): List<Canvas.ExtraBrushConfig> {
+        val e = engine ?: return emptyList()
+
+        val options = BitmapFactory.Options().apply {
+            inScaled = false
+        }
+
+        // configure Pencil
+        val stampBitmap = BitmapFactory.decodeResource(
+            application.resources,
+            R.drawable.texture_stamp,
+            options
+        )
+        val backgroundBitmap = BitmapFactory.decodeResource(
+            application.resources,
+            R.drawable.texture_background,
+            options
+        )
+        val parameters = e.createParameterSet().apply {
+            setString("draw-method", "stamp-reveal")
+            setBoolean("mirror-background", true)
+            setNumber("stamp-min-distance", 0.3)
+            setNumber("stamp-max-distance", 0.5)
+            setNumber("scale-min-pressure", 0.75)
+            setNumber("scale-max-pressure", 1.2)
+            setNumber("opacity-min-pressure", 0.1)
+            setNumber("opacity-max-pressure", 1.0)
+            setNumber("amortized-pressure-factor", 1.5)
+            setNumber("point-min-opacity", 0.5)
+            setNumber("background-forced-opacity", 0.67)
+        }
+        val pencilBrushConfig = Canvas.ExtraBrushConfig(
+            "${EXTRA_BRUSH_PREFIX}Pencil",
+            stampBitmap,
+            backgroundBitmap,
+            parameters
+        )
+        return listOf(pencilBrushConfig)
+    }
+
     fun close() {
         engine?.close()
+    }
+
+    companion object {
+        // All extra brushes names must start with this prefix
+        private const val EXTRA_BRUSH_PREFIX = "Extra-"
     }
 }
 

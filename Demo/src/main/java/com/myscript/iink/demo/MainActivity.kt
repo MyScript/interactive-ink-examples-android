@@ -240,6 +240,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.partHistoryState.observe(this, this::onPartHistoryUpdate)
         viewModel.partNavigationState.observe(this, this::onPartNavigationStateUpdate)
 
+        // extra brushes (if any) must be set prior to editor binding
+        editorView?.extraBrushConfigs = IInkApplication.DemoModule.extraBrushes
+
         val editorData = editorBinding.openEditor(editorView)
         editorData.inputController?.listener = onEditorLongPress
         editorData.inputController?.setViewListener(editorView)

@@ -10,19 +10,20 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.myscript.iink.Editor;
 import com.myscript.iink.IRenderTarget;
 import com.myscript.iink.Renderer;
 import com.myscript.iink.graphics.ICanvas;
 import com.myscript.iink.graphics.Point;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class EditorView extends FrameLayout implements IRenderTarget, InputController.ViewListener
 {
@@ -41,8 +42,8 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
   private LayerView layerView;
 
   private Map<String, Typeface> typefaceMap = new HashMap<>();
-  @Nullable
-  private ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs;
+  @NonNull
+  private List<Canvas.ExtraBrushConfig> extraBrushConfigs = Collections.emptyList();
 
   public EditorView(Context context)
   {
@@ -128,7 +129,7 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     return renderer;
   }
 
-  public void setExtraBrushConfigs(@Nullable ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs)
+  public void setExtraBrushConfigs(@NonNull List<Canvas.ExtraBrushConfig> extraBrushConfigs)
   {
     if (editor != null)
     {
@@ -147,6 +148,12 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     }
   }
 
+  @NonNull
+  public List<Canvas.ExtraBrushConfig> getExtraBrushConfigs()
+  {
+    return extraBrushConfigs;
+  }
+
   public void setImageLoader(ImageLoader imageLoader)
   {
     this.imageLoader = imageLoader;
@@ -156,6 +163,12 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
     {
       layerView.setImageLoader(imageLoader);
     }
+  }
+
+  @Nullable
+  public ImageLoader getImageLoader()
+  {
+    return imageLoader;
   }
 
   public void setTypefaces(@NonNull Map<String, Typeface> typefaceMap)
@@ -180,18 +193,6 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
   public Map<String, Typeface> getTypefaces()
   {
     return typefaceMap;
-  }
-
-  @Nullable
-  public ImageLoader getImageLoader()
-  {
-    return imageLoader;
-  }
-
-  @Nullable
-  public ArrayList<Canvas.ExtraBrushConfig> getExtraBrushConfigs()
-  {
-    return extraBrushConfigs;
   }
 
   @Override

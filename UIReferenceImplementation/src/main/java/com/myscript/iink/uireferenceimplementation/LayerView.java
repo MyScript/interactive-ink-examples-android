@@ -19,7 +19,9 @@ import com.myscript.iink.IRenderTarget.LayerType;
 import com.myscript.iink.Renderer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
@@ -51,8 +53,8 @@ public class LayerView extends View
   private android.graphics.Canvas sysCanvas = null; // for API < 28
   @Nullable
   private Canvas iinkCanvas = null;
-  @Nullable
-  private ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs;
+  @NonNull
+  private List<Canvas.ExtraBrushConfig> extraBrushConfigs = Collections.emptyList();
   private int pageWidth = 0;
   private int pageHeight = 0;
   private int viewWidth = 0;
@@ -82,7 +84,7 @@ public class LayerView extends View
     // do not need the renderTarget
   }
 
-  public void setExtraBrushConfigs(@Nullable ArrayList<Canvas.ExtraBrushConfig> extraBrushConfigs)
+  public void setExtraBrushConfigs(@NonNull List<Canvas.ExtraBrushConfig> extraBrushConfigs)
   {
     this.extraBrushConfigs = extraBrushConfigs;
   }
