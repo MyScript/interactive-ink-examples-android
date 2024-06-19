@@ -9,13 +9,7 @@ fun Configuration.enableRawContentInteractivity() {
     setString("raw-content.line-pattern", "grid")
 
     // Activate handwriting recognition for text only
-    setBoolean("raw-content.recognition.text", true)
-    setBoolean("raw-content.recognition.shape", false)
-
-    // Allow conversion of text
-    setBoolean("raw-content.convert.text", true)
-    setBoolean("raw-content.convert.node", false)
-    setBoolean("raw-content.convert.edge", false)
+    setStringArray("raw-content.recognition.types", arrayOf("text"))
 
     // Allow converting shapes by holding the pen in position
     setBoolean("raw-content.convert.shape-on-hold", true)
@@ -24,16 +18,15 @@ fun Configuration.enableRawContentInteractivity() {
     setStringArray("raw-content.shape.snap-axis", arrayOf("triangle", "rectangle", "rhombus", "parallelogram", "ellipse"))
 
     // Configure interactions
-    setString("raw-content.interactive-items", "converted-or-mixed")
-    setBoolean("raw-content.tap-interactions", true)
+    setStringArray("raw-content.interactive-blocks.auto-classified", arrayOf<String>())
     setBoolean("raw-content.eraser.erase-precisely", false)
     setBoolean("raw-content.eraser.dynamic-radius", true)
     setBoolean("raw-content.auto-connection", true)
     setStringArray("raw-content.edge.policy", arrayOf("default-with-drag"))
 
     // Show alignment guides and snap to them
-    setBoolean("raw-content.guides.enable", true)
-    setBoolean("raw-content.guides.snap", true)
+    setStringArray("raw-content.guides.show", arrayOf("alignment", "text", "square", "square-inside", "image-aspect-ratio", "rotation"))
+    setStringArray("raw-content.guides.snap", arrayOf("alignment", "text", "square", "square-inside", "image-aspect-ratio", "rotation"))
 
     // Allow gesture detection
     setStringArray("raw-content.pen.gestures", arrayOf("underline", "scratch-out", "strike-through"))
