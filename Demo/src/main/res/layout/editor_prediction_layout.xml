@@ -25,6 +25,6 @@
       android:id="@+id/editor_dialog_prediction_duration"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:max="200"
+      android:max="100"
       tools:progress="16" />
 </LinearLayout>
