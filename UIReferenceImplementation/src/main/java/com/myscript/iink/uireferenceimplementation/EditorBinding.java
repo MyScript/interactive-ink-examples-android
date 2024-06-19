@@ -79,9 +79,9 @@ public final class EditorBinding
       config.setNumber("stamp-max-distance", 0.5);
 
       // optional config
-      config.setNumber("scale-min-pressure", 0.33);
-      config.setNumber("scale-max-pressure", 1.0);
-      config.setNumber("opacity-min-pressure", 0.075);
+      config.setNumber("scale-min-pressure", 0.75);
+      config.setNumber("scale-max-pressure", 1.2);
+      config.setNumber("opacity-min-pressure", 0.1);
       config.setNumber("opacity-max-pressure", 1.0);
       config.setNumber("amortized-pressure-factor", 1.5);
       config.setNumber("point-min-opacity", 0.5);
