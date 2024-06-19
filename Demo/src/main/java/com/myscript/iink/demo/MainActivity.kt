@@ -203,15 +203,27 @@ class MainActivity : AppCompatActivity() {
                 processUriFile(uri, File(cacheDir, "image$extension")) { image ->
                     val pos = addImagePosition
                     addImagePosition = null
-                    if (pos != null) {
-                        viewModel.addImage(pos.x, pos.y, image, mimeType)
-                    } else {
-                        viewModel.addImage(image, mimeType)
+                    try {
+                        if (pos != null) {
+                            viewModel.addImage(pos.x, pos.y, image, mimeType)
+                        } else {
+                            viewModel.addImage(image, mimeType)
+                        }
+                    } catch (e: Exception) {
+                        // might be an unsupported mime type despite the checks made, if the image
+                        // is seen as a PNG but under the hood the file format is WebP which happens
+                        // quite easily when importing image from the web for instance
+                        onError(Error(
+                            Error.Severity.ERROR,
+                            getString(R.string.app_error_add_image_title),
+                            e.message ?: "Unknown error",
+                            e
+                        ))
                     }
                 }
             }
             else -> onError(Error(
-                Error.Severity.WARNING,
+                Error.Severity.ERROR,
                 getString(R.string.app_error_unsupported_file_type_title),
                 getString(R.string.app_error_unsupported_image_type_message, mimeType)
             ))
@@ -401,6 +413,7 @@ class MainActivity : AppCompatActivity() {
         }
         when (error?.severity) {
             null -> Unit
+            Error.Severity.ERROR,
             Error.Severity.CRITICAL ->
                 AlertDialog.Builder(this)
                         .setTitle(error.title)
