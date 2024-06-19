@@ -34,7 +34,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.ArrayList
 import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
@@ -51,7 +50,7 @@ enum class PartType(private val stringValue: String) {
 
     companion object {
         fun fromString(value: String): PartType? {
-            return values().firstOrNull { it.stringValue == value }
+            return entries.firstOrNull { it.stringValue == value }
         }
     }
 }
@@ -77,7 +76,7 @@ enum class PenBrush(val styleValue: String) {
 
     companion object {
         fun fromStyleValue(value: String): PenBrush? {
-            return values().firstOrNull { it.styleValue == value }
+            return entries.firstOrNull { it.styleValue == value }
         }
     }
 }
@@ -611,7 +610,7 @@ class PartEditor(
 
     fun convertContent(content: ContentSelection? = null) {
         val conversionState = editor?.getSupportedTargetConversionStates(content)
-        if (conversionState != null && conversionState.isNotEmpty()) {
+        if (!conversionState.isNullOrEmpty()) {
             editor?.convert(content, conversionState.first())
         }
     }
@@ -625,7 +624,7 @@ class PartEditor(
     }
 
     fun getTools(partType: PartType, enableActivePen: Boolean): Map<ToolType, Boolean> {
-        return partType.availableTools(ToolType.values().toList(), enableActivePen)
+        return partType.availableTools(ToolType.entries, enableActivePen)
     }
 
     fun importContent(file: File, onResult: (file: File, partIds: List<String>, exception: Exception?) -> Unit) {

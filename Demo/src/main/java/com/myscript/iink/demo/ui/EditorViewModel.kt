@@ -213,7 +213,9 @@ class EditorViewModel(
 
     private fun thicknessesByTools(toolType: ToolType?, selectedThickness: Float): List<ThicknessState> {
         return if (toolType == ToolType.HIGHLIGHTER || toolType == ToolType.PEN) {
-            Thickness.values().map { ThicknessState(it, it == selectedThickness.toThickness(toolType)) }
+            Thickness.entries.map {
+                ThicknessState(it, it == selectedThickness.toThickness(toolType))
+            }
         } else {
             emptyList()
         }
@@ -221,7 +223,7 @@ class EditorViewModel(
 
     private fun penBrushesByTools(toolType: ToolType?, selectedPenBrush: PenBrush?): List<PenBrushState> {
         return if (toolType == ToolType.PEN) {
-            PenBrush.values().map { PenBrushState(it, it == selectedPenBrush) }
+            PenBrush.entries.map { PenBrushState(it, it == selectedPenBrush) }
         } else {
             emptyList()
         }

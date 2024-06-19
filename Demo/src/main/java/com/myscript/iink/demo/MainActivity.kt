@@ -441,12 +441,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun onAvailablePenBrushesUpdate(penBrushStates: List<PenBrushState>) {
         penBrushesAdapter.clear()
-        if (!penBrushStates.isNullOrEmpty()) {
+        if (penBrushStates.isNotEmpty()) {
             penBrushesAdapter.addAll(penBrushStates.map { getString(it.penBrush.label) })
             binding.editorToolbarSheet.penBrushDropdown.setSelection(penBrushStates.indexOfFirst(PenBrushState::isSelected))
         }
         penBrushesAdapter.notifyDataSetChanged()
-        binding.editorToolbarSheet.toolbarPenBrushSection.isVisible = !penBrushStates.isNullOrEmpty()
+        binding.editorToolbarSheet.toolbarPenBrushSection.isVisible = penBrushStates.isNotEmpty()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
