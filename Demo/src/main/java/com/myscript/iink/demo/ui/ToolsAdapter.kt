@@ -5,12 +5,17 @@ package com.myscript.iink.demo.ui
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.myscript.iink.demo.R
 import com.myscript.iink.demo.domain.ToolType
+import com.myscript.iink.demo.util.setContentDescription
+import com.myscript.iink.demo.util.setTooltipText
 
+@get:DrawableRes
 private val ToolType.asDrawable: Int
     get() = when (this) {
         ToolType.HAND -> R.drawable.ic_hand_outlined
@@ -20,6 +25,16 @@ private val ToolType.asDrawable: Int
         ToolType.LASSO -> R.drawable.ic_lasso
     }
 
+@get:StringRes
+private val ToolType.label: Int
+    get() = when (this) {
+        ToolType.HAND -> R.string.tool_hand
+        ToolType.PEN -> R.string.tool_pen
+        ToolType.ERASER -> R.string.tool_eraser
+        ToolType.HIGHLIGHTER -> R.string.tool_highlighter
+        ToolType.LASSO -> R.string.tool_lasso
+    }
+
 class ToolStateViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context).inflate(R.layout.toolbar_tool_cell, parent, false)
 ) {
@@ -27,8 +42,10 @@ class ToolStateViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
 
     fun bind(state: ToolState, onToolSelected: (ToolState) -> Unit) {
         toolView.setImageResource(state.type.asDrawable)
-        toolView.isEnabled = state.isEnabled
+        toolView.setContentDescription(state.type.label)
 
+        itemView.setTooltipText(state.type.label)
+        itemView.isEnabled = state.isEnabled
         itemView.isSelected = state.isSelected
         itemView.setOnClickListener { onToolSelected(state) }
     }

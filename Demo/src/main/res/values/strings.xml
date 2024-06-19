@@ -57,4 +57,10 @@
     <string name="editor_dialog_prediction_enable">Enable</string>
     <string name="editor_dialog_prediction_duration">Duration (%d ms)</string>
 
+    <string name="tool_hand">Hand</string>
+    <string name="tool_pen">Pen</string>
+    <string name="tool_highlighter">Highlighter</string>
+    <string name="tool_lasso">Lasso</string>
+    <string name="tool_eraser">Eraser</string>
+
 </resources>
