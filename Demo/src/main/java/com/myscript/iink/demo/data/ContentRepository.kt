@@ -43,7 +43,7 @@ class ContentRepository(
     }
 
     override fun getPart(contentId: String): ContentPart {
-        val engine = checkNotNull(engine) { "Can't get part without valid engine" }
+        val engine = checkNotNull(engine) { "Cannot get part without valid engine" }
 
         engine.openPackage(contentFile(contentId)).use { contentPackage ->
             return contentPackage.getPart(0)
@@ -51,7 +51,7 @@ class ContentRepository(
     }
 
     override fun copyPart(contentId: String, outputDir: File): File {
-        val engine = checkNotNull(engine) { "Can't copy part without valid engine" }
+        val engine = checkNotNull(engine) { "Cannot copy part without valid engine" }
 
         val outputFile = File(outputDir, "${contentId}_${System.currentTimeMillis()}.iink")
         engine.createPackage(outputFile).use { targetPackage ->
@@ -66,7 +66,7 @@ class ContentRepository(
     }
 
     override fun createPart(partType: String): String {
-        val engine = checkNotNull(engine) { "Can't create part without valid engine" }
+        val engine = checkNotNull(engine) { "Cannot create part without valid engine" }
 
         // Here we use a human readable name to ease readability in Demo UI.
         // Ideally, application should use *stable* naming such as a UUID and link such file path to
@@ -107,7 +107,7 @@ class ContentRepository(
     }
 
     override fun importContent(file: File): List<String> {
-        val engine = checkNotNull(engine) { "Can't import content without valid engine" }
+        val engine = checkNotNull(engine) { "Cannot import content without valid engine" }
         require(file.exists()) { "File '$file' does not exist" }
         val ids = mutableListOf<String>()
         engine.openPackage(file).use { sourcePackage ->
