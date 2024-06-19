@@ -142,7 +142,7 @@ public class Canvas implements ICanvas
     this.xdpi = xdpi;
     this.ydpi = ydpi;
 
-    if (!extraBrushConfigs.isEmpty())
+    if (!extraBrushConfigs.isEmpty() && GLRenderer.isDeviceSupported())
     {
       glRenderer = new GLRenderer();
       for (ExtraBrushConfig config : extraBrushConfigs)
