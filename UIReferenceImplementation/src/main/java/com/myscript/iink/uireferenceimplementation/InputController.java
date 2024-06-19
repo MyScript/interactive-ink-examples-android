@@ -323,7 +323,6 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     {
       Point oldOffset = editor.getRenderer().getViewOffset();
       Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
-      editor.clampViewOffset(newOffset);
       editor.getRenderer().setViewOffset(Math.round(newOffset.x), Math.round(newOffset.y));
       editorView.invalidate(editor.getRenderer(), EnumSet.allOf(IRenderTarget.LayerType.class));
       if(_viewListener != null)
@@ -361,8 +360,6 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     Point oldOffset = renderer.getViewOffset();
     Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
 
-    // Apply the translation of the scaling focus to the editor
-    editor.clampViewOffset(newOffset);
     // Apply the translation of the scaling focus to the render
     renderer.setViewOffset(Math.round(newOffset.x), Math.round(newOffset.y));
 
