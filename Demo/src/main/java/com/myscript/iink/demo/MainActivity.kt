@@ -550,8 +550,9 @@ class MainActivity : AppCompatActivity() {
     private fun onPartCreationRequest(request: NewPartRequest?) {
         if (request != null) {
             val partTypes = request.availablePartTypes
-            val defaultIndex = partTypes.indexOf(request.defaultPartType)
+            val defaultIndex = request.defaultPartTypeIndex.coerceIn(partTypes.indices)
             launchSingleChoiceDialog(R.string.nav_new_part_dialog_title, partTypes.map(PartType::toString), defaultIndex) {
+                viewModel.setLastChosenPartTypeIndex(it)
                 viewModel.createPart(partTypes[it])
             }
         }

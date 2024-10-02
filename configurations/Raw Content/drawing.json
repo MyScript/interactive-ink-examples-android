@@ -1,0 +1,33 @@
+{
+  "raw-content": {
+    "line-pattern": "none",
+    "recognition": {
+      "types": [ ]
+    },
+    "classification": {
+      "types": [ ]
+    },
+    "convert": {
+      "shape-on-hold": false
+    },
+    "shape": {
+      "snap-axis": [ ]
+    },
+    "interactive-blocks": {
+      "auto-classified": [ ]
+    },
+    "eraser": {
+      "erase-precisely": true,
+      "dynamic-radius": true
+    },
+    "auto-connection": false,
+    "guides": {
+      "show": [ ],
+      "snap": [ ]
+    },
+    "pen": {
+      "gestures": [ ]
+    },
+    "rotation": [ "image" ]
+  }
+}

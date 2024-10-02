@@ -3,6 +3,7 @@
 package com.myscript.iink.demo.data
 
 import com.myscript.iink.ContentPart
+import com.myscript.iink.demo.domain.PartType
 import java.io.File
 
 interface IContentRepository {
@@ -21,7 +22,7 @@ interface IContentRepository {
      * @param partType the type of the part to create.
      * @return the identifier of the newly created part.
      */
-    fun createPart(partType: String): String
+    fun createPart(partType: PartType): String
 
     /**
      * Import all [ContentPart] contained in the given [ContentPackage] file.
@@ -78,7 +79,9 @@ interface IContentRepository {
 
     var lastOpenedPartId: String?
 
-    var lastChosenPartType: String?
+    var lastChosenPartTypeIndex: Int
 
-    fun requestPartTypes(): List<String>
+    fun requestPartTypes(): List<PartType>
+
+    fun getConfiguration(contentPart: ContentPart): String?
 }

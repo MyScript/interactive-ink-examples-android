@@ -3,15 +3,22 @@
 package com.myscript.iink.demo.data
 
 import android.content.SharedPreferences
+import android.content.res.AssetManager
 import androidx.core.content.edit
 import com.myscript.iink.ContentPart
 import com.myscript.iink.Engine
+import com.myscript.iink.demo.domain.PartType
+import com.myscript.iink.demo.domain.getConfigurationProfile
+import com.myscript.iink.demo.domain.setConfigurationProfile
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.Reader
 
 class ContentRepository(
     private val rootDir: File,
     private val engine: Engine?,
-    private val preferences: SharedPreferences
+    private val preferences: SharedPreferences,
+    private val assetManager: AssetManager? = null
 ) : IContentRepository {
 
     init {
@@ -65,7 +72,7 @@ class ContentRepository(
         return outputFile
     }
 
-    override fun createPart(partType: String): String {
+    override fun createPart(partType: PartType): String {
         val engine = checkNotNull(engine) { "Cannot create part without valid engine" }
 
         // Here we use a human readable name to ease readability in Demo UI.
@@ -79,7 +86,9 @@ class ContentRepository(
             contentId = "Part$index"
         } while (allParts.contains(contentId))
         engine.createPackage(contentFile(contentId)).use { contentPackage ->
-            contentPackage.createPart(partType).also(ContentPart::close)
+            contentPackage.createPart(partType.iinkPartType).use { part ->
+                part.setConfigurationProfile(partType.configurationProfile)
+            }
             // TODO async
             contentPackage.save()
         }
@@ -102,8 +111,46 @@ class ContentRepository(
         }
     }
 
-    override fun requestPartTypes(): List<String> {
-        return engine?.supportedPartTypes?.mapNotNull { it } ?: emptyList()
+    override fun requestPartTypes(): List<PartType> {
+        val configurationProfiles = mutableListOf<PartType>()
+
+        engine?.supportedPartTypes?.forEach { partName ->
+            if (partName != null) {
+                configurationProfiles.add(PartType(partName))
+
+                val availableProfiles = assetManager?.list(File(CONFIGURATION_PROFILE_DIRECTORY, partName).path)
+                if (!availableProfiles.isNullOrEmpty()) {
+                    availableProfiles.forEach { profile ->
+                        configurationProfiles.add(PartType(partName, profile))
+                    }
+                }
+            }
+        }
+        return configurationProfiles
+    }
+
+    override fun getConfiguration(contentPart: ContentPart): String? {
+        val assetManager = assetManager ?: return null
+
+        val defaultFile = File(CONFIGURATION_PROFILE_DIRECTORY, DEFAULT_RAW_CONTENT_CONFIGURATION_FILE_NAME)
+
+        val configurationProfile = contentPart.getConfigurationProfile()
+        val configurationFile = if (configurationProfile != null) {
+            val parent = File(CONFIGURATION_PROFILE_DIRECTORY, contentPart.type.toString())
+            if (assetManager.list(parent.path)?.contains(configurationProfile) == true) {
+                File(parent, configurationProfile)
+            } else {
+                defaultFile
+            }
+        } else {
+            defaultFile
+        }
+
+        return try {
+            assetManager.open(configurationFile.path).bufferedReader().use(Reader::readText)
+        } catch (e: FileNotFoundException) {
+            null
+        }
     }
 
     override fun importContent(file: File): List<String> {
@@ -135,17 +182,20 @@ class ContentRepository(
             }
         }
 
-    override var lastChosenPartType: String?
-        get() = preferences.getString(LAST_PART_TYPE_KEY, null)
+    override var lastChosenPartTypeIndex: Int
+        get() = preferences.getInt(LAST_PART_TYPE_INDEX_KEY, -1)
         set(value) {
             preferences.edit {
-                putString(LAST_PART_TYPE_KEY, value)
+                putInt(LAST_PART_TYPE_INDEX_KEY, value)
             }
         }
 
     companion object {
         private const val LAST_PART_ID_KEY = "iink.demo.lastPartId"
-        private const val LAST_PART_TYPE_KEY = "iink.demo.lastPartType"
+        private const val LAST_PART_TYPE_INDEX_KEY = "iink.demo.lastPartTypeIndex"
         private const val ALL_PARTS_TYPE_KEY = "iink.demo.allparts"
+
+        private const val CONFIGURATION_PROFILE_DIRECTORY = "parts"
+        private const val DEFAULT_RAW_CONTENT_CONFIGURATION_FILE_NAME = "interactivity.json"
     }
 }

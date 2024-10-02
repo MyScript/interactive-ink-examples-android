@@ -36,24 +36,6 @@ import java.io.File
 import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
-
-enum class PartType(private val stringValue: String) {
-    Diagram("Diagram"),
-    Math("Math"),
-    Drawing("Drawing"),
-    RawContent("Raw Content"),
-    Text("Text"),
-    TextDocument("Text Document");
-
-    override fun toString(): String = stringValue
-
-    companion object {
-        fun fromString(value: String): PartType? {
-            return entries.firstOrNull { it.stringValue == value }
-        }
-    }
-}
-
 enum class ToolType {
     HAND, PEN, ERASER, HIGHLIGHTER, LASSO
 }
@@ -134,7 +116,8 @@ class PartEditor(
     private val toolRepository: ToolRepository,
     private var extraBrushConfigs: List<Canvas.ExtraBrushConfig> = emptyList(),
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
-    private val workDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     interface Listener {
         fun updateUndoRedoState(canUndo: Boolean, canRedo: Boolean)
@@ -167,7 +150,12 @@ class PartEditor(
     }
     private var currentPart by autoCloseable<ContentPart>()
     private val currentPartType: PartType?
-        get() = currentPart?.type?.let(PartType::fromString)
+        get() {
+            val part = currentPart
+            return part?.type?.let {
+                PartType(it, part.getConfigurationProfile())
+            }
+        }
     private var currentIndex: Int = -1
     private var listener: Listener? = null
     private var allParts: List<String> = emptyList()
@@ -240,17 +228,15 @@ class PartEditor(
 
     fun setEditor(editor: Editor?, inputController: InputController?) {
         if (editor != null) {
-            // configure multithreading for text recognition
-            editor.configuration.setNumber("max-recognition-thread-count", 1)
 
             editor.addListener(editorListener)
             editor.theme = theme
-            // full interactivity mode in Raw Content is enabled by several features:
-            // gestures, conversion, smart eraser, shape & image rotation etc.
-            editor.configuration.enableRawContentInteractivity()
-            // also allow shape rotation in diagram parts
-            editor.configuration.setStringArray("diagram.rotation", arrayOf("shape"))
             this.inputController = inputController
+
+            currentPart?.let { part ->
+                loadConfiguration(editor, part)
+            }
+
             editor.part = currentPart
         }
         this.editor = editor
@@ -262,12 +248,16 @@ class PartEditor(
         editor = null
     }
 
-    fun lastChosenPartType(): PartType? {
-        return contentRepository.lastChosenPartType?.let(PartType::fromString)
+    fun lastChosenPartTypeIndex(): Int {
+        return contentRepository.lastChosenPartTypeIndex
+    }
+
+    fun setLastChosenPartTypeIndex(index: Int) {
+        contentRepository.lastChosenPartTypeIndex = index
     }
 
     fun getPartTypes(): List<PartType> {
-        return contentRepository.requestPartTypes().mapNotNull(PartType::fromString)
+        return contentRepository.requestPartTypes()
     }
 
     fun getExportMimeTypes(): List<MimeType> {
@@ -314,9 +304,8 @@ class PartEditor(
     }
 
     fun createPart(partType: PartType): String {
-        val partId = contentRepository.createPart(partType.toString())
+        val partId = contentRepository.createPart(partType)
         allParts = contentRepository.allParts
-        contentRepository.lastChosenPartType = partType.toString()
         return partId
     }
 
@@ -334,6 +323,11 @@ class PartEditor(
                 currentIndex = index
                 contentRepository.lastOpenedPartId = partId
 
+                withContext(ioDispatcher) {
+                    val editor = editor ?: return@withContext
+                    loadConfiguration(editor, contentPart)
+                }
+
                 editor?.part = contentPart
                 editor?.renderer?.setViewOffset(0f, 0f)
                 editor?.renderer?.viewScale = 1f
@@ -346,6 +340,19 @@ class PartEditor(
             } catch (e: Exception) {
                 listener?.partLoadingError(partId, e)
             }
+        }
+    }
+
+    private fun loadConfiguration(editor: Editor, contentPart: ContentPart) {
+        val configuration = contentRepository.getConfiguration(contentPart)
+        if (configuration != null) {
+            editor.configuration.reset()
+            editor.configuration.inject(configuration)
+
+            // configure multithreading for text recognition
+            editor.configuration.setNumber("max-recognition-thread-count", 1)
+            // also allow shape rotation in diagram parts
+            editor.configuration.setStringArray("diagram.rotation", arrayOf("shape"))
         }
     }
 
@@ -696,48 +703,48 @@ private fun PartType.availableTools(tools: List<ToolType>, enableActivePen: Bool
     val toolLasso = tools.first { it == ToolType.LASSO }
     val toolEraser = tools.first { it == ToolType.ERASER }
 
-    return when (this) {
-        PartType.TextDocument -> mapOf(
+    return when (iinkPartType) {
+        PartType.TextDocument.iinkPartType -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
             toolHighlighter to true,
             toolLasso to true,
             toolEraser to true
         )
-        PartType.Diagram -> mapOf(
+        PartType.Diagram.iinkPartType -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
             toolHighlighter to true,
             toolLasso to true,
             toolEraser to true
         )
-        PartType.Math -> mapOf(
+        PartType.Math.iinkPartType -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
             toolHighlighter to false,
             toolLasso to false,
             toolEraser to true
         )
-        PartType.Drawing -> mapOf(
-            toolHand to !enableActivePen,
-            toolPen to true,
-            toolHighlighter to true,
-            toolLasso to false,
-            toolEraser to true
-        )
-        PartType.RawContent -> mapOf(
+        PartType.RawContent.iinkPartType -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
             toolHighlighter to true,
             toolLasso to true,
             toolEraser to true
         )
-        PartType.Text -> mapOf(
+        PartType.Text.iinkPartType -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
             toolHighlighter to true,
             toolLasso to false,
             toolEraser to true
+        )
+        else -> mapOf(
+            toolHand to !enableActivePen,
+            toolPen to true,
+            toolHighlighter to false,
+            toolLasso to false,
+            toolEraser to false
         )
     }
 }

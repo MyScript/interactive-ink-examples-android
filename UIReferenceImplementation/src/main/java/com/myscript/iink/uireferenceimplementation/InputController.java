@@ -106,6 +106,11 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     return _listener;
   }
 
+  public final synchronized int getPreviousPointerId()
+  {
+    return previousPointerId;
+  }
+
   private boolean handleOnTouchForPointer(MotionEvent event, int actionMask, int pointerIndex)
   {
     final int pointerId = event.getPointerId(pointerIndex);

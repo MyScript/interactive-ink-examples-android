@@ -480,7 +480,7 @@ public class Canvas implements ICanvas
   }
 
   @Override
-  public void drawStrokeWithExtraBrush(@NonNull InkPoints[] vInkPoints, int temporaryPoints,
+  public void drawStrokeWithExtraBrush(@NonNull InkPoints inkPoints, int temporaryPoints,
                                        float strokeWidth, @NonNull String brushName, boolean fullStroke, long id)
   {
     Objects.requireNonNull(canvas);
@@ -488,7 +488,7 @@ public class Canvas implements ICanvas
     if (!isExtraBrushSupported(brushName))
       return;
 
-    if (vInkPoints.length == 0 || vInkPoints[0].x.length == 0 || strokeWidth <= 0.f || android.graphics.Color.alpha(fillPaint.getColor()) == 0)
+    if (inkPoints.x.length == 0 || strokeWidth <= 0.f || android.graphics.Color.alpha(fillPaint.getColor()) == 0)
       return;
 
     if (!glRenderer.isInitialized())
@@ -503,14 +503,14 @@ public class Canvas implements ICanvas
       canvas.setMatrix(null); // GLRenderer works with pixels
       fillPaint.setXfermode(xferModeSrcOver);
 
-      PointF strokeOrigin = glRenderer.drawStroke(vInkPoints, temporaryPoints, transformValues, brushName, fullStroke, id, strokeWidth, fillPaint);
+      PointF strokeOrigin = glRenderer.drawStroke(inkPoints, temporaryPoints, transformValues, brushName, fullStroke, id, strokeWidth, fillPaint);
       Bitmap strokeBitmap = glRenderer.saveStroke();
       if (strokeBitmap != null)
         canvas.drawBitmap(strokeBitmap, strokeOrigin.x, strokeOrigin.y, fillPaint);
 
-      if (temporaryPoints > 0 && vInkPoints.length == 1)
+      if (temporaryPoints > 0)
       {
-        PointF temporaryOrigin = glRenderer.drawTemporary(vInkPoints, temporaryPoints, transformValues, brushName, strokeWidth, fillPaint);
+        PointF temporaryOrigin = glRenderer.drawTemporary(inkPoints, temporaryPoints, transformValues, brushName, strokeWidth, fillPaint);
         Bitmap temporaryBitmap = glRenderer.saveTemporary();
         if (temporaryBitmap != null)
           canvas.drawBitmap(temporaryBitmap, temporaryOrigin.x, temporaryOrigin.y, fillPaint);

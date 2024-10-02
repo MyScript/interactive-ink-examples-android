@@ -103,4 +103,12 @@ task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
     }
 }
 
-preBuild.dependsOn(CopyAssets)
+task CopyConfigurations(type: Copy) {
+    from "${projectDir}/../configurations"
+    into "${projectDir}/src/main/assets/parts"
+    include(
+            "**/*.json"
+    )
+}
+
+preBuild.dependsOn(CopyAssets, CopyConfigurations)

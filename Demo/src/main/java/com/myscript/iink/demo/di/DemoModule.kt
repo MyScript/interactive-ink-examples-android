@@ -108,7 +108,7 @@ class DemoModule(application: Application) {
     }
 
     private fun providePartRepository(application: Application, engine: Engine?, preferences: SharedPreferences): ContentRepository {
-        return ContentRepository(File(application.filesDir, "data"), engine, preferences)
+        return ContentRepository(File(application.filesDir, "data"), engine, preferences, application.assets)
     }
 
     private fun provideToolRepository(preferences: SharedPreferences, colorPalette: ColorPalette): ToolRepository {

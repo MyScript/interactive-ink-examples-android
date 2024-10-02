@@ -74,7 +74,7 @@ class ColorPalette(
 }
 
 // You could add any further data place holder here (like default name, last chosen recognition language, ...)
-data class NewPartRequest(val availablePartTypes: List<PartType>, val defaultPartType: PartType? = null)
+data class NewPartRequest(val availablePartTypes: List<PartType>, val defaultPartTypeIndex: Int = 0)
 
 data class Error(
     val severity: Severity,
@@ -245,7 +245,7 @@ class EditorViewModel(
         }
         partEditor.setListener(partEditorListener)
 
-        if (partEditor.lastChosenPartType() == null) {
+        if (partEditor.lastChosenPartTypeIndex() < 0) {
             requestNewPart()
         }
     }
@@ -280,9 +280,8 @@ class EditorViewModel(
     fun requestNewPart() {
         val partTypes = partEditor.getPartTypes()
         if (partTypes.isNotEmpty()) {
-            val defaultPartType = partEditor.lastChosenPartType() ?: partTypes.first()
             viewModelScope.launch(Dispatchers.Main) {
-                _partCreationRequest.value = NewPartRequest(partTypes, defaultPartType)
+                _partCreationRequest.value = NewPartRequest(partTypes, partEditor.lastChosenPartTypeIndex())
             }
         }
     }
@@ -476,5 +475,9 @@ class EditorViewModel(
 
     fun save() {
         partEditor.saveCurrentPart()
+    }
+
+    fun setLastChosenPartTypeIndex(index: Int) {
+        partEditor.setLastChosenPartTypeIndex(index)
     }
 }
