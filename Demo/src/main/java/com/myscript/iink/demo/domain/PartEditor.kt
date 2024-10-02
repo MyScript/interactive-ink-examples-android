@@ -240,6 +240,8 @@ class PartEditor(
             editor.part = currentPart
         }
         this.editor = editor
+        setToolStyle(ToolType.PEN, getToolColor(ToolType.PEN), getToolThickness(ToolType.PEN), getPenBrush(ToolType.PEN))
+        setToolStyle(ToolType.HIGHLIGHTER, getToolColor(ToolType.HIGHLIGHTER), getToolThickness(ToolType.HIGHLIGHTER), getPenBrush(ToolType.HIGHLIGHTER))
         selectedTool?.let { changeTool(it) }
     }
 
