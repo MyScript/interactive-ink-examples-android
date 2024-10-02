@@ -266,8 +266,14 @@ class PartEditor(
 
     fun exportContent(mimeType: MimeType, x: Float?, y: Float?, selectedBlockId: String?, outputFile: File) {
         editor?.let { editor ->
+            val selection = if (selectedBlockId == null && x != null && y != null) {
+                editor.hitSelection(x, y)
+            } else {
+                null
+            }
             val content = when {
                 selectedBlockId != null -> editor.getBlockById(selectedBlockId)
+                selection != null -> selection
                 x != null && y != null -> editor.hitBlock(x, y)
                 else -> null
             }
