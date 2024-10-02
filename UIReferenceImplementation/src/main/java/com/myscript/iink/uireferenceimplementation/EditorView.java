@@ -224,7 +224,7 @@ public class EditorView extends FrameLayout implements IRenderTarget, InputContr
 
     if (layerView != null)
     {
-      layerView.update(renderer, x, y, width, height, layers);
+      layerView.update(renderer, x, y, width, height);
     }
   }
 

@@ -216,7 +216,7 @@ public class LayerView extends View
     canvas.restore();
   }
 
-  public final void update(Renderer renderer, int x, int y, int width, int height, EnumSet<LayerType> layers)
+  public final void update(Renderer renderer, int x, int y, int width, int height)
   {
     boolean emptyArea;
 
