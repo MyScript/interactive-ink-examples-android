@@ -144,7 +144,6 @@ class EditorViewModel(
         object : PartEditor.Listener {
             override fun updateUndoRedoState(canUndo: Boolean, canRedo: Boolean) {
                 _partHistoryState.value = PartHistoryState(canUndo, canRedo)
-                _toolSheetExpansionState.value = false
             }
 
             override fun updatePartNavigationState(hasPrevious: Boolean, hasNext: Boolean) {
