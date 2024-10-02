@@ -6,13 +6,9 @@ This repository contains a "get started" example, a complete example and a refer
 
 ## Getting started
 
-### Prerequisites
-
-This getting started section has been tested with Android Studio 2022.3+ and supports Android SDK version 21+.
-
 ### Installation
 
-1. Clone the examples repository  `git clone https://github.com/MyScript/interactive-ink-examples-android.git`
+1. Clone the examples repository `git clone https://github.com/MyScript/interactive-ink-examples-android.git`
 
 2. Claim a certificate to receive the free license to start develop your application by following the first steps of [Getting Started](https://developer.myscript.com/getting-started)
 
