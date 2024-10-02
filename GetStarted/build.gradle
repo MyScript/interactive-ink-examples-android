@@ -3,6 +3,7 @@ import org.apache.commons.io.filefilter.FileFilterUtils
 
 plugins {
     id 'com.android.application'
+    id 'kotlin-android'
 }
 
 android {
