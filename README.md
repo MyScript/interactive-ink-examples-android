@@ -36,9 +36,3 @@ If you encounter build errors of the form `No version of NDK matched the request
 
 Made a cool app with Interactive Ink? Ready to cross join our marketing efforts? We would love to hear about you!
 We’re planning to showcase apps using it so let us know by sending a quick mail to [myapp@myscript.com](mailto://myapp@myscript.com).
-
-## Contributing
-
-We welcome your contributions:
-If you would like to extend those examples for your needs, feel free to fork it!
-Please sign our [Contributor License Agreement](CONTRIBUTING.md) before submitting your pull request.
