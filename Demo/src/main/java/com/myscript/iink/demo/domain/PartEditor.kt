@@ -327,6 +327,8 @@ class PartEditor(
                     contentRepository.getPart(partId)
                 }
 
+                editor?.part = null
+
                 currentPart = contentPart
                 currentIndex = index
                 contentRepository.lastOpenedPartId = partId
