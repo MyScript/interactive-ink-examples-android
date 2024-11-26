@@ -49,4 +49,3 @@ allprojects {
         appcompatVersion = '1.7.0'
     }
 }
-
