@@ -20,6 +20,7 @@ open class PartType(val iinkPartType: String, val configurationProfile: String? 
     data object RawContent : PartType("Raw Content")
     data object Text : PartType("Text")
     data object TextDocument : PartType("Text Document")
+    data object Drawing : PartType("Drawing")
 
     override fun toString(): String {
         return if (configurationProfile.isNullOrEmpty()) {

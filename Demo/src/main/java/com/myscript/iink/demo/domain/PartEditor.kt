@@ -772,6 +772,13 @@ private fun PartType.availableTools(tools: List<ToolType>, enableActivePen: Bool
             toolLasso to false,
             toolEraser to true
         )
+        PartType.Drawing.iinkPartType -> mapOf(
+            toolHand to !enableActivePen,
+            toolPen to true,
+            toolHighlighter to true,
+            toolLasso to false,
+            toolEraser to true
+        )
         else -> mapOf(
             toolHand to !enableActivePen,
             toolPen to true,
