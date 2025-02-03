@@ -121,7 +121,7 @@ class ContentRepository(
                 val availableProfiles = assetManager?.list(File(CONFIGURATION_PROFILE_DIRECTORY, partName).path)
                 if (!availableProfiles.isNullOrEmpty()) {
                     availableProfiles.forEach { profile ->
-                        configurationProfiles.add(PartType(partName, profile))
+                        configurationProfiles.add(PartType(partName, File(profile).nameWithoutExtension))
                     }
                 }
             }
@@ -137,8 +137,11 @@ class ContentRepository(
         val configurationProfile = contentPart.getConfigurationProfile()
         val configurationFile = if (configurationProfile != null) {
             val parent = File(CONFIGURATION_PROFILE_DIRECTORY, contentPart.type.toString())
-            if (assetManager.list(parent.path)?.contains(configurationProfile) == true) {
-                File(parent, configurationProfile)
+            val confFile = assetManager.list(parent.path)?.firstOrNull {
+                File(it).nameWithoutExtension == configurationProfile
+            }
+            if (confFile != null) {
+                File(parent, confFile)
             } else {
                 defaultFile
             }

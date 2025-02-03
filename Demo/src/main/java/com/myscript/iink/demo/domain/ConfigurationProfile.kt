@@ -26,7 +26,7 @@ open class PartType(val iinkPartType: String, val configurationProfile: String? 
         return if (configurationProfile.isNullOrEmpty()) {
             iinkPartType
         } else {
-            "$iinkPartType (${File(configurationProfile).nameWithoutExtension})"
+            "$iinkPartType ($configurationProfile)"
         }
     }
 }
