@@ -114,9 +114,10 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   {
     final int pointerId = event.getPointerId(pointerIndex);
     final int pointerType = event.getToolType(pointerIndex);
+    final int historySize = event.getHistorySize();
+    final boolean useTiltInfo = pointerType == MotionEvent.TOOL_TYPE_STYLUS;
 
     int inputMode = getInputMode();
-
     if (inputMode == INPUT_MODE_FORCE_PEN)
     {
       iinkPointerType = PointerType.PEN;
@@ -131,13 +132,9 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
       {
         case MotionEvent.TOOL_TYPE_STYLUS:
           if (inputMode == INPUT_MODE_ERASER)
-          {
             iinkPointerType = PointerType.ERASER;
-          }
           else
-          {
             iinkPointerType = PointerType.PEN;
-          }
           break;
         case MotionEvent.TOOL_TYPE_FINGER:
         case MotionEvent.TOOL_TYPE_MOUSE:
@@ -150,21 +147,16 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
     }
 
     if (isScalingEnabled)
-    {
       scaleGestureDetector.onTouchEvent(event);
-    }
 
     if (iinkPointerType == PointerType.TOUCH)
-    {
       gestureDetector.onTouchEvent(event);
-    }
-
-    int historySize = event.getHistorySize();
 
     switch (actionMask)
     {
-      // ACTION_POINTER_DOWN is "A non-primary pointer has gone down", this is called only when a pointer is already on the touch.
+      // ACTION_POINTER_DOWN is "A non-primary pointer has gone down", only called when a pointer is already on the touchscreen.
       case MotionEvent.ACTION_POINTER_DOWN:
+      {
         isMultiFingerTouch = true;
         if (previousPointerId != -1)
         {
@@ -172,8 +164,9 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
           previousPointerId = -1;
         }
         return true;
-
+      }
       case MotionEvent.ACTION_DOWN:
+      {
         previousPointerId = pointerId;
         isMultiFingerTouch = false;
         // Request unbuffered events for tools that require low capture latency
@@ -181,40 +174,72 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         PointerTool tool = toolController.getToolForType(iinkPointerType);
         if (tool == PointerTool.PEN || tool == PointerTool.HIGHLIGHTER)
           editorView.requestUnbufferedDispatch(event);
+
         try
         {
-          editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          if (useTiltInfo)
+            editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(),
+                event.getPressure(), event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex), event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex), iinkPointerType, pointerId);
+          else
+            editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         }
-        catch(UnsupportedOperationException e) {
+        catch (UnsupportedOperationException e) {
           // Special case: pointerDown already called, discard previous and retry
           editor.pointerCancel(pointerId);
-          editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          if (useTiltInfo)
+            editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(),
+                event.getPressure(), event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex), event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex), iinkPointerType, pointerId);
+          else
+            editor.pointerDown(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         }
         return true;
-
+      }
       case MotionEvent.ACTION_MOVE:
+      {
         if (isMultiFingerTouch)
           return true;
 
         if (historySize > 0)
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize + 1];
-          for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
-          pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          if (useTiltInfo)
+          {
+            for (int i = 0; i < historySize; ++i)
+            {
+              pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i),
+                  event.getHistoricalPressure(pointerIndex, i), event.getHistoricalAxisValue(MotionEvent.AXIS_TILT, pointerIndex, i), event.getHistoricalAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex, i), iinkPointerType, pointerId);
+            }
+            pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(),
+                event.getPressure(), event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex), event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex), iinkPointerType, pointerId);
+          }
+          else
+          {
+            for (int i = 0; i < historySize; ++i)
+            {
+              pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i),
+                  event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
+            }
+            pointerEvents[historySize] = new PointerEvent(PointerEventType.MOVE, event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          }
           editor.pointerEvents(pointerEvents, true);
         }
-        else
+        else // no history
         {
-          editor.pointerMove(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
+          if (useTiltInfo)
+            editor.pointerMove(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(),
+                event.getPressure(), event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex), event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex), iinkPointerType, pointerId);
+          else
+            editor.pointerMove(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
         }
         return true;
-
-      // ACTION_POINTER_UP is "A non-primary pointer has gone up", at least one finger is still on the touch.
+      }
+      // ACTION_POINTER_UP is "A non-primary pointer has gone up", at least one finger is still on the touchscreen.
       case MotionEvent.ACTION_POINTER_UP:
+      {
         return true;
-
+      }
       case MotionEvent.ACTION_UP:
+      {
         if (isMultiFingerTouch)
         {
           isMultiFingerTouch = false;
@@ -223,17 +248,37 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         if (historySize > 0)
         {
           PointerEvent[] pointerEvents = new PointerEvent[historySize];
-          for (int i = 0; i < historySize; ++i)
-            pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i), event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
+          if (useTiltInfo)
+          {
+            for (int i = 0; i < historySize; ++i)
+            {
+              pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i),
+                  event.getHistoricalPressure(pointerIndex, i), event.getHistoricalAxisValue(MotionEvent.AXIS_TILT, pointerIndex, i), event.getHistoricalAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex, i), iinkPointerType, pointerId);
+            }
+          }
+          else
+          {
+            for (int i = 0; i < historySize; ++i)
+            {
+              pointerEvents[i] = new PointerEvent(PointerEventType.MOVE, event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i), eventTimeOffset + event.getHistoricalEventTime(i),
+                  event.getHistoricalPressure(pointerIndex, i), iinkPointerType, pointerId);
+            }
+          }
           editor.pointerEvents(pointerEvents, true);
         }
-        editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
-        return true;
+        if (useTiltInfo)
+          editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(),
+              event.getPressure(), event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex), event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex), iinkPointerType, pointerId);
+        else
+          editor.pointerUp(event.getX(pointerIndex), event.getY(pointerIndex), eventTimeOffset + event.getEventTime(), event.getPressure(), iinkPointerType, pointerId);
 
+        return true;
+      }
       case MotionEvent.ACTION_CANCEL:
+      {
         editor.pointerCancel(pointerId);
         return true;
-
+      }
       default:
         return false;
     }

@@ -19,6 +19,7 @@ import android.util.Log;
 import com.myscript.iink.GLRenderer;
 import com.myscript.iink.ParameterSet;
 import com.myscript.iink.graphics.Color;
+import com.myscript.iink.graphics.ExtraBrushStyle;
 import com.myscript.iink.graphics.FillRule;
 import com.myscript.iink.graphics.ICanvas;
 import com.myscript.iink.graphics.IPath;
@@ -481,14 +482,14 @@ public class Canvas implements ICanvas
 
   @Override
   public void drawStrokeWithExtraBrush(@NonNull InkPoints[] vInkPoints, int temporaryPoints,
-                                       float strokeWidth, @NonNull String brushName, boolean fullStroke, long id)
+                                       @NonNull ExtraBrushStyle style, boolean fullStroke, long id)
   {
     Objects.requireNonNull(canvas);
 
-    if (!isExtraBrushSupported(brushName))
+    if (!isExtraBrushSupported(style.brushName))
       return;
 
-    if (vInkPoints.length == 0 || vInkPoints[0].x.length == 0 || strokeWidth <= 0.f || android.graphics.Color.alpha(fillPaint.getColor()) == 0)
+    if (vInkPoints.length == 0 || vInkPoints[0].x.length == 0 || style.strokeWidth <= 0.f || android.graphics.Color.alpha(fillPaint.getColor()) == 0)
       return;
 
     if (!glRenderer.isInitialized())
@@ -503,14 +504,14 @@ public class Canvas implements ICanvas
       canvas.setMatrix(null); // GLRenderer works with pixels
       fillPaint.setXfermode(xferModeSrcOver);
 
-      PointF strokeOrigin = glRenderer.drawStroke(vInkPoints, temporaryPoints, transformValues, brushName, fullStroke, id, strokeWidth, fillPaint);
+      PointF strokeOrigin = glRenderer.drawStroke(vInkPoints, temporaryPoints, transformValues, style, fillPaint, fullStroke, id);
       Bitmap strokeBitmap = glRenderer.saveStroke();
       if (strokeBitmap != null)
         canvas.drawBitmap(strokeBitmap, strokeOrigin.x, strokeOrigin.y, fillPaint);
 
       if (temporaryPoints > 0 && vInkPoints.length == 1)
       {
-        PointF temporaryOrigin = glRenderer.drawTemporary(vInkPoints, temporaryPoints, transformValues, brushName, strokeWidth, fillPaint);
+        PointF temporaryOrigin = glRenderer.drawTemporary(vInkPoints, temporaryPoints, transformValues, style, fillPaint);
         Bitmap temporaryBitmap = glRenderer.saveTemporary();
         if (temporaryBitmap != null)
           canvas.drawBitmap(temporaryBitmap, temporaryOrigin.x, temporaryOrigin.y, fillPaint);

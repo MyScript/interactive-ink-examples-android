@@ -240,8 +240,9 @@ class PartEditor(
             editor.part = currentPart
         }
         this.editor = editor
-        setToolStyle(ToolType.PEN, getToolColor(ToolType.PEN), getToolThickness(ToolType.PEN), getPenBrush(ToolType.PEN))
-        setToolStyle(ToolType.HIGHLIGHTER, getToolColor(ToolType.HIGHLIGHTER), getToolThickness(ToolType.HIGHLIGHTER), getPenBrush(ToolType.HIGHLIGHTER))
+        val penBrush = getPenBrush(ToolType.PEN)
+        setToolStyle(ToolType.PEN, getToolColor(ToolType.PEN), getToolThickness(ToolType.PEN), penBrush, getToolStyling(ToolType.PEN, penBrush))
+        setToolStyle(ToolType.HIGHLIGHTER, getToolColor(ToolType.HIGHLIGHTER), getToolThickness(ToolType.HIGHLIGHTER), null, getToolStyling(ToolType.HIGHLIGHTER, null))
         selectedTool?.let { changeTool(it) }
     }
 
@@ -405,9 +406,27 @@ class PartEditor(
         return style?.let(PenBrush.Companion::fromStyleValue)
     }
 
+    private fun getPenStyling(penBrush: PenBrush?): String?
+    {
+        return when (penBrush) {
+            PenBrush.CALLIGRAPHIC_BRUSH -> "-myscript-pen-tilt-sensitivity:1.0; -myscript-pen-orientation-sensitivity:1"
+            PenBrush.PENCIL -> "-myscript-pen-pressure-sensitivity:1.0; -myscript-pen-tilt-sensitivity:1.0; -myscript-pen-orientation-sensitivity:1"
+            else -> null
+        }
+    }
+
+    private fun getToolStyling(toolType: ToolType, penBrush: PenBrush?): String? {
+        return when (toolType) {
+            ToolType.PEN -> getPenStyling(penBrush)
+            ToolType.HIGHLIGHTER -> "-myscript-pen-tilt-sensitivity:1.0; -myscript-pen-orientation-sensitivity:1"
+            else -> null
+        }
+    }
+
     fun changeColor(iinkColor: IInkColor) {
         val tool = selectedTool ?: return
-        if (setToolStyle(tool, iinkColor, getToolThickness(tool), getPenBrush(tool))) {
+        val penBrush = getPenBrush(tool)
+        if (setToolStyle(tool, iinkColor, getToolThickness(tool), penBrush, getToolStyling(tool, penBrush))) {
             toolRepository.saveToolColor(tool.storageKey, iinkColor.androidColor)
             scope.launch(mainDispatcher) {
                 listener?.colorChanged(tool, iinkColor)
@@ -417,7 +436,8 @@ class PartEditor(
 
     fun changeThickness(thickness: Float) {
         val tool = selectedTool ?: return
-        if (setToolStyle(tool, getToolColor(tool), thickness, getPenBrush(tool))) {
+        val penBrush = getPenBrush(tool)
+        if (setToolStyle(tool, getToolColor(tool), thickness, penBrush, getToolStyling(tool, penBrush))) {
             toolRepository.saveToolThickness(tool.storageKey, thickness)
             scope.launch(mainDispatcher) {
                 listener?.thicknessChanged(tool, thickness)
@@ -428,11 +448,11 @@ class PartEditor(
     fun changeTool(tool: ToolType) {
         val iinkColor = getToolColor(tool)
         val thickness = getToolThickness(tool)
-        val brush = getPenBrush(tool)
-        if (setToolStyle(tool, iinkColor, thickness, brush)) {
+        val penBrush = getPenBrush(tool)
+        if (setToolStyle(tool, iinkColor, thickness, penBrush, getToolStyling(tool, penBrush))) {
             selectedTool = tool
             scope.launch(mainDispatcher) {
-                listener?.toolChanged(tool, iinkColor, thickness, brush)
+                listener?.toolChanged(tool, iinkColor, thickness, penBrush)
             }
         }
     }
@@ -441,7 +461,7 @@ class PartEditor(
         val tool = selectedTool ?: return
         if (tool != ToolType.PEN) return
 
-        if (setToolStyle(tool, getToolColor(tool), getToolThickness(tool), penBrush)) {
+        if (setToolStyle(tool, getToolColor(tool), getToolThickness(tool), penBrush, getToolStyling(tool, penBrush))) {
             toolRepository.savePenBrush(tool.storageKey, penBrush.styleValue)
             scope.launch(mainDispatcher) {
                 listener?.penBrushChanged(tool, penBrush)
@@ -449,7 +469,7 @@ class PartEditor(
         }
     }
 
-    private fun setToolStyle(toolType: ToolType, iinkColor: IInkColor, thickness: Float, penBrush: PenBrush?): Boolean {
+    private fun setToolStyle(toolType: ToolType, iinkColor: IInkColor, thickness: Float, penBrush: PenBrush?, toolStyle: String?): Boolean {
         val editor = editor ?: return true
 
         val colorValue = "#%08X".format(0xFFFFFFFF and iinkColor.rgba.toLong())
@@ -458,6 +478,9 @@ class PartEditor(
         var style = "color: $colorValue; -myscript-pen-width: $thicknessValue;"
         if (penBrush != null) {
             style += "-myscript-pen-brush: ${penBrush.styleValue};"
+        }
+        if (toolStyle != null) {
+            style += toolStyle
         }
 
         val pointerTool = toolType.toPointerTool()

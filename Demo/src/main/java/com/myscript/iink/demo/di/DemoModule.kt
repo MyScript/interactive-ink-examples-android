@@ -184,15 +184,23 @@ class DemoModule(application: Application) {
         )
         val parameters = e.createParameterSet().apply {
             setString("draw-method", "stamp-reveal")
-            setBoolean("mirror-background", true)
+            setBoolean("mirror-background", false)
+            setNumber("stamp-original-orientation", -Math.PI / 4.0) // pointing up-left
             setNumber("stamp-min-distance", 0.3)
             setNumber("stamp-max-distance", 0.5)
-            setNumber("scale-min-pressure", 0.9)
-            setNumber("scale-max-pressure", 1.4)
+            setNumber("default-pressure-sensitivity", 1.0) // forced if none/zero from styling
+            setNumber("scale-min-pressure", 1.1)
+            setNumber("scale-max-pressure", 1.3) // might reach internal saturation
             setNumber("opacity-min-pressure", 0.1)
-            setNumber("opacity-max-pressure", 0.5)
+            setNumber("opacity-max-pressure", 0.25)
             setNumber("amortized-pressure-factor", 1.5)
-            setNumber("point-min-opacity", 0.5)
+            setNumber("tilt-max-angle-threshold", 1.05) // radians
+            setNumber("tilt-flat-angle-threshold", 0.75)
+            setNumber("tilt-tip-angle-threshold", 0.2)
+            setNumber("tilt-flat-scale-factor", 4.5) // might reach internal saturation
+            setNumber("tilt-tip-scale-factor", 0.5)
+            setNumber("tilt-flat-opacity-factor", 0.25)
+            setNumber("tilt-tip-opacity-factor", 5.0)
         }
         val pencilBrushConfig = Canvas.ExtraBrushConfig(
             "${EXTRA_BRUSH_PREFIX}Pencil",
