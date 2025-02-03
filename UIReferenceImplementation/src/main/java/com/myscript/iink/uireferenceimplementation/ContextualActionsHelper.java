@@ -5,6 +5,7 @@ package com.myscript.iink.uireferenceimplementation;
 import com.myscript.iink.ContentBlock;
 import com.myscript.iink.ContentPart;
 import com.myscript.iink.ContentSelection;
+import com.myscript.iink.ContentSelectionMode;
 import com.myscript.iink.Editor;
 
 import java.util.EnumSet;
@@ -37,6 +38,11 @@ public final class ContextualActionsHelper
             boolean displayConvert = !blockIsEmpty && editor.getSupportedTargetConversionStates(block).length > 0;
             boolean displayExport = editor.getSupportedExportMimeTypes(block).length > 0;
             boolean displayFormatText = editor.getSupportedTextFormats(block).size() > 0;
+            boolean displaySelectionType = editor.getAvailableSelectionTypes(block).length > 0;
+
+            EnumSet<ContentSelectionMode> selectionModes = editor.getAvailableSelectionModes();
+            selectionModes.removeAll(EnumSet.of(ContentSelectionMode.NONE, ContentSelectionMode.REFLOW)); // remove currently unsupported modes
+            boolean displaySelectionMode = selectionModes.size() > 0;
 
             if (displayAddBlock) actions.add(ContextualActions.ADD_BLOCK);
             if (displayRemove) actions.add(ContextualActions.REMOVE);
@@ -45,6 +51,8 @@ public final class ContextualActionsHelper
             if (isRootBlock) actions.add(ContextualActions.PASTE);
             if (displayExport) actions.add(ContextualActions.EXPORT);
             if (displayFormatText) actions.add(ContextualActions.FORMAT_TEXT);
+            if (displaySelectionMode) actions.add(ContextualActions.SELECTION_MODE);
+            if (displaySelectionType) actions.add(ContextualActions.SELECTION_TYPE);
         }
         return actions;
     }
@@ -57,12 +65,19 @@ public final class ContextualActionsHelper
         boolean displayConvert = editor.getSupportedTargetConversionStates(selection).length > 0;
         boolean displayExport = editor.getSupportedExportMimeTypes(selection).length > 0;
         boolean displayFormatText = selection != null && !editor.getSupportedTextFormats(selection).isEmpty();
+        boolean displaySelectionType = editor.getAvailableSelectionTypes(selection).length > 0;
+
+        EnumSet<ContentSelectionMode> selectionModes = editor.getAvailableSelectionModes();
+        selectionModes.removeAll(EnumSet.of(ContentSelectionMode.NONE, ContentSelectionMode.REFLOW));
+        boolean displaySelectionMode = selectionModes.size() > 0;
 
         actions.add(ContextualActions.REMOVE);
         if (displayConvert) actions.add(ContextualActions.CONVERT);
         actions.add(ContextualActions.COPY);
         if (displayExport) actions.add(ContextualActions.EXPORT);
         if (displayFormatText) actions.add(ContextualActions.FORMAT_TEXT);
+        if (displaySelectionMode) actions.add(ContextualActions.SELECTION_MODE);
+        if (displaySelectionType) actions.add(ContextualActions.SELECTION_TYPE);
 
         return actions;
     }

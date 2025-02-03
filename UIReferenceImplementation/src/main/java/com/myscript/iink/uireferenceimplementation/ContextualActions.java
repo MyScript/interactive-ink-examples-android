@@ -36,8 +36,18 @@ public enum ContextualActions {
      */
     EXPORT,
     /**
-     * Format text.
+     * Change Text blocks format.
      * @see Editor#getSupportedTextFormats(ContentSelection)
      */
-    FORMAT_TEXT
+    FORMAT_TEXT,
+    /**
+     * Change selection mode.
+     * @see Editor#getAvailableSelectionModes()
+     */
+    SELECTION_MODE,
+    /**
+     * Change selection type.
+     * @see Editor#getAvailableSelectionTypes(ContentSelection)
+     */
+    SELECTION_TYPE
 }

@@ -380,6 +380,16 @@ class EditorViewModel(
         return ContextualActionState.Action(x, y, actions)
     }
 
+    fun requestSelectionModeActions(x: Float, y: Float): ContextualActionState {
+        val actions = partEditor.getSelectionModeActions()
+        return ContextualActionState.Action(x, y, actions)
+    }
+
+    fun requestSelectionTypeActions(x: Float, y: Float, selectedBlockId: String? = null): ContextualActionState {
+        val actions = partEditor.getSelectionTypeActions(x, y, selectedBlockId)
+        return ContextualActionState.Action(x, y, actions)
+    }
+
     fun requestSmartGuideActions(x: Float, y: Float, contentBlockId: String): ContextualActionState {
         val actions = partEditor.getMenuActions(contentBlockId)
         return ContextualActionState.Action(x, y, actions)

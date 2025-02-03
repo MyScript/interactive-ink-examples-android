@@ -49,6 +49,17 @@
     <string name="editor_action_format_text_as_list_bullet">As bullet list</string>
     <string name="editor_action_format_text_as_list_checkbox">As check list</string>
     <string name="editor_action_format_text_as_list_numbered">As numbered list</string>
+    <string name="editor_action_selection_mode">Selection mode…</string>
+    <string name="editor_action_selection_mode_none">None</string>
+    <string name="editor_action_selection_mode_lasso">Lasso</string>
+    <string name="editor_action_selection_mode_item">Item</string>
+    <string name="editor_action_selection_mode_resize">Resize</string>
+    <string name="editor_action_selection_mode_reflow">Reflow</string>
+    <string name="editor_action_selection_type">Selection type…</string>
+    <string name="editor_action_selection_type_text">Text</string>
+    <string name="editor_action_selection_type_text_single">Text - Single block</string>
+    <string name="editor_action_selection_type_math">Math</string>
+    <string name="editor_action_selection_type_math_single">Math - Single block</string>
 
     <string name="editor_dialog_thickness_choice_title">Tool thickness</string>
     <string name="editor_dialog_color_picker_title">Choose a color</string>

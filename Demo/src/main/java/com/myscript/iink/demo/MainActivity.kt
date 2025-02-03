@@ -98,6 +98,17 @@ private val MenuAction.stringRes: Int
         MenuAction.FORMAT_TEXT_LIST_BULLET -> R.string.editor_action_format_text_as_list_bullet
         MenuAction.FORMAT_TEXT_LIST_CHECKBOX -> R.string.editor_action_format_text_as_list_checkbox
         MenuAction.FORMAT_TEXT_LIST_NUMBERED -> R.string.editor_action_format_text_as_list_numbered
+        MenuAction.SELECTION_MODE -> R.string.editor_action_selection_mode
+        MenuAction.SELECTION_MODE_NONE -> R.string.editor_action_selection_mode_none
+        MenuAction.SELECTION_MODE_LASSO -> R.string.editor_action_selection_mode_lasso
+        MenuAction.SELECTION_MODE_ITEM -> R.string.editor_action_selection_mode_item
+        MenuAction.SELECTION_MODE_RESIZE -> R.string.editor_action_selection_mode_resize
+        MenuAction.SELECTION_MODE_REFLOW -> R.string.editor_action_selection_mode_reflow
+        MenuAction.SELECTION_TYPE -> R.string.editor_action_selection_type
+        MenuAction.SELECTION_TYPE_TEXT -> R.string.editor_action_selection_type_text
+        MenuAction.SELECTION_TYPE_TEXT_SINGLE -> R.string.editor_action_selection_type_text_single
+        MenuAction.SELECTION_TYPE_MATH -> R.string.editor_action_selection_type_math
+        MenuAction.SELECTION_TYPE_MATH_SINGLE -> R.string.editor_action_selection_type_math_single
     }
 
 @get:StringRes
@@ -346,6 +357,14 @@ class MainActivity : AppCompatActivity() {
                         MenuAction.FORMAT_TEXT -> {
                             val formatTexts = viewModel.requestFormatTextActions(actionState.x, actionState.y, selectedBlockId)
                             showContextualActionDialog(formatTexts, selectedBlockId)
+                        }
+                        MenuAction.SELECTION_MODE -> {
+                            val selectionModes = viewModel.requestSelectionModeActions(actionState.x, actionState.y)
+                            showContextualActionDialog(selectionModes, selectedBlockId)
+                        }
+                        MenuAction.SELECTION_TYPE -> {
+                            val selectionTypes = viewModel.requestSelectionTypeActions(actionState.x, actionState.y, selectedBlockId)
+                            showContextualActionDialog(selectionTypes, selectedBlockId)
                         }
                         MenuAction.EXPORT -> {
                             val mimeTypes = viewModel.requestExportActions(actionState.x, actionState.y, selectedBlockId)

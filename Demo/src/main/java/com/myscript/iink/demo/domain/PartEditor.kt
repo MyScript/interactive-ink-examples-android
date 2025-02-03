@@ -7,6 +7,7 @@ import androidx.annotation.VisibleForTesting
 import com.myscript.iink.ContentBlock
 import com.myscript.iink.ContentPart
 import com.myscript.iink.ContentSelection
+import com.myscript.iink.ContentSelectionMode
 import com.myscript.iink.Editor
 import com.myscript.iink.EditorError
 import com.myscript.iink.IEditorListener
@@ -33,6 +34,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.EnumSet
 import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
@@ -104,7 +106,18 @@ enum class MenuAction {
     FORMAT_TEXT_PARAGRAPH,
     FORMAT_TEXT_LIST_BULLET,
     FORMAT_TEXT_LIST_CHECKBOX,
-    FORMAT_TEXT_LIST_NUMBERED
+    FORMAT_TEXT_LIST_NUMBERED,
+    SELECTION_MODE,
+    SELECTION_MODE_NONE,
+    SELECTION_MODE_LASSO,
+    SELECTION_MODE_ITEM,
+    SELECTION_MODE_RESIZE,
+    SELECTION_MODE_REFLOW,
+    SELECTION_TYPE,
+    SELECTION_TYPE_TEXT,
+    SELECTION_TYPE_TEXT_SINGLE,
+    SELECTION_TYPE_MATH,
+    SELECTION_TYPE_MATH_SINGLE
 }
 
 data class PredictionSettings(val enabled: Boolean = false, val durationMs: Int = 0)
@@ -548,6 +561,28 @@ class PartEditor(
         } ?: emptyList()
     }
 
+    fun getSelectionModeActions(): List<MenuAction> {
+        val editor = editor ?: return emptyList()
+
+        val modes = editor.availableSelectionModes
+        // remove currently unsupported modes
+        modes.removeAll(EnumSet.of(ContentSelectionMode.NONE, ContentSelectionMode.REFLOW))
+        return modes.mapNotNull(ContentSelectionMode::toMenuAction).toList()
+    }
+
+    fun getSelectionTypeActions(x: Float, y: Float, selectedBlockId: String?): List<MenuAction> {
+        val editor = editor ?: return emptyList()
+
+        val content = when {
+            editor.hasSelection() -> editor.selection
+            selectedBlockId != null -> editor.getBlockById(selectedBlockId)
+            else -> editor.hitBlock(x, y)
+        }
+        return content?.use {
+            contentSelectionTypes_toMenuActionList(editor.getAvailableSelectionTypes(it))
+        } ?: emptyList()
+    }
+
     fun getExportActions(x: Float, y: Float, selectedBlockId: String?): List<MimeType> {
         val editor = editor ?: return emptyList()
 
@@ -585,6 +620,17 @@ class PartEditor(
                 MenuAction.FORMAT_TEXT_LIST_BULLET -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_BULLET)
                 MenuAction.FORMAT_TEXT_LIST_CHECKBOX -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_CHECKBOX)
                 MenuAction.FORMAT_TEXT_LIST_NUMBERED -> if (content != null) editor.setTextFormat(content, TextFormat.LIST_NUMBERED)
+                MenuAction.SELECTION_MODE -> {}
+                MenuAction.SELECTION_MODE_NONE -> {}
+                MenuAction.SELECTION_MODE_LASSO -> if (content != null) editor.selectionMode = ContentSelectionMode.LASSO
+                MenuAction.SELECTION_MODE_ITEM -> if (content != null) editor.selectionMode = ContentSelectionMode.ITEM
+                MenuAction.SELECTION_MODE_RESIZE -> if (content != null) editor.selectionMode = ContentSelectionMode.RESIZE
+                MenuAction.SELECTION_MODE_REFLOW -> {}
+                MenuAction.SELECTION_TYPE -> {}
+                MenuAction.SELECTION_TYPE_TEXT -> if (content != null) editor.setSelectionType(content, "Text", false)
+                MenuAction.SELECTION_TYPE_TEXT_SINGLE -> if (content != null) editor.setSelectionType(content, "Text", true)
+                MenuAction.SELECTION_TYPE_MATH -> if (content != null) editor.setSelectionType(content, "Math", false)
+                MenuAction.SELECTION_TYPE_MATH_SINGLE -> if (content != null) editor.setSelectionType(content, "Math", true)
             }
         } catch (e: Exception) {
             listener?.actionError(e, (content as? ContentBlock)?.id)
@@ -699,6 +745,21 @@ private fun TextFormat.toMenuAction(): MenuAction = when (this) {
     TextFormat.LIST_NUMBERED -> MenuAction.FORMAT_TEXT_LIST_NUMBERED
 }
 
+private fun ContentSelectionMode.toMenuAction(): MenuAction = when (this) {
+    ContentSelectionMode.NONE -> MenuAction.SELECTION_MODE_NONE
+    ContentSelectionMode.LASSO -> MenuAction.SELECTION_MODE_LASSO
+    ContentSelectionMode.ITEM -> MenuAction.SELECTION_MODE_ITEM
+    ContentSelectionMode.RESIZE -> MenuAction.SELECTION_MODE_RESIZE
+    ContentSelectionMode.REFLOW -> MenuAction.SELECTION_MODE_REFLOW
+}
+
+private fun contentSelectionTypes_toMenuActionList(types: Array<String>): List<MenuAction> {
+    val res = mutableListOf<MenuAction>()
+    if (types.contains("Text")) res += listOf(MenuAction.SELECTION_TYPE_TEXT, MenuAction.SELECTION_TYPE_TEXT_SINGLE)
+    if (types.contains("Math")) res += listOf(MenuAction.SELECTION_TYPE_MATH, MenuAction.SELECTION_TYPE_MATH_SINGLE)
+    return res
+}
+
 private fun ContextualActions.toMenuAction(): MenuAction = when (this) {
     ContextualActions.COPY -> MenuAction.COPY
     ContextualActions.CONVERT -> MenuAction.CONVERT
@@ -707,6 +768,8 @@ private fun ContextualActions.toMenuAction(): MenuAction = when (this) {
     ContextualActions.ADD_BLOCK -> MenuAction.ADD_BLOCK
     ContextualActions.PASTE -> MenuAction.PASTE
     ContextualActions.FORMAT_TEXT -> MenuAction.FORMAT_TEXT
+    ContextualActions.SELECTION_MODE -> MenuAction.SELECTION_MODE
+    ContextualActions.SELECTION_TYPE -> MenuAction.SELECTION_TYPE
 }
 
 private fun ToolType.toPointerTool(): PointerTool = when (this) {
