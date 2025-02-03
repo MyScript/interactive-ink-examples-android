@@ -8,10 +8,12 @@ import com.myscript.iink.ContentBlock
 import com.myscript.iink.ContentPart
 import com.myscript.iink.ContentSelection
 import com.myscript.iink.ContentSelectionMode
+import com.myscript.iink.ConversionState
 import com.myscript.iink.Editor
 import com.myscript.iink.EditorError
 import com.myscript.iink.IEditorListener
 import com.myscript.iink.MimeType
+import com.myscript.iink.ParameterSet
 import com.myscript.iink.PointerTool
 import com.myscript.iink.PointerType
 import com.myscript.iink.TextFormat
@@ -34,7 +36,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.EnumSet
 import java.util.Locale
 import com.myscript.iink.graphics.Color as IInkColor
 
@@ -175,6 +176,10 @@ class PartEditor(
     var isActivePenEnabled: Boolean = true
     var inputController: InputController? = null
 
+    companion object {
+        const val NUMERICAL_COMPUTATION = "numerical-computation"
+    }
+
     private val editorListener: IEditorListener = object : IEditorListener {
         override fun partChanging(editor: Editor, oldPart: ContentPart?, newPart: ContentPart?) = Unit
 
@@ -184,6 +189,28 @@ class PartEditor(
 
         override fun contentChanged(editor: Editor, blockIds: Array<out String>) {
             notifyUndoRedoState()
+
+            // auto-solve Math blocks containing an (almost) equal sign
+            for (blockId in blockIds) {
+                val block = editor.getBlockById(blockId)
+                if (block?.type == "Math" && editor.part?.type == "Raw Content") {
+                    try {
+                        val actions = editor.mathSolverController.getAvailableActions(blockId)
+                        if (actions.contains(NUMERICAL_COMPUTATION) && editor.getConversionState(block).contains(ConversionState.HANDWRITING)) {
+                            val latexExport = editor.export_(block, MimeType.LATEX)
+                            if (latexExport.contains("=") || latexExport.contains("\\approx") || latexExport.contains("\\simeq")) {
+                                editor.mathSolverController.applyAction(
+                                    blockId,
+                                    NUMERICAL_COMPUTATION
+                                )
+                            }
+                        }
+                    } catch (e: Exception)
+                    {
+                        notifyError(blockId, EditorError.GENERIC, e.toString())
+                    }
+                }
+            }
         }
 
         override fun onError(editor: Editor, blockId: String, err: EditorError, message: String) {
