@@ -408,7 +408,7 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       }
       else
       {
-        return;
+        update(null, UpdateCause.EDIT);
       }
     }
 
