@@ -592,8 +592,6 @@ class PartEditor(
         val editor = editor ?: return emptyList()
 
         val modes = editor.availableSelectionModes
-        // remove currently unsupported modes
-        modes.removeAll(EnumSet.of(ContentSelectionMode.NONE, ContentSelectionMode.REFLOW))
         return modes.mapNotNull(ContentSelectionMode::toMenuAction).toList()
     }
 
