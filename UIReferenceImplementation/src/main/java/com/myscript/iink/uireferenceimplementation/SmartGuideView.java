@@ -311,12 +311,15 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       Engine engine = editor.getEngine();
 
       exportParams = engine.createParameterSet();
-      exportParams.setBoolean("export.jiix.text.words", true);
-      exportParams.setBoolean("export.jiix.strokes", false);
       exportParams.setBoolean("export.jiix.bounding-box", false);
       exportParams.setBoolean("export.jiix.glyphs", false);
       exportParams.setBoolean("export.jiix.primitives", false);
-      exportParams.setBoolean("export.jiix.chars", false);
+      exportParams.setBoolean("export.jiix.strokes", false);
+      exportParams.setBoolean("export.jiix.text.chars", false);
+      exportParams.setBoolean("export.jiix.text.lines", false);
+      exportParams.setBoolean("export.jiix.text.spans", false);
+      exportParams.setBoolean("export.jiix.text.structure", false);
+      exportParams.setBoolean("export.jiix.text.words", true);
 
       importParams = engine.createParameterSet();
       importParams.setString("diagram.import.jiix.action", "update");
@@ -330,7 +333,6 @@ public class SmartGuideView extends LinearLayout implements IEditorListener, IRe
       fadeOutOtherDelay = configuration.getNumber("smart-guide.fade-out-delay.other", SMART_GUIDE_FADE_OUT_DELAY_OTHER_DEFAULT).intValue();
       removeHighlightDelay = configuration.getNumber("smart-guide.highlight-removal-delay", SMART_GUIDE_HIGHLIGHT_REMOVAL_DELAY_DEFAULT).intValue();
     }
-
   }
 
   public void setMenuListener(@Nullable MenuListener moreMenuListener)
