@@ -57,8 +57,10 @@ task DownloadAndExtractAssets(type: Copy) {
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
     def mathConf = new File(targetDir, "conf/math.conf")
     def textConf = new File(targetDir, "conf/en_US.conf")
+    def rawContent2Conf = new File(targetDir, "conf/raw-content2.conf")
+    def math2Conf = new File(targetDir, "conf/math2.conf")
 
-    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
+    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists() || !rawContent2Conf.exists() || !math2Conf.exists()) {
         def tmpAssetsDir = new File(projectDir, "tmp-assets/")
         def zipDir = new File(tmpAssetsDir, "zips")
 
@@ -86,8 +88,10 @@ task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
     def mathConf = new File(targetDir, "conf/math.conf")
     def textConf = new File(targetDir, "conf/en_US.conf")
+    def rawContent2Conf = new File(targetDir, "conf/raw-content2.conf")
+    def math2Conf = new File(targetDir, "conf/math2.conf")
 
-    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists()) {
+    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists() || !rawContent2Conf.exists() || !math2Conf.exists()) {
         def tmpAssetsDir = new File(projectDir, "tmp-assets/")
 
         if (!tmpAssetsDir.isDirectory())
