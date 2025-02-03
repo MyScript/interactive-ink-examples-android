@@ -184,6 +184,7 @@ public class FontMetricsProvider implements IFontMetricsProvider
 
       int typefaceStyle = FontUtils.getTypefaceStyle(style);
       int fontSize = Math.round(y_mm2px(style.getFontSize()));
+      fontSize = Math.max(fontSize, 1);
       int start = text.getGlyphBeginAt(spans[i].beginPosition);
       int end = text.getGlyphEndAt(spans[i].endPosition - 1);
 
