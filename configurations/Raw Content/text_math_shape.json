@@ -46,5 +46,17 @@
   },
   "convert": {
     "convert-on-double-tap": false
+  },
+  "math": {
+      "solver": {
+          "options": "algebraic",
+          "numerical-computation": [ "at-right-of-equal-sign", "at-question-mark" ],
+          "enable-syntactic-correction": false,
+          "display-implicit-multiply": false,
+          "auto-variable-management": {
+              "enable": true,
+              "scoping-policy": "closest"
+          }
+      }
   }
 }
