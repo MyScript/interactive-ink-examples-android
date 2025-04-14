@@ -61,6 +61,8 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   private boolean isMultiFingerTouch = false;
   private int previousPointerId;
 
+  private boolean isScrollingEnabled = true;
+
   public InputController(Context context, EditorView editorView, Editor editor)
   {
     this.editorView = editorView;
@@ -98,6 +100,10 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   public final synchronized void setScalingEnabled(boolean enabled)
   {
     isScalingEnabled = enabled;
+  }
+
+  public final synchronized void setScrollingEnabled(boolean enabled) {
+    isScrollingEnabled = enabled;
   }
 
   public final synchronized IInputControllerListener getListener()
@@ -368,7 +374,7 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
   @Override
   public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
   {
-    if (editor.isScrollAllowed())
+    if (editor.isScrollAllowed() && isScrollingEnabled)
     {
       Point oldOffset = editor.getRenderer().getViewOffset();
       Point newOffset = new Point(oldOffset.x + distanceX, oldOffset.y + distanceY);
