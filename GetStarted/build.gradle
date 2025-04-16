@@ -34,12 +34,12 @@ dependencies {
 }
 
 task DownloadAndExtractAssets(type: Copy) {
-    def sourceUrls = ['https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-diagram.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-raw-content.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-raw-content2.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-math.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-math2.zip',
-                      'https://download.myscript.com/iink/recognitionAssets_iink_4.0/myscript-iink-recognition-text-en_US.zip']
+    def sourceUrls = ['https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-diagram.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-raw-content.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-raw-content2.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-math.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-math2.zip',
+                      'https://download.myscript.com/iink/recognitionAssets_iink_4.1/myscript-iink-recognition-text-en_US.zip']
     def targetDir = new File(projectDir, "src/main/assets/")
     def diagramConf = new File(targetDir, "conf/diagram.conf")
     def rawContentConf = new File(targetDir, "conf/raw-content.conf")
