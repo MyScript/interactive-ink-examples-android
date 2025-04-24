@@ -190,20 +190,14 @@ class PartEditor(
         override fun contentChanged(editor: Editor, blockIds: Array<out String>) {
             notifyUndoRedoState()
 
-            // auto-solve Math blocks containing an (almost) equal sign
+            // Auto-solve isolated Math blocks
             for (blockId in blockIds) {
                 val block = editor.getBlockById(blockId)
-                if (block?.type == "Math" && editor.part?.type == "Raw Content") {
+                if (block?.type == "Math" && editor.part?.type == "Raw Content" && block?.parent?.type != "Text") {
                     try {
                         val actions = editor.mathSolverController.getAvailableActions(blockId)
                         if (actions.contains(NUMERICAL_COMPUTATION) && editor.getConversionState(block).contains(ConversionState.HANDWRITING)) {
-                            val latexExport = editor.export_(block, MimeType.LATEX)
-                            if (latexExport.contains("=") || latexExport.contains("\\approx") || latexExport.contains("\\simeq")) {
-                                editor.mathSolverController.applyAction(
-                                    blockId,
-                                    NUMERICAL_COMPUTATION
-                                )
-                            }
+                            editor.mathSolverController.applyAction(blockId, NUMERICAL_COMPUTATION)
                         }
                     } catch (e: Exception)
                     {
