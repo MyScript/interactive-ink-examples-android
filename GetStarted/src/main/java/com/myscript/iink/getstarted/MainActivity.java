@@ -16,6 +16,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -62,7 +63,8 @@ public class MainActivity extends AppCompatActivity
   protected void onCreate(@Nullable Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+      WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
     ErrorActivity.installHandler(this);
 
@@ -76,6 +78,14 @@ public class MainActivity extends AppCompatActivity
     conf.setString("content-package.temp-folder", tempDir);
 
     binding = MainActivityBinding.inflate(getLayoutInflater());
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    {
+      // Make status bar text dark for better contrast with blue background
+      WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+      controller.setAppearanceLightStatusBars(true);
+    }
+
     setContentView(binding.getRoot());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, insets) -> {

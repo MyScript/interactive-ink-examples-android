@@ -26,6 +26,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.documentfile.provider.DocumentFile
@@ -251,7 +252,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.editorToolbarSheet.toolbarSettingsBottomSheet) { view, insets ->
             val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updatePadding(bottom = systemBarsInsets.bottom)
+            // Wait for layout to complete
+            view.doOnLayout {
+                view.updatePadding(bottom = systemBarsInsets.bottom)
+            }
             WindowInsetsCompat.CONSUMED
         }
         editorView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.editor_view)

@@ -14,9 +14,8 @@
     android:elevation="16dp"
     app:behavior_hideable="false"
     app:behavior_saveFlags="all"
-    app:behavior_peekHeight="68dp"
-    app:layout_behavior="@string/bottom_sheet_behavior"
-    android:fitsSystemWindows="true">
+    app:behavior_peekHeight="128dp"
+    app:layout_behavior="@string/bottom_sheet_behavior">
 
     <ImageView
         android:layout_width="24dp"
