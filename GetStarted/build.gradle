@@ -30,6 +30,7 @@ android {
 
 dependencies {
     implementation "androidx.appcompat:appcompat:${project.ext.appcompatVersion}"
+    implementation "androidx.activity:activity:${project.ext.activityVersion}"
     implementation project(':UIReferenceImplementation')
 }
 

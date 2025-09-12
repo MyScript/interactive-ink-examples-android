@@ -47,5 +47,6 @@ allprojects {
 
         // Android libraries
         appcompatVersion = '1.7.1'
+        activityVersion = '1.10.1'
     }
 }

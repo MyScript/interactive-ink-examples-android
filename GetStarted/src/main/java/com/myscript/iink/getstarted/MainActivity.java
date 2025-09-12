@@ -4,6 +4,7 @@ package com.myscript.iink.getstarted;
 
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.DimenRes;
@@ -11,6 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -57,6 +62,7 @@ public class MainActivity extends AppCompatActivity
   protected void onCreate(@Nullable Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
     ErrorActivity.installHandler(this);
 
@@ -71,7 +77,16 @@ public class MainActivity extends AppCompatActivity
 
     binding = MainActivityBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
-
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, insets) -> {
+        Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+        view.setPadding(view.getPaddingLeft(),
+                systemBarsInsets.top,
+                view.getPaddingRight(),
+                systemBarsInsets.bottom);
+        return WindowInsetsCompat.CONSUMED;
+      });
+    }
     editorView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.editor_view);
     smartGuideView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.smart_guide_view);
 

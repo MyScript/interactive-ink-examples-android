@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.DimenRes
@@ -23,7 +24,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.coroutineScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -243,7 +247,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(binding.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.editorToolbarSheet.toolbarSettingsBottomSheet) { view, insets ->
+            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(bottom = systemBarsInsets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         editorView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.editor_view)
         smartGuideView = findViewById(com.myscript.iink.uireferenceimplementation.R.id.smart_guide_view)
 
