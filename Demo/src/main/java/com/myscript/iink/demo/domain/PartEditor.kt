@@ -12,8 +12,8 @@ import com.myscript.iink.ConversionState
 import com.myscript.iink.Editor
 import com.myscript.iink.EditorError
 import com.myscript.iink.IEditorListener
+import com.myscript.iink.MathDiagnostic
 import com.myscript.iink.MimeType
-import com.myscript.iink.ParameterSet
 import com.myscript.iink.PointerTool
 import com.myscript.iink.PointerType
 import com.myscript.iink.TextFormat
@@ -193,11 +193,19 @@ class PartEditor(
             // Auto-solve isolated Math blocks
             for (blockId in blockIds) {
                 val block = editor.getBlockById(blockId)
-                if (block?.type == "Math" && editor.part?.type == "Raw Content" && block?.parent?.type != "Text") {
+                if (block?.type == "Math" && editor.part?.type == "Raw Content" && block.parent?.type != "Text") {
                     try {
-                        val actions = editor.mathSolverController.getAvailableActions(blockId)
-                        if (actions.contains(NUMERICAL_COMPUTATION) && editor.getConversionState(block).contains(ConversionState.HANDWRITING)) {
-                            editor.mathSolverController.applyAction(blockId, NUMERICAL_COMPUTATION)
+                        val configStrokes = editor.engine.createParameterSet()
+                        configStrokes.setString("math.solver.rendered-ink-type", "strokes")
+                        val configGlyphs = editor.engine.createParameterSet()
+                        configGlyphs.setString("math.solver.rendered-ink-type", "glyphs")
+
+                        val solveAsStrokes = editor.mathSolverController.getDiagnostic(blockId, "numerical-computation", configStrokes)
+                        val solveAsGlyphs  = editor.mathSolverController.getDiagnostic(blockId, "numerical-computation", configGlyphs)
+
+                        if (solveAsStrokes == MathDiagnostic.ALLOWED && solveAsGlyphs == MathDiagnostic.ALLOWED) { // not already solved as strokes or glyphs
+                            val config = if (editor.getConversionState(block).contains(ConversionState.HANDWRITING)) configStrokes else configGlyphs
+                            editor.mathSolverController.applyAction(blockId, NUMERICAL_COMPUTATION, config)
                         }
                     } catch (e: Exception)
                     {
