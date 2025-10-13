@@ -1,5 +1,23 @@
 {
+  "diagram": {
+    "configuration": {
+      "analyzer": {
+        "bundle": "raw-content",
+        "name": "text-block"
+      }
+    }
+  },
   "raw-content": {
+    "configuration": {
+      "analyzer": {
+        "bundle": "raw-content",
+        "name": "text-block"
+      },
+      "math": {
+        "bundle": "math",
+        "name": "standard"
+      }
+    },
     "classification": {
       "types": [ "text", "drawing" ]
     },
