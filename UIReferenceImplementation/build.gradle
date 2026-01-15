@@ -22,5 +22,5 @@ dependencies {
     implementation "androidx.appcompat:appcompat:${project.ext.appcompatVersion}"
     implementation "androidx.activity:activity:${project.ext.activityVersion}"
     implementation "com.google.code.gson:gson:2.11.0"
-    api "com.myscript:iink:4.3.0"
+    api "com.myscript:iink:4.4.0"
 }
