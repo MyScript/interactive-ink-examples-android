@@ -193,7 +193,7 @@ class PartEditor(
             // Auto-solve isolated Math blocks
             for (blockId in blockIds) {
                 val block = editor.getBlockById(blockId)
-                if (block?.type == "Math" && editor.part?.type == "Raw Content" && block.parent?.type != "Text") {
+                if (block?.type == "Math" && editor.part?.type == "Raw Content") {
                     try {
                         val configStrokes = editor.engine.createParameterSet()
                         configStrokes.setString("math.solver.rendered-ink-type", "strokes")
