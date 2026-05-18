@@ -21,8 +21,8 @@ android {
         targetSdk project.ext.targetSdk
 
         applicationId 'com.myscript.iink.getstarted'
-        versionCode = 4420
-        versionName = '4.4.2'
+        versionCode = 4500
+        versionName = '4.5.0'
 
         vectorDrawables.useSupportLibrary true
     }
