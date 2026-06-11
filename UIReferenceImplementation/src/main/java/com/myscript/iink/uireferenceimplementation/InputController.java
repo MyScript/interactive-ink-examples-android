@@ -316,7 +316,8 @@ public class InputController implements View.OnTouchListener, GestureDetector.On
         {
           try
           {
-            consumed = consumed || handleOnTouchForPointer(event, actionMask, pointerIndex);
+            boolean handled = handleOnTouchForPointer(event, actionMask, pointerIndex);
+            consumed = consumed || handled;
           }
           catch(Exception e) {
             // ignore spurious invalid touch events that may occurs when spamming undo/redo button
