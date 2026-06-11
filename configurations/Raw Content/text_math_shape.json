@@ -45,7 +45,7 @@
     }
   },
   "convert": {
-    "convert-on-double-tap": false
+    "convert-on-double-tap": true
   },
   "math": {
       "solver": {
