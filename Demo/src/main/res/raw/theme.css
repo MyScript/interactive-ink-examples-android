@@ -8,10 +8,10 @@ glyph {
 }
 
 .math {
-  /* Font family must be aligned with the key used to register the corresponding Typeface in typeface map (see DemoModule) */
-  font-family: STIX;
+  font-family: STIX Two Math;
 }
 
 .math-variable {
   font-style: italic;
+  font-family: STIX Two Text;
 }

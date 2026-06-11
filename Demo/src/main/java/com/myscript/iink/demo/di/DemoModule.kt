@@ -77,7 +77,8 @@ class DemoModule(application: Application) {
         }
         val stixFont = ResourcesCompat.getFont(application, R.font.stix)
         if (stixFont != null) {
-            typefaces["STIX"] = stixFont
+            typefaces["STIX Two Math"] = stixFont
+            typefaces["STIX Two Text"] = stixFont
         }
         return typefaces
     }
