@@ -5,8 +5,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.1'
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24'
+        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20'
     }
 }
 
@@ -15,8 +15,8 @@ subprojects {
         if (proj.hasProperty('android')) {
             android {
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_11
-                    targetCompatibility JavaVersion.VERSION_11
+                    sourceCompatibility = JavaVersion.VERSION_11
+                    targetCompatibility = JavaVersion.VERSION_11
                 }
 
                 if (proj.hasProperty('kotlin')) {
@@ -25,7 +25,7 @@ subprojects {
                     }
                 }
 
-                ndkVersion '27.3.13750724'
+                ndkVersion = '27.3.13750724'
             }
         }
     }

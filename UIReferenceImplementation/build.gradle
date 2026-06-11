@@ -4,23 +4,23 @@ plugins {
 }
 
 android {
-    namespace 'com.myscript.iink.uireferenceimplementation'
+    namespace = 'com.myscript.iink.uireferenceimplementation'
 
-    compileSdk project.ext.compileSdk
+    compileSdk = project.ext.compileSdk
 
     defaultConfig {
-        minSdk project.ext.minSdk
-        targetSdk project.ext.targetSdk
+        minSdk = project.ext.minSdk
+        targetSdk = project.ext.targetSdk
         versionCode = 4500
         versionName = '4.5.0'
 
-        vectorDrawables.useSupportLibrary true
+        vectorDrawables.useSupportLibrary = true
     }
 }
 
 dependencies {
     implementation "androidx.appcompat:appcompat:${project.ext.appcompatVersion}"
     implementation "androidx.activity:activity:${project.ext.activityVersion}"
-    implementation "com.google.code.gson:gson:2.11.0"
+    implementation "com.google.code.gson:gson:2.13.1"
     api "com.myscript:iink:4.5.0"
 }

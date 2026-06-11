@@ -7,24 +7,24 @@ plugins {
 }
 
 android {
-    namespace 'com.myscript.iink.getstarted'
+    namespace = 'com.myscript.iink.getstarted'
 
-    compileSdk project.ext.compileSdk
+    compileSdk = project.ext.compileSdk
 
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
 
     defaultConfig {
-        minSdk project.ext.minSdk
-        targetSdk project.ext.targetSdk
+        minSdk = project.ext.minSdk
+        targetSdk = project.ext.targetSdk
 
-        applicationId 'com.myscript.iink.getstarted'
+        applicationId = 'com.myscript.iink.getstarted'
         versionCode = 4500
         versionName = '4.5.0'
 
-        vectorDrawables.useSupportLibrary true
+        vectorDrawables.useSupportLibrary = true
     }
 }
 
@@ -34,7 +34,7 @@ dependencies {
     implementation project(':UIReferenceImplementation')
 }
 
-task DownloadAndExtractAssets(type: Copy) {
+tasks.register('downloadAndExtractAssets') {
     def sourceUrls = ['https://download.myscript.com/iink/recognitionAssets_iink_4.4/myscript-iink-recognition-diagram.zip',
                       'https://download.myscript.com/iink/recognitionAssets_iink_4.4/myscript-iink-recognition-raw-content.zip',
                       'https://download.myscript.com/iink/recognitionAssets_iink_4.4/myscript-iink-recognition-raw-content2.zip',
@@ -50,16 +50,18 @@ task DownloadAndExtractAssets(type: Copy) {
     def multiLangConf = new File(targetDir, "conf/mul_Latn.conf")
     def rawContent2Conf = new File(targetDir, "conf/raw-content2.conf")
     def math2Conf = new File(targetDir, "conf/math2.conf")
+    def tmpAssetsDir = new File(projectDir, "tmp-assets/")
+    def zipDir = new File(tmpAssetsDir, "zips")
 
-    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists() || !multiLangConf.exists() || !rawContent2Conf.exists() || !math2Conf.exists()) {
-        def tmpAssetsDir = new File(projectDir, "tmp-assets/")
-        def zipDir = new File(tmpAssetsDir, "zips")
+    outputs.dir(new File(tmpAssetsDir, "recognition-assets"))
 
-        if (!tmpAssetsDir.isDirectory())
-            tmpAssetsDir.mkdirs()
+    onlyIf {
+        !diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists() || !multiLangConf.exists() || !rawContent2Conf.exists() || !math2Conf.exists()
+    }
 
-        if (!zipDir.isDirectory())
-            zipDir.mkdirs()
+    doFirst {
+        tmpAssetsDir.mkdirs()
+        zipDir.mkdirs()
 
         sourceUrls.each { sourceUrl ->
             ant.get(src: sourceUrl, dest: zipDir.getPath())
@@ -67,38 +69,29 @@ task DownloadAndExtractAssets(type: Copy) {
 
         File[] zipFiles = FileUtils.listFiles(zipDir, FileFilterUtils.suffixFileFilter("zip"), FileFilterUtils.trueFileFilter())
         zipFiles.each { File zipFile ->
-            from zipTree(zipFile)
-            into tmpAssetsDir
+            copy {
+                from zipTree(zipFile)
+                into tmpAssetsDir
+            }
         }
     }
 }
 
-task CopyAssets(type: Copy, dependsOn: DownloadAndExtractAssets) {
+tasks.register('copyAssets', Copy) {
+    dependsOn 'downloadAndExtractAssets'
+
+    def tmpAssetsDir = new File(projectDir, "tmp-assets/")
+    def recognitionAssetDir = new File(tmpAssetsDir, "recognition-assets/")
     def targetDir = new File(projectDir, "src/main/assets/")
-    def diagramConf = new File(targetDir, "conf/diagram.conf")
-    def rawContentConf = new File(targetDir, "conf/raw-content.conf")
-    def mathConf = new File(targetDir, "conf/math.conf")
-    def textConf = new File(targetDir, "conf/en_US.conf")
-    def multiLangConf = new File(targetDir, "conf/mul_Latn.conf")
-    def rawContent2Conf = new File(targetDir, "conf/raw-content2.conf")
-    def math2Conf = new File(targetDir, "conf/math2.conf")
 
-    if (!diagramConf.exists() || !rawContentConf.exists() || !mathConf.exists() || !textConf.exists() || !multiLangConf.exists() || !rawContent2Conf.exists() || !math2Conf.exists()) {
-        def tmpAssetsDir = new File(projectDir, "tmp-assets/")
+    from recognitionAssetDir
+    into targetDir
 
-        if (!tmpAssetsDir.isDirectory())
-            tmpAssetsDir.mkdirs()
+    onlyIf { recognitionAssetDir.exists() }
 
-        def recognitionAssetDir = new File(tmpAssetsDir, "recognition-assets/")
-
-        println "Copying downloaded assets from $recognitionAssetDir to $targetDir"
-        from recognitionAssetDir
-        into targetDir
-
-        doLast {
-            tmpAssetsDir.deleteDir()
-        }
+    doLast {
+        tmpAssetsDir.deleteDir()
     }
 }
 
-preBuild.dependsOn(CopyAssets)
+preBuild.dependsOn(downloadAndExtractAssets, copyAssets)
