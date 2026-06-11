@@ -143,7 +143,7 @@ class ContentRepository(
             if (confFile != null) {
                 File(parent, confFile)
             } else {
-                defaultFile
+                throw FileNotFoundException("Configuration profile '$configurationProfile' not found in assets for part type '${contentPart.type}'")
             }
         } else {
             defaultFile
